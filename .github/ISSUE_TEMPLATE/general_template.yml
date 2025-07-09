@@ -1,0 +1,25 @@
+name: "💬 General Issue"
+description: "특정 분류가 어려운 일반 이슈"
+labels: ["discussion"]
+body:
+  - type: textarea
+    attributes:
+      label: 📄 설명
+      description: 이슈의 배경·맥락·목표를 간단히 작성해 주세요.
+      placeholder: 예) 문서 보완 필요, 회의 안건 제안, 질문 등
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: ✅ 작업할 내용 / 논의 포인트
+      description: 해결 방법이나 논의할 사항을 체크리스트로 작성해 주세요.
+      placeholder: |
+        - [ ] 관련 문서 조사
+        - [ ] 팀 미팅 일정 조율
+        - [ ] 결론 도출 및 문서화
+
+  - type: textarea
+    attributes:
+      label: 🙋🏻 참고 자료
+      description: 참고 링크·파일·코멘트 등이 있으면 추가해 주세요.

@@ -1,0 +1,39 @@
+name: "🧪 Add Tests"
+description: "테스트 코드 작성·보강 작업"
+labels: ["test"]
+body:
+  - type: textarea
+    attributes:
+      label: 📄 설명
+      description: 테스트를 추가하려는 이유, 범위, 기대 효과 등을 작성해 주세요.
+      placeholder: 예) 신규 기능 검증, 회귀 방지, 커버리지 향상 등
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: 🧩 대상 모듈/기능
+      description: 테스트할 클래스·메서드·엔드포인트 등을 명시해 주세요.
+      placeholder: 예) `UserService`, `/api/v1/orders`, `LoginController`
+
+  - type: textarea
+    attributes:
+      label: ✅ 작업할 내용
+      description: 세부 작업을 체크리스트로 작성해 주세요.
+      placeholder: |
+        - [ ] 단위 테스트: `UserService.createUser`
+        - [ ] 통합 테스트: 회원가입 → 로그인 플로우
+        - [ ] 코드 커버리지 80% 이상 달성
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: ⚠️ 고려 사항
+      description: Mocking 전략, 외부 의존성, 테스트 데이터 준비 등 주의할 점을 적어 주세요.
+      placeholder: 예) 외부 API 호출 Mock, 테스트용 Docker DB 사용 등
+
+  - type: textarea
+    attributes:
+      label: 🙋🏻 참고 자료
+      description: 스펙 문서, 레퍼런스, 가이드 링크 등이 있으면 입력해 주세요.
