@@ -33,6 +33,17 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testCompileOnly 'org.projectlombok:lombok'
 	testAnnotationProcessor 'org.projectlombok:lombok'
+
+	//Spring Security
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	//OAuth2.0
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+	//JWT
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+	// WebClient 사용을 위한 WebFlux 의존성
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 }
 
 tasks.named('test') {
