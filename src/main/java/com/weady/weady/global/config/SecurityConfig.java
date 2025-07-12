@@ -33,7 +33,7 @@ public class SecurityConfig {
     }
 
     private final static String[] WHITE_LIST = {
-            "/api/auth/**", // 인증 관련 API는 모두 허용
+            "/api/v1/auth/**", // 인증 관련 API는 모두 허용
             "/error", // 에러 처리 경로는 허용
             "/swagger-ui/**", // Swagger UI 관련 경로 허용
             "/v3/api-docs/**", // Swagger API 문서 경로 허용
