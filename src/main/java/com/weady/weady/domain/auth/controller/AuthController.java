@@ -20,7 +20,7 @@ public class AuthController {
     @PostMapping("/login/{provider}")
     public ResponseEntity<ApiResponse<AuthResponse.LoginResponseDto>> socialLogin( @PathVariable String provider,
                                                                                    @RequestBody AuthRequest.LoginRequestDto request) {
-        AuthResponse.LoginResponseDto response = oAuthService.socialLogin(provider, request.authorizationToken());
+        AuthResponse.LoginResponseDto response = oAuthService.socialLogin(provider, request.authorizationCode());
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(response));
     }
 }

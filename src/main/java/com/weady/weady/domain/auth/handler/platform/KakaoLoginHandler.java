@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.Map;
 import java.util.Objects;
@@ -46,11 +47,18 @@ public class KakaoLoginHandler implements SocialLoginHandler {
         params.add("redirect_uri", provider.getRedirectUri());
         params.add("code", authorizationCode);
 
-        Map<String, Object> response = WebClient.create()
-                .post().uri(provider.getProviderDetails().getTokenUri())
-                .bodyValue(params)
-                .retrieve().bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {}).block();
-        return (String) Objects.requireNonNull(response).get("access_token");
+        // WebClient 호출 부분을 try-catch로 감쌉니다.
+        try {
+            Map<String, Object> response = WebClient.create()
+                    .post().uri(provider.getProviderDetails().getTokenUri())
+                    .bodyValue(params)
+                    .retrieve().bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {}).block();
+            return (String) response.get("access_token");
+        } catch (WebClientResponseException e) {
+            // 에러 발생 시 응답 본문을 로그로 출력
+            log.error("Error response from Kakao: {}", e.getResponseBodyAsString(), e);
+            throw e; // 기존 예외를 다시 던져서 흐름 유지
+        }
     }
 
     private Map<String, Object> getUserAttributes(ClientRegistration provider, String accessToken) {
