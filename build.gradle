@@ -51,10 +51,9 @@ tasks.named('test') {
 }
 
 /* Submodule 내부의 yml 파일 가져와서 resource로 복사 */
-tasks.register('copyYML', Copy) {
-	copy {
-		from './weady-server-private'
-		include "*.yml"
-		into './src/main/resources'
+processResources {
+	from('./weady-server-private') {
+		include '*.yml'
 	}
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }

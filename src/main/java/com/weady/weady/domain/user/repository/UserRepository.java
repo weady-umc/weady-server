@@ -7,8 +7,6 @@ import java.util.Optional;
 
 public interface UserRepository {
     Optional<User> findByProviderAndSocialId(Provider provider, String socialId);
-
     Optional<User> findByEmail(String email);
-
     User save(User user);
 }
