@@ -7,6 +7,8 @@ import com.weady.weady.domain.auth.handler.SocialLoginHandler;
 import com.weady.weady.domain.user.entity.Provider;
 import com.weady.weady.domain.user.entity.User;
 import com.weady.weady.domain.user.repository.UserRepository;
+import com.weady.weady.global.common.error.errorCode.AuthErrorCode;
+import com.weady.weady.global.common.error.exception.BusinessException;
 import com.weady.weady.global.jwt.JwtTokenProvider;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -43,19 +45,19 @@ public class OAuthService {
         SocialLoginHandler handler = handlerMap.get(provider);
 
         if (handler == null) {
-            throw new IllegalArgumentException("지원하지 않는 소셜 로그인입니다: " + providerName);
+            throw new BusinessException(AuthErrorCode.UNSUPPORTED_PROVIDER, providerName);
         }
 
         OAuthAttributes attributes = handler.getUserProfile(authorizationCode);
 
-        // 2. saveOrUpdate 가 User 와 isNewUser 를 모두 담은 객체를 반환하도록 수정
+        // saveOrUpdate 가 User 와 isNewUser 를 모두 담은 객체를 반환하도록 수정
         SaveResult saveResult = saveOrUpdate(attributes);
         User user = saveResult.user();
 
         String accessToken = jwtTokenProvider.createAccessToken(user);
         String refreshToken = jwtTokenProvider.createRefreshToken(user);
 
-        // 3. AuthResponse 를 빌드할 때 isNewUser 값 추가
+        // AuthResponse 를 빌드할 때 isNewUser 값 추가
         return AuthResponse.LoginResponseDto.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)

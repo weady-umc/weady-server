@@ -13,8 +13,11 @@ public class BusinessException extends RuntimeException {
     private final ErrorCode errorCode;
 
     public BusinessException(ErrorCode errorCode) {
-        // 부모 클래스(RuntimeException)의 생성자를 호출하여 메시지를 설정
         super(errorCode.getMessage());
+        this.errorCode = errorCode;
+    }
+    public BusinessException(ErrorCode errorCode, String message) {
+        super(errorCode.getMessage() + ": " + message);
         this.errorCode = errorCode;
     }
 }
