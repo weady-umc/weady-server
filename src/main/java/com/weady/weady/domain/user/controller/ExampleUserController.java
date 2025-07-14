@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ExampleUserController {
     private final ExampleUserService exampleUserService;
-
     @GetMapping("/api/v1/example/user")
     public ResponseEntity<ApiResponse<ExampleUserResponse.ExampleUserResponseDto>> getExampleUser(){
         ExampleUserResponse.ExampleUserResponseDto response = exampleUserService.getUser();
