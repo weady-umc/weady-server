@@ -33,6 +33,17 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testCompileOnly 'org.projectlombok:lombok'
 	testAnnotationProcessor 'org.projectlombok:lombok'
+
+	//Spring Security
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	//OAuth2.0
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+	//JWT
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+	// WebClient 사용을 위한 WebFlux 의존성
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 }
 
 tasks.named('test') {
@@ -40,10 +51,9 @@ tasks.named('test') {
 }
 
 /* Submodule 내부의 yml 파일 가져와서 resource로 복사 */
-tasks.register('copyYML', Copy) {
-	copy {
-		from './weady-server-private'
-		include "*.yml"
-		into './src/main/resources'
+processResources {
+	from('./weady-server-private') {
+		include '*.yml'
 	}
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
