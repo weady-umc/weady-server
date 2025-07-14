@@ -23,6 +23,10 @@ public class UserRepositoryImpl implements UserRepository{
     }
 
     @Override
+    public Optional<User> findById(Long id) {
+        return jpaUserRepository.findById(id);
+    }
+    @Override
     public User save(User user) {
         return jpaUserRepository.save(user);
     }
