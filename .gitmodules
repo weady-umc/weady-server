@@ -1,3 +1,4 @@
 [submodule "weady-server-private"]
 	path = weady-server-private
 	url = https://github.com/weady-umc/weady-server-private.git
+	branch = update-yml-files
