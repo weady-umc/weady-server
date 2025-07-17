@@ -40,7 +40,7 @@ public class CurationService {
 
     /**
      * 큐레이션 상세정보 조회
-     * @return ationByCurationIdResponseDto
+     * @return curationByCurationIdResponseDto
      * @throws ...
      */
     public CurationResponse.curationByCurationIdResponseDto getSpecificCuration(Long curationId){
@@ -53,5 +53,12 @@ public class CurationService {
         return CurationMapper.toCurationResponseDto(curationId, curationTitle, imgs);
 
     }
+
+    /**
+     * curation_category 넘겨주기
+     * @return
+     * @throws ...
+     */
+
 
 }
