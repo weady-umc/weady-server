@@ -4,6 +4,7 @@ import com.weady.weady.domain.curation.entity.CurationCategory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -26,5 +27,10 @@ public class CurationCategoryRepositoryImpl implements CurationCategoryRepositor
     @Override
     public CurationCategory save(CurationCategory curationCategory) {
         return jpaCurationCategoryRepository.save(curationCategory);
+    }
+
+    @Override
+    public List<CurationCategory> findAll() {
+        return jpaCurationCategoryRepository.findAll();
     }
 }

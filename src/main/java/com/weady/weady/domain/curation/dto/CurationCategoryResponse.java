@@ -20,4 +20,9 @@ public class CurationCategoryResponse {
             String curationTitle,
             String backgroundImgUrl
     ) {}
+
+    @Builder
+    public record curationCategoryResponseDto(Long locationId,
+                                              String locationName
+    ) {}
 }

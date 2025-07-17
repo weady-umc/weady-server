@@ -5,6 +5,7 @@ import com.weady.weady.domain.curation.dto.CurationResponse;
 import com.weady.weady.domain.curation.entity.Curation;
 import com.weady.weady.domain.curation.entity.CurationCategory;
 import com.weady.weady.domain.curation.entity.CurationImg;
+import com.weady.weady.domain.curation.mapper.CurationCategoryMapper;
 import com.weady.weady.domain.curation.mapper.CurationMapper;
 import com.weady.weady.domain.curation.repository.curation.CurationRepository;
 import com.weady.weady.domain.curation.repository.curationCategory.CurationCategoryRepository;
@@ -56,9 +57,13 @@ public class CurationService {
 
     /**
      * curation_category 넘겨주기
-     * @return
+     * @return List<CurationCategoryResponse.curationCategoryResponseDto>
      * @throws ...
      */
+    public List<CurationCategoryResponse.curationCategoryResponseDto> getCurationCategory(){
+        List<CurationCategory> curationCategories = curationCategoryRepository.findAll();
 
+        return CurationCategoryMapper.toDtoList(curationCategories);
+    }
 
 }
