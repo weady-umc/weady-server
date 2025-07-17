@@ -1,9 +1,14 @@
 package com.weady.weady.domain.curation.entity;
 
 
+import com.weady.weady.domain.tags.entity.SeasonTag;
+import com.weady.weady.domain.tags.entity.WeatherTag;
 import com.weady.weady.global.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Builder
@@ -24,5 +29,17 @@ public class Curation extends BaseEntity {
     @ManyToOne
     @JoinColumn(name="curation_category_id",nullable = false)
     private CurationCategory curationCategory;
+
+    @ManyToOne
+    @JoinColumn(name="season_tag",nullable = false)
+    private SeasonTag seasonTag;
+
+    @ManyToOne
+    @JoinColumn(name="weather_tag",nullable = false)
+    private WeatherTag weatherTag;
+
+    @OneToMany(mappedBy = "curation")
+    private List<CurationImg> imgs = new ArrayList<>();
+
 
 }
