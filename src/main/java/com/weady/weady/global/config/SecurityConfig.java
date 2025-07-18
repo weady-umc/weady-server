@@ -38,6 +38,7 @@ public class SecurityConfig {
             "/swagger-ui/**", // Swagger UI 관련 경로 허용
             "/v3/api-docs/**", // Swagger API 문서 경로 허용
             "/swagger-resources/**", // Swagger 리소스 경로 허용
-            "/webjars/**" // Swagger 웹 자원 경로 허용
+            "/webjars/**", // Swagger 웹 자원 경로 허용
+            "/api/v1/curation/**" //큐레이션 관련 API 모두 허용
     };
 }
