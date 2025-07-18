@@ -36,6 +36,9 @@ out/
 ### VS Code ###
 .vscode/
 
+### local yml###
+application-local.yml
+
 application.yml
 src/main/resources/application.yml
 src/main/resources/application-dev.yml
