@@ -9,4 +9,10 @@ public class AuthResponse {
                                     boolean isNewUser) { //신규 가입자 여부
 
     }
+
+    @Builder
+    public record ReissueResponseDto(String accessToken,
+                                     String refreshToken) {
+
+    }
 }

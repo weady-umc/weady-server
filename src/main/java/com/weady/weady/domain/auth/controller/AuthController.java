@@ -23,4 +23,18 @@ public class AuthController {
         AuthResponse.LoginResponseDto response = oAuthService.socialLogin(provider, request.authorizationCode());
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(response));
     }
+
+    @DeleteMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(){
+        oAuthService.logout();
+        return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of("로그아웃 성공"));
+    }
+
+    @PostMapping("/reissue")
+    public ResponseEntity<ApiResponse<AuthResponse.ReissueResponseDto>> reissue(@RequestBody AuthRequest.ReissueRequestDto request) {
+        AuthResponse.ReissueResponseDto response = oAuthService.reissueTokens(request);
+        return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(response, "토큰 재발급 성공"));
+    }
+
+
 }
