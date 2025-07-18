@@ -1,18 +1,25 @@
 package com.weady.weady.domain.auth.service;
 
+import com.weady.weady.domain.auth.dto.AuthRequest;
 import com.weady.weady.domain.auth.dto.AuthResponse; // 수정된 DTO 임포트
+import com.weady.weady.domain.auth.entity.RefreshToken;
 import com.weady.weady.domain.auth.mapper.OAuthAttributeMapper;
+import com.weady.weady.domain.auth.mapper.RefreshTokenMapper;
 import com.weady.weady.domain.auth.model.OAuthAttributes;
 import com.weady.weady.domain.auth.handler.SocialLoginHandler;
+import com.weady.weady.domain.auth.repository.RefreshTokenRepository;
 import com.weady.weady.domain.user.entity.Provider;
 import com.weady.weady.domain.user.entity.User;
 import com.weady.weady.domain.user.repository.UserRepository;
 import com.weady.weady.global.common.error.errorCode.AuthErrorCode;
+import com.weady.weady.global.common.error.errorCode.UserErrorCode;
 import com.weady.weady.global.common.error.exception.BusinessException;
 import com.weady.weady.global.jwt.JwtTokenProvider;
+import com.weady.weady.global.util.SecurityUtil;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +37,9 @@ public class OAuthService {
     private final List<SocialLoginHandler> loginHandlers;
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final RefreshTokenRepository refreshTokenRepository;
+
+
     private Map<Provider, SocialLoginHandler> handlerMap;
 
     @PostConstruct
@@ -38,8 +48,14 @@ public class OAuthService {
                 .collect(Collectors.toMap(SocialLoginHandler::getProviderType, Function.identity()));
     }
 
-
-    // 1. 반환 타입을 AuthResponse 로 변경
+    /** 소셜 로그인 처리 메서드
+     * @param providerName: 소셜 로그인 제공자 이름 (예: "KAKAO", "NAVER", "GOOGLE")
+     * @param authorizationCode: 소셜 로그인 인증 코드
+     *
+     * @return AuthResponse.LoginResponseDto: 로그인 응답 DTO
+     * @throws AuthErrorCode.UNSUPPORTED_PROVIDER: 지원하지 않는 소셜 로그인 제공자일 경우 예외 발생
+    * */
+    @Transactional
     public AuthResponse.LoginResponseDto socialLogin(String providerName, String authorizationCode) {
         Provider provider = Provider.valueOf(providerName.toUpperCase());
         SocialLoginHandler handler = handlerMap.get(provider);
@@ -47,43 +63,76 @@ public class OAuthService {
         if (handler == null) {
             throw new BusinessException(AuthErrorCode.UNSUPPORTED_PROVIDER, providerName);
         }
-
         OAuthAttributes attributes = handler.getUserProfile(authorizationCode);
 
-        // saveOrUpdate 가 User 와 isNewUser 를 모두 담은 객체를 반환하도록 수정
-        SaveResult saveResult = saveOrUpdate(attributes);
+        SaveResult saveResult = saveOrUpdateUser(attributes);
         User user = saveResult.user();
 
         String accessToken = jwtTokenProvider.createAccessToken(user);
         String refreshToken = jwtTokenProvider.createRefreshToken(user);
+        saveOrUpdateRefreshToken(user, refreshToken);
 
-        // AuthResponse 를 빌드할 때 isNewUser 값 추가
-        return AuthResponse.LoginResponseDto.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .isNewUser(saveResult.isNewUser())
-                .build();
+        return RefreshTokenMapper.toLoginResponseDto(accessToken, refreshToken, saveResult.isNewUser());
     }
 
-    // 4. 유저와 신규 여부를 함께 반환하기 위한 private record(또는 클래스) 선언
-    private record SaveResult(User user, Boolean isNewUser) {}
+    /**
+     * 리프레시 토큰을 사용하여 새로운 액세스 토큰과 리프레시 토큰을 발급하는 메서드
+     * 이 메서드는 리프레시 토큰이 유효한지 검증하고, 해당 토큰에 연결된 사용자를 찾아 새로운 액세스 토큰과 리프레시 토큰을 생성합니다.
+     * @param refreshTokenValue: 리프레시 토큰 값
+     *
+     * @return AuthResponse.ReissueResponseDto: 새로운 액세스 토큰과 리프레시 토큰을 포함한 응답 DTO
+     * @throws AuthErrorCode.INVALID_REFRESH_TOKEN: 유효하지 않은 리프레시 토큰일 경우 예외 발생
+     * */
+    @Transactional
+    public AuthResponse.ReissueResponseDto reissueTokens(AuthRequest.ReissueRequestDto requestDto) {
+        String refreshTokenValue = requestDto.refreshToken();
+        if (!jwtTokenProvider.validateToken(refreshTokenValue)) {
+            throw new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN);
+        }
+        RefreshToken refreshToken = refreshTokenRepository.findByToken(refreshTokenValue)
+                .orElseThrow(() -> new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN));
 
-    // 5. saveOrUpdate 메소드 로직 수정
-    private SaveResult saveOrUpdate(OAuthAttributes attributes) {
+        User user = refreshToken.getUser();
+        String newAccessToken = jwtTokenProvider.createAccessToken(user);
+        String newRefreshTokenValue = jwtTokenProvider.createRefreshToken(user);
+
+        refreshToken.updateToken(newRefreshTokenValue);
+        return RefreshTokenMapper.toReissueResponseDto(newAccessToken, newRefreshTokenValue);
+    }
+
+    /**
+     * 현재 로그인한 사용자를 로그아웃 시키는 메소드 (리프레시 토큰 삭제)
+     */
+    @Transactional
+    public void logout() {
+        Long userId = SecurityUtil.getCurrentUserId();
+        refreshTokenRepository.deleteByUserId(userId);
+    }
+
+    private SaveResult saveOrUpdateUser(OAuthAttributes attributes) {
         Optional<User> optionalUser = userRepository.findByProviderAndSocialId(
                 attributes.getProvider(),
                 attributes.getSocialId()
         );
-
-        // 이미 가입된 유저인 경우
         if (optionalUser.isPresent()) {
             return new SaveResult(optionalUser.get(), false);
         }
-
-        // 신규 유저인 경우
         User newUser = OAuthAttributeMapper.OAuthAttributesToUser(attributes);
         User savedUser = userRepository.save(newUser);
-        // isNewUser: true 와 함께 새로 저장된 유저 정보 반환
         return new SaveResult(savedUser, true);
     }
+
+    private void saveOrUpdateRefreshToken(User user, String refreshToken) {
+        refreshTokenRepository.findByUser(user)
+                .ifPresentOrElse(
+                        existingToken -> existingToken.updateToken(refreshToken),
+                        () -> refreshTokenRepository.save(
+                                RefreshToken.builder()
+                                        .token(refreshToken)
+                                        .user(user)
+                                        .build())
+                );
+    }
+
+    private record SaveResult(User user, Boolean isNewUser) {}
 }

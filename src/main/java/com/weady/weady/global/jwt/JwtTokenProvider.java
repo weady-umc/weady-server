@@ -1,6 +1,8 @@
 package com.weady.weady.global.jwt;
 
 import com.weady.weady.domain.user.entity.User;
+import com.weady.weady.global.common.error.errorCode.AuthErrorCode;
+import com.weady.weady.global.common.error.exception.BusinessException;
 import com.weady.weady.global.constant.JwtConstant;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -67,10 +69,13 @@ public class JwtTokenProvider {
                     .build()
                     .parseSignedClaims(token);
             return true;
+        } catch (ExpiredJwtException e) {
+            log.info("만료된 JWT 토큰입니다.");
+            throw e;
         } catch (Exception e) {
             log.info("잘못된 JWT 토큰입니다. reason: {}", e.getMessage());
+            throw new BusinessException(AuthErrorCode.INVALID_ACCESS_TOKEN); // 혹은 커스텀 예외
         }
-        return false;
     }
 
     public String resolveToken(HttpServletRequest request) {
