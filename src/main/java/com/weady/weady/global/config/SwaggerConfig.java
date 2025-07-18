@@ -47,5 +47,13 @@ public class SwaggerConfig {
                 .build();
     }
 
+    @Bean
+    public GroupedOpenApi boardApi() {
+        return GroupedOpenApi.builder()
+                .group("2. 웨디 보드 API")
+                .pathsToMatch("/api/v1/board/**")
+                .build();
+    }
+
     // 추후 다른 도메인 API가 추가되면 여기에 GroupedOpenApi Bean을 추가해주세요
 }
