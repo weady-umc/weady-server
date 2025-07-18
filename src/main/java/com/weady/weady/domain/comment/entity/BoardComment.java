@@ -8,15 +8,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Getter
-public class Comment {
+public class BoardComment {
 
     @Id
     @GeneratedValue (strategy = GenerationType.IDENTITY)
@@ -35,6 +32,6 @@ public class Comment {
     // 자기 참조
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
-    private Comment parent;
+    private BoardComment parent;
 
 }
