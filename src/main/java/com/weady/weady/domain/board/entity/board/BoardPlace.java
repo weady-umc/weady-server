@@ -20,6 +20,6 @@ public class BoardPlace extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn
+    @Setter
     private Board board;
-
 }

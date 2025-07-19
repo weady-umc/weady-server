@@ -34,4 +34,5 @@ public class BoardController {
 
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(responseDto, "게시글 작성 성공!"));
     }
+
 }

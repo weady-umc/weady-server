@@ -25,8 +25,9 @@ public class SwaggerConfig {
                         .bearerFormat("JWT"));
 
         return new OpenAPI()
-                .components(new Components())
-                .info(apiInfo());
+                .info(apiInfo())
+                .addSecurityItem(securityRequirement)
+                .components(components);
     }
 
     private Info apiInfo() {

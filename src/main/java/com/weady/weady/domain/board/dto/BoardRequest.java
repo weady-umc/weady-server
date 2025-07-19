@@ -16,7 +16,7 @@ public class BoardRequest {
             Long seasonTagId,
 
             List<BoardRequest.BoardPlaceRequestDto> boardPlaceRequestDtoList,
-            List<Long> styleId
+            List<Long> styleIds
             //List<Long> brandId
 
             ) {}

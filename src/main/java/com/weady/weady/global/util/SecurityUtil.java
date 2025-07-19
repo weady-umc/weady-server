@@ -16,7 +16,7 @@ public class SecurityUtil {
     /**
      * SecurityContext 에서 인증 정보를 가져와 현재 사용자의 ID(PK)를 반환
      * @return Long 타입의 사용자 ID
-     * @throws AuthErrorCode.UNAUTHORIZED_USER 인증 정보가 없거나 유효하지 않을 때
+     * //@throws AuthErrorCode.UNAUTHORIZED_USER 인증 정보가 없거나 유효하지 않을 때
      */
     public static Long getCurrentUserId() {
         //SecurityContext 에서 Authentication 객체를 Optional 로 가져옴.

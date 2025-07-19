@@ -9,14 +9,14 @@ import com.weady.weady.domain.tags.entity.ClothesStyleCategory;
 import com.weady.weady.domain.tags.entity.SeasonTag;
 import com.weady.weady.domain.tags.entity.TemperatureTag;
 import com.weady.weady.domain.tags.entity.WeatherTag;
-import com.weady.weady.domain.user.dto.ExampleUserResponse;
+import com.weady.weady.domain.user.entity.User;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class BoardMapper {
 
-    public static Board toBoard(BoardRequest.BoardCreateRequestDto request,
+    public static Board toBoard(BoardRequest.BoardCreateRequestDto request, User user,
                                 SeasonTag seasonTag, TemperatureTag temperatureTag, WeatherTag weatherTag) {
         return Board.builder()
                 .isPublic(request.isPublic())
@@ -24,23 +24,22 @@ public class BoardMapper {
                 .seasonTag(seasonTag)
                 .temperatureTag(temperatureTag)
                 .weatherTag(weatherTag)
+                .user(user)
                 .build();
     }
 
-    public static List<BoardPlace> toBoardPlaceList(List<BoardRequest.BoardPlaceRequestDto> requestDtos, Board board) {
+    public static List<BoardPlace> toBoardPlaceList(List<BoardRequest.BoardPlaceRequestDto> requestDtos) {
         return requestDtos.stream()
                 .map(dto -> BoardPlace.builder()
                         .placeName(dto.placeName())
                         .placeAddress(dto.placeAddress())
-                        .board(board) //연관관계 주입
                         .build())
                 .collect(Collectors.toList());
     }
 
-    public static List<BoardStyle> toBoardStyleList(List<ClothesStyleCategory> styles, Board board) {
+    public static List<BoardStyle> toBoardStyleList(List<ClothesStyleCategory> styles) {
         return styles.stream()
                 .map(style -> BoardStyle.builder()
-                        .board(board)
                         .clothesStyleCategory(style)
                         .build())
                 .collect(Collectors.toList());
@@ -48,17 +47,16 @@ public class BoardMapper {
 
 
     // 응답 dto
-    public static BoardResponse.BoardResponseDto toBoardResponseDto(Board board, List<BoardResponse.BoardPlaceResponseDto> places,
-                                                                    List<BoardResponse.BoardStyleResponseDto> styles,
-                                                                    ExampleUserResponse.ExampleUserResponseDto userResponseDto, int likeCount) {
+    public static BoardResponse.BoardResponseDto toBoardResponseDto(Board board, User user) {
         return BoardResponse.BoardResponseDto.builder()
                 .boardId(board.getId())
-                .isPublic(board.isPublic())
+                .isPublic(board.getIsPublic())
                 .content(board.getContent())
-                .userResponseDto(userResponseDto)
-                .likeCount(likeCount)
-                .placeDtoList(places)
-                .styleIdList(styles)
+                .userName(user.getName())
+                .userProfileImageUrl(user.getProfileImageUrl())
+                .likeCount(board.getGoodCount())
+                .placeDtoList(toBoardPlaceResponseListDto(board.getBoardPlaceList()))
+                .styleIdList(toBoardStyleResponseListDto(board.getBoardStyleList()))
                 .createdAt(board.getCreatedAt())
                 .build();
     }

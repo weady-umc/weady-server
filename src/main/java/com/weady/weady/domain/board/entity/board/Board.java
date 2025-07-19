@@ -3,6 +3,7 @@ package com.weady.weady.domain.board.entity.board;
 import com.weady.weady.domain.tags.entity.SeasonTag;
 import com.weady.weady.domain.tags.entity.TemperatureTag;
 import com.weady.weady.domain.tags.entity.WeatherTag;
+import com.weady.weady.domain.user.entity.User;
 import com.weady.weady.global.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -22,20 +23,15 @@ public class Board extends BaseEntity {
     private Long id;
 
     @Column(nullable = false)
-    private boolean isPublic;
+    private Boolean isPublic;
 
     @Column(columnDefinition = "TEXT")
     private String content;
 
     private Integer imgCount;
 
-    // Relation
-    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<BoardImg> boardImg = new ArrayList<>();
-
-    // 장소 정보
-    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<BoardPlace> boardPlaceList = new ArrayList<>();
+    @Builder.Default
+    private Integer goodCount = 0;
 
     //날씨 태그
     @ManyToOne(fetch = FetchType.LAZY)
@@ -50,12 +46,38 @@ public class Board extends BaseEntity {
     @JoinColumn(name = "weather_tag_id")
     private WeatherTag weatherTag;
 
-    // 스타일 태그
-    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
-    List<BoardStyle> boardStyles = new ArrayList<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn
+    private User user;
 
     // report
+    @Builder.Default
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     List<Report> reports = new ArrayList<>();
 
+    // Relation
+    @Builder.Default
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BoardImg> boardImg = new ArrayList<>();
+
+    // 장소 정보
+    @Builder.Default
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BoardPlace> boardPlaceList = new ArrayList<>();
+
+    // 스타일 태그
+    @Builder.Default
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<BoardStyle> boardStyleList = new ArrayList<>();
+
+
+    public void updateBoardPlaceList(List<BoardPlace> boardPlaceList){
+        boardPlaceList.forEach(boardPlace -> {boardPlace.setBoard(this);});
+        this.boardPlaceList = boardPlaceList;
+    }
+
+    public void updateBoardStyleList(List<BoardStyle> boardStyleList){
+        boardStyleList.forEach(boardStyle -> {boardStyle.setBoard(this);});
+        this.boardStyleList = boardStyleList;
+    }
 }

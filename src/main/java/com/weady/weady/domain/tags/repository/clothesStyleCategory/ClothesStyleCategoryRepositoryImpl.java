@@ -1,4 +1,4 @@
-package com.weady.weady.domain.board.repository.styleCategory;
+package com.weady.weady.domain.tags.repository.clothesStyleCategory;
 
 import com.weady.weady.domain.tags.entity.ClothesStyleCategory;
 import lombok.RequiredArgsConstructor;
@@ -9,9 +9,9 @@ import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
-public class StyleCategoryRepositoryImpl implements StyleCategoryRepository{
+public class ClothesStyleCategoryRepositoryImpl implements ClothesStyleClothesCategoryRepository {
 
-    private final JpaStyleCategoryRepository jpaStyleCategoryRepository;
+    private final JpaClothesStyleCategoryRepository jpaStyleCategoryRepository;
 
     @Override
     public Optional<ClothesStyleCategory> findById(Long id){

@@ -1,4 +1,4 @@
-package com.weady.weady.domain.board.repository.board;
+package com.weady.weady.domain.board.repository;
 
 import com.weady.weady.domain.board.entity.board.Board;
 import lombok.RequiredArgsConstructor;

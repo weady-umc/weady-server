@@ -3,26 +3,28 @@ package com.weady.weady.domain.board.service;
 import com.weady.weady.domain.board.dto.BoardRequest;
 import com.weady.weady.domain.board.dto.BoardResponse;
 import com.weady.weady.domain.board.entity.board.Board;
-import com.weady.weady.domain.board.entity.board.BoardPlace;
 import com.weady.weady.domain.board.entity.board.BoardStyle;
 import com.weady.weady.domain.board.mapper.BoardMapper;
-import com.weady.weady.domain.board.repository.board.BoardRepository;
-import com.weady.weady.domain.board.repository.boardPlace.BoardPlaceRepository;
-import com.weady.weady.domain.board.repository.boardStyle.BoardStyleRepository;
-import com.weady.weady.domain.board.repository.styleCategory.StyleCategoryRepository;
+import com.weady.weady.domain.board.repository.BoardRepository;
 import com.weady.weady.domain.tags.entity.ClothesStyleCategory;
 import com.weady.weady.domain.tags.entity.SeasonTag;
 import com.weady.weady.domain.tags.entity.TemperatureTag;
 import com.weady.weady.domain.tags.entity.WeatherTag;
 import com.weady.weady.domain.tags.repository.season.SeasonRepository;
+import com.weady.weady.domain.tags.repository.clothesStyleCategory.ClothesStyleClothesCategoryRepository;
 import com.weady.weady.domain.tags.repository.temperature.TemperatureRepository;
 import com.weady.weady.domain.tags.repository.weather.WeatherRepository;
 import com.weady.weady.domain.user.dto.ExampleUserResponse;
+import com.weady.weady.domain.user.entity.User;
+import com.weady.weady.domain.user.repository.UserRepository;
 import com.weady.weady.domain.user.service.ExampleUserService;
 import com.weady.weady.global.common.error.errorCode.TagsErrorCode;
+import com.weady.weady.global.common.error.errorCode.UserErrorCode;
 import com.weady.weady.global.common.error.exception.BusinessException;
+import com.weady.weady.global.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -31,12 +33,11 @@ import java.util.List;
 public class BoardService {
 
     private final BoardRepository boardRepository;
-    private final BoardPlaceRepository boardPlaceRepository;
-    private final BoardStyleRepository boardStyleRepository;
+    private final UserRepository userRepository;
     private final SeasonRepository seasonRepository;
     private final TemperatureRepository temperatureRepository;
     private final WeatherRepository weatherRepository;
-    private final StyleCategoryRepository styleCategoryRepository;
+    private final ClothesStyleClothesCategoryRepository styleCategoryRepository;
     private final ExampleUserService exampleUserService;
     //private final S3Uploader s3Uploader;
 
@@ -46,10 +47,12 @@ public class BoardService {
      * @return BoardResponseDto
      * @thorws
      */
+    @Transactional
     public BoardResponse.BoardResponseDto createPost(BoardRequest.BoardCreateRequestDto requestDto) {
 
         // 게시글 작성자 정보 조회
-        ExampleUserResponse.ExampleUserResponseDto userResponseDto = exampleUserService.getUser();
+        User user = userRepository.findById(SecurityUtil.getCurrentUserId())
+                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
 
         //날씨 태그 조회
         SeasonTag seasonTag = seasonRepository.findById(requestDto.seasonTagId())
@@ -61,26 +64,16 @@ public class BoardService {
         WeatherTag weatherTag = weatherRepository.findById(requestDto.weatherTagId())
                 .orElseThrow(() -> new BusinessException(TagsErrorCode.WEATHER_TAG_NOT_FOUND));
 
-        List<ClothesStyleCategory> categories = styleCategoryRepository.findAllById(requestDto.styleId());
-
+        List<ClothesStyleCategory> categories = styleCategoryRepository.findAllById(requestDto.styleIds());
 
         // 데이터 저장
-        Board board = BoardMapper.toBoard(requestDto, seasonTag, temperatureTag, weatherTag);
-        List<BoardPlace> places = BoardMapper.toBoardPlaceList(requestDto.boardPlaceRequestDtoList(), board);
-        List<BoardStyle> styles = BoardMapper.toBoardStyleList(categories, board);
+        Board board = BoardMapper.toBoard(requestDto, user, seasonTag, temperatureTag, weatherTag);
+        board.updateBoardPlaceList(BoardMapper.toBoardPlaceList(requestDto.boardPlaceRequestDtoList()));
+        board.updateBoardStyleList(BoardMapper.toBoardStyleList(categories));
 
         boardRepository.save(board);
-        boardPlaceRepository.saveAll(places);
-        boardStyleRepository.saveAll(styles);
 
-
-        // 좋아요 개수 - 게시글 좋아요 기능 구현 후 수정 예정입니다!!
-        int likeCount = 0;
-
-        List<BoardResponse.BoardPlaceResponseDto> placeResponseDtos = BoardMapper.toBoardPlaceResponseListDto(places);
-        List<BoardResponse.BoardStyleResponseDto> styleResponseDtos = BoardMapper.toBoardStyleResponseListDto(styles);
-
-        return BoardMapper.toBoardResponseDto(board, placeResponseDtos, styleResponseDtos,userResponseDto, likeCount);
+        return BoardMapper.toBoardResponseDto(board, user);
 
 
     }

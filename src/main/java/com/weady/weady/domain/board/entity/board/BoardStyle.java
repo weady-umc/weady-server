@@ -3,10 +3,7 @@ package com.weady.weady.domain.board.entity.board;
 import com.weady.weady.domain.tags.entity.ClothesStyleCategory;
 import com.weady.weady.global.common.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @AllArgsConstructor
@@ -21,6 +18,7 @@ public class BoardStyle extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn
+    @Setter
     private Board board;
 
     @ManyToOne(fetch = FetchType.LAZY)

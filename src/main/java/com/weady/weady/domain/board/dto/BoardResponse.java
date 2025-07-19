@@ -13,7 +13,8 @@ public class BoardResponse {
     @Builder
     public record BoardResponseDto(
             Long boardId,
-            ExampleUserResponse.ExampleUserResponseDto userResponseDto,
+            String userName,
+            String userProfileImageUrl,
             Boolean isPublic,
             Integer likeCount,
             //List<BoardImgResponseDTO> imageDtoList,
