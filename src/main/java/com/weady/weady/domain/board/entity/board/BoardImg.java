@@ -1,4 +1,4 @@
-package com.weady.weady.domain.board.entity;
+package com.weady.weady.domain.board.entity.board;
 
 import com.weady.weady.global.common.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -21,7 +21,7 @@ public class BoardImg extends BaseEntity {
     private Integer imgOrder;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "board_id")
+    @JoinColumn
     private Board board;
 
 }
