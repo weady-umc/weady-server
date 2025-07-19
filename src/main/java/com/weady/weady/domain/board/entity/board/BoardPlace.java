@@ -1,4 +1,4 @@
-package com.weady.weady.domain.board.entity;
+package com.weady.weady.domain.board.entity.board;
 
 import com.weady.weady.global.common.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -18,8 +18,8 @@ public class BoardPlace extends BaseEntity {
     private String placeName;
     private String placeAddress;
 
-    @ManyToOne
-    @JoinColumn(name = "board_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn
     private Board board;
 
 }

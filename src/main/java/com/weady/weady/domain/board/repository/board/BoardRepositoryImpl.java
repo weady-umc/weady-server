@@ -1,6 +1,6 @@
-package com.weady.weady.domain.board.repository;
+package com.weady.weady.domain.board.repository.board;
 
-import com.weady.weady.domain.board.entity.Board;
+import com.weady.weady.domain.board.entity.board.Board;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 

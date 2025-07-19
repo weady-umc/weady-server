@@ -1,4 +1,4 @@
-package com.weady.weady.domain.board.entity;
+package com.weady.weady.domain.board.entity.board;
 
 import com.weady.weady.domain.user.entity.User;
 import com.weady.weady.global.common.entity.BaseEntity;
@@ -7,9 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @AllArgsConstructor
@@ -22,11 +19,14 @@ public class Report extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Enum reportType;
+    @Enumerated(EnumType.STRING)
+    private ReportType reportType;
 
+    @Column(columnDefinition = "TEXT")
     private String content;
 
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
