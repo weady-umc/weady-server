@@ -48,10 +48,10 @@ public class BoardService {
      */
     public BoardResponse.BoardResponseDto createPost(BoardRequest.BoardCreateRequestDto requestDto) {
 
-        //작성자 정보 가져오기 (주석 맞나..?)
+        // 게시글 작성자 정보 조회
         ExampleUserResponse.ExampleUserResponseDto userResponseDto = exampleUserService.getUser();
 
-        //날씨 태그 엔티티 가져오기
+        //날씨 태그 조회
         SeasonTag seasonTag = seasonRepository.findById(requestDto.seasonTagId())
                 .orElseThrow(()-> new BusinessException(TagsErrorCode.SEASON_TAG_NOT_FOUND));
 
