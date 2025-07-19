@@ -1,4 +1,4 @@
-package com.weady.weady.domain.board.entity;
+package com.weady.weady.domain.board.entity.board;
 
 import lombok.Getter;
 

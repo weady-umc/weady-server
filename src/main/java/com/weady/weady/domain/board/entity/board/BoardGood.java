@@ -1,4 +1,4 @@
-package com.weady.weady.domain.board.entity;
+package com.weady.weady.domain.board.entity.board;
 
 import com.weady.weady.domain.user.entity.User;
 import com.weady.weady.global.common.entity.BaseEntity;
