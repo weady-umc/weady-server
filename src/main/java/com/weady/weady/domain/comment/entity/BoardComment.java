@@ -22,16 +22,16 @@ public class BoardComment {
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn("user_id")
+    @JoinColumn
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn("board_id")
+    @JoinColumn
     private Board board;
 
     // 자기 참조
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_id")
+    @JoinColumn
     private BoardComment parent;
 
 }
