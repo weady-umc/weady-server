@@ -27,7 +27,8 @@ public class User extends BaseEntity {
     @JoinColumn(name = "default_location_id")
     private UserFavoriteLocation defaultLocation;
 
-    private String name;
+    @Builder.Default
+    private String name = "";
     private String email;
 
     @Enumerated(EnumType.STRING)
