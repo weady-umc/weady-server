@@ -58,5 +58,69 @@ public class SwaggerConfig {
                 .build();
     }
 
+    @Bean
+    public GroupedOpenApi weatherApi() {
+        return GroupedOpenApi.builder()
+                .group("weather")
+                .displayName("3. 날씨 API")
+                .pathsToMatch("/api/v1/weather/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi curationApi() {
+        return GroupedOpenApi.builder()
+                .group("curation")
+                .displayName("4. 큐레이션 API")
+                .pathsToMatch("/api/v1/curation/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi fashionApi() {
+        return GroupedOpenApi.builder()
+                .group("fashion")
+                .displayName("5. 패션 API")
+                .pathsToMatch("/api/v1/fashion/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi tagsApi() {
+        return GroupedOpenApi.builder()
+                .group("tag,category")
+                .displayName("5. category, tag API")
+                .pathsToMatch("/api/v1/category/**")
+                .pathsToMatch("/api/v1/tag/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi locationApi() {
+        return GroupedOpenApi.builder()
+                .group("location")
+                .displayName("6. 지역 API")
+                .pathsToMatch("/api/v1/location/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi weadychiveApi() {
+        return GroupedOpenApi.builder()
+                .group("weadychive")
+                .displayName("7. 웨디카이브 API")
+                .pathsToMatch("/api/v1/weadychive/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi userApi() {
+        return GroupedOpenApi.builder()
+                .group("user")
+                .displayName("8. 유저 API")
+                .pathsToMatch("/api/v1/user/**")
+                .build();
+    }
+
     // 추후 다른 도메인 API가 추가되면 여기에 GroupedOpenApi Bean을 추가해주세요
 }
