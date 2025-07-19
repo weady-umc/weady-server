@@ -38,12 +38,13 @@ public class SwaggerConfig {
     }
 
     /*
-    * 각 API 도메인 별로 그룹화하여 Swagger UI에 표시합니다.
-    * */
+     * 각 API 도메인 별로 그룹화하여 Swagger UI에 표시합니다.
+     * */
     @Bean
     public GroupedOpenApi authApi() {
         return GroupedOpenApi.builder()
-                .group("1. 인증 API") // Swagger UI에 표시될 그룹 이름
+                .group("auth")
+                .displayName("1. 인증 API")     // UI 드롭다운에 보일 이름
                 .pathsToMatch("/api/v1/auth/**") // 이 그룹에 포함될 API의 URL 패턴
                 .build();
     }
@@ -51,7 +52,8 @@ public class SwaggerConfig {
     @Bean
     public GroupedOpenApi boardApi() {
         return GroupedOpenApi.builder()
-                .group("2. 웨디 보드 API")
+                .group("board")
+                .displayName("2. 웨디 보드 API")
                 .pathsToMatch("/api/v1/board/**")
                 .build();
     }
