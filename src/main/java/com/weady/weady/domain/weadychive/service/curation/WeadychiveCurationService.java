@@ -1,0 +1,63 @@
+package com.weady.weady.domain.weadychive.service.curation;
+
+import com.weady.weady.domain.curation.dto.CurationResponse;
+import com.weady.weady.domain.curation.entity.Curation;
+import com.weady.weady.domain.curation.entity.CurationImg;
+import com.weady.weady.domain.curation.mapper.CurationMapper;
+import com.weady.weady.domain.curation.repository.curation.CurationRepository;
+import com.weady.weady.domain.user.entity.User;
+import com.weady.weady.domain.user.repository.UserRepository;
+import com.weady.weady.domain.weadychive.dto.curation.WeadychiveCurationRequest;
+import com.weady.weady.domain.weadychive.dto.curation.WeadychiveCurationResponse;
+import com.weady.weady.domain.weadychive.entity.WeadychiveCuration;
+import com.weady.weady.domain.weadychive.mapper.curation.WeadychiveCurationMapper;
+import com.weady.weady.domain.weadychive.repository.curation.WeadychiveCurationRepository;
+import com.weady.weady.global.util.SecurityUtil;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Transactional
+@RequiredArgsConstructor
+@Service
+public class WeadychiveCurationService {
+
+    private final WeadychiveCurationRepository weadychiveCurationRepository;
+    private final CurationRepository curationRepository;
+    private final UserRepository userRepository;
+
+    /**
+     * 스크랩한 큐레이션 가져오기
+     * @return scrappedCurationByUserResponseDto
+     * @throws ...
+     */
+    public WeadychiveCurationResponse.scrappedCurationByUserResponseDto getScrappedCuration(){
+
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+
+        User user = userRepository.findById(currentUserId)
+                .orElseThrow();
+
+        String userName = user.getName();
+
+
+        List<WeadychiveCuration> scrappedCurations = weadychiveCurationRepository.findAllByUserId(currentUserId);
+
+        List<Long> curationIds = scrappedCurations.stream() //리스트로 큐레이션 id들 가져오기
+                .map(scrap -> scrap.getCuration().getId())
+                .collect(Collectors.toList());
+
+        List<Curation> curations = curationRepository.findAllById(curationIds);
+
+        return WeadychiveCurationMapper.toScrappedCurationResponseDto(userName,curations);
+
+    }
+
+    public void scrapCuration(WeadychiveCurationRequest.scrapCurationRequestDto requestDto){
+
+    }
+}
