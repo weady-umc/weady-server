@@ -34,14 +34,13 @@ public class WeadychiveController {
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(weadychiveCurationService.getScrappedCuration()));
     }
 
-//    @PostMapping("/bookmarks")
-//    @Operation(summary = "큐레이션 스크랩하기 API")
-//    @io.swagger.v3.oas.annotations.responses.ApiResponses({
-//            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
-//    })
-//    public ApiResponse<> bookmarkCuration(@Valid @RequestBody WeadychiveCurationRequest.scrapCurationRequestDto requestDto){
-//
-//        weadychiveCurationService.scrapCuration(requestDto);
-//        return ApiSuccessResponse.of();
-//    }
+    @PostMapping("/bookmarks")
+    @Operation(summary = "큐레이션 스크랩하기 API")
+    @io.swagger.v3.oas.annotations.responses.ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
+    })
+    public ResponseEntity<ApiResponse<WeadychiveCurationResponse.CurationDto>> bookmarkCuration(@Valid @RequestBody WeadychiveCurationRequest.scrapCurationRequestDto requestDto) {
+
+        return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(weadychiveCurationService.scrapCuration(requestDto)));
+    }
 }

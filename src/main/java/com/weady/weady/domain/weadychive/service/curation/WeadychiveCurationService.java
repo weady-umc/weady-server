@@ -51,13 +51,34 @@ public class WeadychiveCurationService {
                 .map(scrap -> scrap.getCuration().getId())
                 .collect(Collectors.toList());
 
+        //여기서 SELECT * FROM curation WHERE id IN (1, 2, 1) 이 연산 실행. 이떄 1은 중복되지 않음
         List<Curation> curations = curationRepository.findAllById(curationIds);
 
         return WeadychiveCurationMapper.toScrappedCurationResponseDto(userName,curations);
 
     }
 
-    public void scrapCuration(WeadychiveCurationRequest.scrapCurationRequestDto requestDto){
+    /**
+     * 큐레이션 스크랩하기
+     * @return CurationDto
+     * @throws ...
+     */
+    public WeadychiveCurationResponse.CurationDto scrapCuration(WeadychiveCurationRequest.scrapCurationRequestDto requestDto){
+        Long currentUserId = SecurityUtil.getCurrentUserId();
 
+        User user = userRepository.findById(currentUserId)
+                .orElseThrow();
+
+        Long curationId = requestDto.curationId();
+
+
+        Curation curation = curationRepository.findById(curationId)
+                .orElseThrow();
+
+        WeadychiveCuration weadychiveCuration =  WeadychiveCurationMapper.toEntity(user , curation);
+
+        weadychiveCurationRepository.save(weadychiveCuration);
+
+        return WeadychiveCurationMapper.toCurationResponseDto(curationId, curation.getTitle(), curation.getBackgroundImgUrl());
     }
 }

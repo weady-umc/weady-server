@@ -5,8 +5,9 @@ import lombok.Builder;
 import java.util.List;
 
 public class WeadychiveCurationRequest {
+
     @Builder
-    public record scrapCurationRequestDto(String curationId
+    public record scrapCurationRequestDto(Long curationId
 
 
 
