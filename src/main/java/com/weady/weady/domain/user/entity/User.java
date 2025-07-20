@@ -39,7 +39,7 @@ public class User extends BaseEntity {
     private Gender gender;
 
     @Column(columnDefinition = "TEXT")
-    private String profileImageUrl;
+    private String profileImgUrl;
 
     @Enumerated(EnumType.STRING)
     private State state;

@@ -12,6 +12,7 @@ import com.weady.weady.global.common.error.exception.BusinessException;
 import com.weady.weady.global.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -21,6 +22,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final ClothesStyleCategoryRepository clothesStyleCategoryRepository;
 
+    @Transactional
     public UserResponse.onboardResponse onboard(UserRequest.onboardRequestDto request){
         User user = userRepository.findById(SecurityUtil.getCurrentUserId())
                 .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
@@ -29,6 +31,7 @@ public class UserService {
         user.changeName(request.name());
         user.changeGender(request.gender());
         user.syncStyleCategories(styleCategories);
+
 
         return UserMapper.toOnboardResponse(user);
     }
