@@ -16,7 +16,7 @@ public class Location extends BaseEntity {
     private Long id;
 
     @Column(length = 50)
-    private String h_code;
+    private String hCode;
 
     private Integer nx;
     private Integer ny;
@@ -31,5 +31,4 @@ public class Location extends BaseEntity {
     @OneToOne(mappedBy = "location")
     private CurationCategory curationCategory;
 
-    // 여기 에서 user_favorite_location 과의 관계를 설정할 필요가 없음
 }
