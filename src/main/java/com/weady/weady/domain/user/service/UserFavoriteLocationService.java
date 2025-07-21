@@ -2,6 +2,7 @@ package com.weady.weady.domain.user.service;
 
 import com.weady.weady.domain.location.entity.Location;
 import com.weady.weady.domain.location.repository.JpaLocationRepository;
+import com.weady.weady.domain.location.repository.LocationRepository;
 import com.weady.weady.domain.user.dto.AddUserFavoriteLocationResponse;
 import com.weady.weady.domain.user.entity.User;
 import com.weady.weady.domain.user.entity.UserFavoriteLocation;
@@ -21,7 +22,7 @@ import org.springframework.stereotype.Service;
 public class UserFavoriteLocationService {
 
     private final UserRepository userRepository;
-    private final JpaLocationRepository jpaLocationRepository;
+    private final LocationRepository locationRepository;
     private final UserFavoriteLocationRepository userFavoriteLocationRepository;
     private final UserFavoriteLocationMapper userFavoriteLocationMapper;
 
@@ -41,7 +42,7 @@ public class UserFavoriteLocationService {
         User user = userRepository.findById(userId).orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
 
         //hCode로 Location 엔티티 조회
-        Location location = jpaLocationRepository.findLocationByH_code(hCode).orElseThrow(() -> new BusinessException(LocationErrorCode.LOCATION_NOT_FOUND));
+        Location location = locationRepository.findLocationByhCode(hCode).orElseThrow(() -> new BusinessException(LocationErrorCode.LOCATION_NOT_FOUND));
 
         //이미 즐겨찾기로 추가되어있는지 중복 체크하기
         if(userFavoriteLocationRepository.existsByUserAndLocation(user,location))
