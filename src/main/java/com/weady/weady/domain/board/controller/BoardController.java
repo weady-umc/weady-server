@@ -1,7 +1,8 @@
 package com.weady.weady.domain.board.controller;
 
-import com.weady.weady.domain.board.dto.BoardResponse;
 import com.weady.weady.domain.board.dto.request.BoardCreateRequestDto;
+import com.weady.weady.domain.board.dto.response.BoardHomeResponseSliceListDto;
+import com.weady.weady.domain.board.dto.response.BoardResponseDto;
 import com.weady.weady.domain.board.service.BoardService;
 import com.weady.weady.global.common.apiResponse.ApiResponse;
 import com.weady.weady.global.common.apiResponse.ApiSuccessResponse;
@@ -15,8 +16,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 
 @RestController
 @RequiredArgsConstructor
@@ -28,10 +27,10 @@ public class BoardController {
 
     @PostMapping(value = "/create") // , consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "게시물 작성 api", description = "로그인 한 사용자가 게시물을 작성하는 API입니다.")
-    public ResponseEntity<ApiResponse<BoardResponse.BoardResponseDto>> createPost (
+    public ResponseEntity<ApiResponse<BoardResponseDto>> createPost (
             //@RequestPart(value = "images", required = false) List<MultipartFile> images,
             @RequestBody BoardCreateRequestDto postData){
-        BoardResponse.BoardResponseDto responseDto = boardService.createPost(postData);
+        BoardResponseDto responseDto = boardService.createPost(postData);
 
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(responseDto, "게시글 작성 성공!"));
     }
@@ -39,14 +38,14 @@ public class BoardController {
 
     @GetMapping(value = "")
     @Operation(summary = "보드 홈 게시물 전체 조회 API", description = "전체 게시물을 조회하는 API입니다. 날씨, 계절 태그 ID로 게시글을 필터링 할 수 있습니다.")
-    public ResponseEntity<ApiResponse<BoardResponse.BoardHomeResponseSliceListDto>> getFilteredAndSortedBoards (
+    public ResponseEntity<ApiResponse<BoardHomeResponseSliceListDto>> getFilteredAndSortedBoards (
             @RequestParam(name = "seasonTagId") Long seasonTagId,
             @RequestParam(name = "weatherTagId") Long weatherTagId,
             @RequestParam(name = "cursor") Long cursor,
             @RequestParam(name = "size") Integer size
     ){
 
-        BoardResponse.BoardHomeResponseSliceListDto responseDtoList = boardService.getFilteredAndSortedBoards(seasonTagId, weatherTagId, cursor, size);
+        BoardHomeResponseSliceListDto responseDtoList = boardService.getFilteredAndSortedBoards(seasonTagId, weatherTagId, cursor, size);
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(responseDtoList, "게시글 조회 성공!"));
 
     }
@@ -57,8 +56,8 @@ public class BoardController {
     @Operation(summary = "게시물 조회 api", description = "특정 게시물을 조회하는 API입니다.")
     @Parameters({
             @Parameter(name="boardId", description = "게시물의 아이디, path variable 입니다.")})
-    public ResponseEntity<ApiResponse<BoardResponse.BoardResponseDto>> getPostById(@PathVariable(name = "boardId") Long storeId){
-        BoardResponse.BoardResponseDto responseDto = boardService.getPostById(storeId);
+    public ResponseEntity<ApiResponse<BoardResponseDto>> getPostById(@PathVariable(name = "boardId") Long storeId){
+        BoardResponseDto responseDto = boardService.getPostById(storeId);
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(responseDto, "게시글 조회 성공!"));
     }
 }

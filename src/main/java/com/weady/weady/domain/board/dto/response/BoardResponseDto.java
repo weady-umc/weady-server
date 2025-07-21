@@ -1,7 +1,5 @@
 package com.weady.weady.domain.board.dto.response;
 
-
-import com.weady.weady.domain.board.dto.BoardResponse;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -22,8 +20,8 @@ public record BoardResponseDto(
         Long temperatureTagId,
         Long seasonTagId,
 
-        List<BoardResponse.BoardPlaceResponseDto> placeDtoList,
-        List<BoardResponse.BoardStyleResponseDto> styleIdList,
+        List<BoardPlaceResponseDto> placeDtoList,
+        List<BoardStyleResponseDto> styleIdList,
         // List<Long> brandId,
 
         LocalDateTime createdAt

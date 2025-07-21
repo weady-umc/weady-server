@@ -1,6 +1,5 @@
 package com.weady.weady.domain.board.dto.response;
 
-import com.weady.weady.domain.board.dto.BoardResponse;
 import lombok.Builder;
 
 import java.time.LocalDateTime;

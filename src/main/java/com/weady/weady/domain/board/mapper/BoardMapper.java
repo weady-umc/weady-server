@@ -1,8 +1,8 @@
 package com.weady.weady.domain.board.mapper;
 
-import com.weady.weady.domain.board.dto.BoardResponse;
 import com.weady.weady.domain.board.dto.request.BoardCreateRequestDto;
 import com.weady.weady.domain.board.dto.request.BoardPlaceRequestDto;
+import com.weady.weady.domain.board.dto.response.*;
 import com.weady.weady.domain.board.entity.board.Board;
 import com.weady.weady.domain.board.entity.board.BoardImg;
 import com.weady.weady.domain.board.entity.board.BoardPlace;
@@ -14,7 +14,6 @@ import com.weady.weady.domain.tags.entity.WeatherTag;
 import com.weady.weady.domain.user.entity.User;
 import org.springframework.data.domain.Slice;
 
-import javax.security.sasl.SaslClient;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,8 +52,8 @@ public class BoardMapper {
     /// 응답 dto ///
 
     // 게시물 조회 dto
-    public static BoardResponse.BoardResponseDto toBoardResponseDto(Board board, User user) {
-        return BoardResponse.BoardResponseDto.builder()
+    public static BoardResponseDto toBoardResponseDto(Board board, User user) {
+        return BoardResponseDto.builder()
                 .boardId(board.getId())
                 .isPublic(board.getIsPublic())
                 .content(board.getContent())
@@ -68,27 +67,27 @@ public class BoardMapper {
     }
 
 
-    public static List<BoardResponse.BoardPlaceResponseDto> toBoardPlaceResponseListDto(List<BoardPlace> places){
+    public static List<BoardPlaceResponseDto> toBoardPlaceResponseListDto(List<BoardPlace> places){
         return places.stream()
-                .map(place -> BoardResponse.BoardPlaceResponseDto.builder()
+                .map(place -> BoardPlaceResponseDto.builder()
                         .placeName(place.getPlaceName())
                         .placeAddress(place.getPlaceAddress())
                         .build())
                 .collect(Collectors.toList());
     }
 
-    public static List<BoardResponse.BoardStyleResponseDto> toBoardStyleResponseListDto(List<BoardStyle> styles){
+    public static List<BoardStyleResponseDto> toBoardStyleResponseListDto(List<BoardStyle> styles){
         return styles.stream()
-                .map(style -> BoardResponse.BoardStyleResponseDto.builder()
+                .map(style -> BoardStyleResponseDto.builder()
                         .styleTagId(style.getClothesStyleCategory().getId())
                         .build())
                 .collect(Collectors.toList());
     }
 
     // 보드 홈 게시물 조회 리스트
-    public static BoardResponse.BoardHomeResponseSliceListDto toBoardHomeResponseSliceListDto(Slice<Board> boards) {
+    public static BoardHomeResponseSliceListDto toBoardHomeResponseSliceListDto(Slice<Board> boards) {
 
-        List<BoardResponse.BoardHomeResponseDto> boardHomeResponseDtos = boards.getContent().stream()
+        List<BoardHomeResponseDto> boardHomeResponseDtos = boards.getContent().stream()
                 .map( board -> {
 
                     // imgOrder == 1 인 이미지의 url 가져오기
@@ -97,7 +96,7 @@ public class BoardMapper {
                             .map(BoardImg::getImgUrl)
                             .findFirst().orElse(null);
 
-                    return BoardResponse.BoardHomeResponseDto.builder()
+                    return BoardHomeResponseDto.builder()
                             .boardID(board.getId())
                             .imgUrl(firstOrderUrl)
                             .userId(board.getUser().getId())
@@ -113,12 +112,12 @@ public class BoardMapper {
                 : boardHomeResponseDtos.get(boardHomeResponseDtos.size() - 1).boardID(); //마지막 인덱스 id 가져오기
 
 
-        BoardResponse.PageInfoDto pageInfoDto = BoardResponse.PageInfoDto.builder()
+        PageInfoDto pageInfoDto = PageInfoDto.builder()
                 .nextCursor(nextCursor)
                 .hasNext(boards.hasNext())
                 .build();
 
-        return BoardResponse.BoardHomeResponseSliceListDto.builder()
+        return BoardHomeResponseSliceListDto.builder()
                 .boardHomeResponseDTOList(boardHomeResponseDtos)
                 .pageInfoDto(pageInfoDto)
                 .build();

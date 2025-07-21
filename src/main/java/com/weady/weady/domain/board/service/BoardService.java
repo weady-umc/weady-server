@@ -1,7 +1,8 @@
 package com.weady.weady.domain.board.service;
 
-import com.weady.weady.domain.board.dto.BoardResponse;
 import com.weady.weady.domain.board.dto.request.BoardCreateRequestDto;
+import com.weady.weady.domain.board.dto.response.BoardHomeResponseSliceListDto;
+import com.weady.weady.domain.board.dto.response.BoardResponseDto;
 import com.weady.weady.domain.board.entity.board.Board;
 import com.weady.weady.domain.board.mapper.BoardMapper;
 import com.weady.weady.domain.board.repository.BoardRepository;
@@ -48,7 +49,7 @@ public class BoardService {
      * @thorws
      */
     @Transactional
-    public BoardResponse.BoardResponseDto createPost(BoardCreateRequestDto requestDto) {
+    public BoardResponseDto createPost(BoardCreateRequestDto requestDto) {
 
         // 게시글 작성자 정보 조회
         User user = userRepository.findById(SecurityUtil.getCurrentUserId())
@@ -83,7 +84,7 @@ public class BoardService {
      * @thorws
      */
     @Transactional
-    public BoardResponse.BoardHomeResponseSliceListDto getFilteredAndSortedBoards(Long seasonTagId, Long weatherTagId, Long cursor, Integer size) {
+    public BoardHomeResponseSliceListDto getFilteredAndSortedBoards(Long seasonTagId, Long weatherTagId, Long cursor, Integer size) {
 
         Pageable pageable = PageRequest.of(0, size);
         Slice<Board> boards = boardRepository.getFilteredAndSortedResults(seasonTagId, weatherTagId, cursor, pageable);
@@ -97,7 +98,7 @@ public class BoardService {
      * @return BoardResponseDto
      * @thorws
      */
-    public BoardResponse.BoardResponseDto getPostById(Long id) {
+    public BoardResponseDto getPostById(Long id) {
 
         User user = userRepository.findById(SecurityUtil.getCurrentUserId())
                 .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
