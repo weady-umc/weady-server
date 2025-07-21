@@ -68,17 +68,20 @@ public class User extends BaseEntity {
         this.gender = gender;
     }
 
-    // FavoriteLocation 연관관계편의메소드
-    public void addFavoriteLocation(Location location) {
+    // 연관관계편의메소드
+    public UserFavoriteLocation addFavoriteLocation(Location location) {
+
         UserFavoriteLocation favorite = UserFavoriteLocation.builder()
                 .user(this)
                 .location(location)
                 .build();
         this.userFavoriteLocations.add(favorite);
+        return favorite;
     }
     public void removeFavorite(Location location) {
         this.userFavoriteLocations.removeIf(favorite -> favorite.getLocation().equals(location));
     }
+
 
     // ClothesStyleCategory 연관관계 편의 메소드
     public void addStyleCategory(ClothesStyleCategory style) {
@@ -119,5 +122,4 @@ public class User extends BaseEntity {
                 .map(UserClothesStyleCategory::getClothesStyleCategory)
                 .toList();
     }
-
 }
