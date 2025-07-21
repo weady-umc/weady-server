@@ -1,7 +1,8 @@
 package com.weady.weady.domain.curation.service;
 
-import com.weady.weady.domain.curation.dto.CurationCategoryResponse;
-import com.weady.weady.domain.curation.dto.CurationResponse;
+
+import com.weady.weady.domain.curation.dto.Response.CurationByCurationIdResponseDto;
+import com.weady.weady.domain.curation.dto.Response.CurationCategoryResponseDto;
 import com.weady.weady.domain.curation.entity.Curation;
 import com.weady.weady.domain.curation.entity.CurationCategory;
 import com.weady.weady.domain.curation.entity.CurationImg;
@@ -44,7 +45,7 @@ public class CurationService {
      * @return curationByCurationIdResponseDto
      * @throws ...
      */
-    public CurationResponse.curationByCurationIdResponseDto getSpecificCuration(Long curationId){
+    public CurationByCurationIdResponseDto getSpecificCuration(Long curationId){
         Curation curation = curationRepository.findById(curationId)
                 .orElseThrow(() -> new EntityNotFoundException("curation not found"));
 
@@ -60,7 +61,7 @@ public class CurationService {
      * @return List<CurationCategoryResponse.curationCategoryResponseDto>
      * @throws ...
      */
-    public List<CurationCategoryResponse.curationCategoryResponseDto> getCurationCategory(){
+    public List<CurationCategoryResponseDto> getCurationCategory(){
         List<CurationCategory> curationCategories = curationCategoryRepository.findAll();
 
         return CurationCategoryMapper.toDtoList(curationCategories);
