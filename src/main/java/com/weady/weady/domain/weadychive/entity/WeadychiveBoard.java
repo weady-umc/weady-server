@@ -1,6 +1,6 @@
 package com.weady.weady.domain.weadychive.entity;
 
-import com.weady.weady.domain.board.entity.Board;
+import com.weady.weady.domain.board.entity.board.Board;
 import com.weady.weady.domain.user.entity.User;
 import com.weady.weady.global.common.entity.BaseEntity;
 import jakarta.persistence.*;

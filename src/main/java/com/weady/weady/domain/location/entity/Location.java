@@ -21,6 +21,12 @@ public class Location extends BaseEntity {
     private Integer nx;
     private Integer ny;
 
+    @Column(length = 20)
+    private String midTermLandRegId;
+
+    @Column(length = 20)
+    private String midTermTempRegId;
+
 
     @OneToOne(mappedBy = "location")
     private CurationCategory curationCategory;

@@ -17,11 +17,11 @@ public class WeadychiveCuration extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JoinColumn
+    @JoinColumn(name="user_id")
     @ManyToOne(fetch = FetchType.LAZY)
     private User user;
 
-    @JoinColumn
+    @JoinColumn(name="curation_id")
     @ManyToOne(fetch = FetchType.LAZY)
     private Curation curation;
 }

@@ -1,15 +1,18 @@
 package com.weady.weady.domain.curation.controller;
 
 
-import com.weady.weady.domain.curation.dto.CurationCategoryResponse;
-import com.weady.weady.domain.curation.dto.CurationResponse;
+
+import com.weady.weady.domain.curation.dto.Response.CurationByCurationIdResponseDto;
+import com.weady.weady.domain.curation.dto.Response.CurationCategoryResponseDto;
 import com.weady.weady.domain.curation.entity.CurationCategory;
 import com.weady.weady.domain.curation.service.CurationService;
 import com.weady.weady.global.common.apiResponse.ApiResponse;
 import com.weady.weady.global.common.apiResponse.ApiSuccessResponse;
+import com.weady.weady.global.util.ResponseEntityUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,8 +34,8 @@ public class CurationController {
     @io.swagger.v3.oas.annotations.responses.ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
     })
-    public ApiResponse<List<CurationCategoryResponse.curationCategoryResponseDto>> getExpensesByTrip(){
-        return ApiSuccessResponse.of(curationService.getCurationCategory());
+    public ResponseEntity<ApiResponse<List<CurationCategoryResponseDto>>> getExpensesByTrip(){
+        return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(curationService.getCurationCategory()));
     }
 
     @GetMapping("/{curationId}")
@@ -40,7 +43,7 @@ public class CurationController {
     @io.swagger.v3.oas.annotations.responses.ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
     })
-    public ApiResponse<CurationResponse.curationByCurationIdResponseDto> getExpensesByTrip(@PathVariable("curationId") Long curationId){
-        return ApiSuccessResponse.of(curationService.getSpecificCuration(curationId));
+    public ResponseEntity<ApiResponse<CurationByCurationIdResponseDto>> getExpensesByTrip(@PathVariable("curationId") Long curationId){
+        return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(curationService.getSpecificCuration(curationId)));
     }
 }

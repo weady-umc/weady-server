@@ -5,6 +5,7 @@ import com.weady.weady.domain.curation.entity.CurationCategory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -17,6 +18,11 @@ public class CurationRepositoryImpl implements CurationRepository{
     @Override
     public Optional<Curation> findById(Long id) {
         return jpaCurationRepository.findById(id);
+    }
+
+    @Override
+    public List<Curation> findAllById(Iterable<Long> ids) {
+        return jpaCurationRepository.findAllById(ids);
     }
 
     @Override

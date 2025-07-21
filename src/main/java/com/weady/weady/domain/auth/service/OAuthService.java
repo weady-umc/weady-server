@@ -12,20 +12,17 @@ import com.weady.weady.domain.user.entity.Provider;
 import com.weady.weady.domain.user.entity.User;
 import com.weady.weady.domain.user.repository.UserRepository;
 import com.weady.weady.global.common.error.errorCode.AuthErrorCode;
-import com.weady.weady.global.common.error.errorCode.UserErrorCode;
 import com.weady.weady.global.common.error.exception.BusinessException;
 import com.weady.weady.global.jwt.JwtTokenProvider;
 import com.weady.weady.global.util.SecurityUtil;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -54,7 +51,7 @@ public class OAuthService {
      *
      * @return AuthResponse.LoginResponseDto: 로그인 응답 DTO
      * @throws AuthErrorCode.UNSUPPORTED_PROVIDER: 지원하지 않는 소셜 로그인 제공자일 경우 예외 발생
-    * */
+     * */
     @Transactional
     public AuthResponse.LoginResponseDto socialLogin(String providerName, String authorizationCode) {
         Provider provider = Provider.valueOf(providerName.toUpperCase());
@@ -110,28 +107,24 @@ public class OAuthService {
     }
 
     private SaveResult saveOrUpdateUser(OAuthAttributes attributes) {
-        Optional<User> optionalUser = userRepository.findByProviderAndSocialId(
-                attributes.getProvider(),
-                attributes.getSocialId()
-        );
-        if (optionalUser.isPresent()) {
-            return new SaveResult(optionalUser.get(), false);
-        }
-        User newUser = OAuthAttributeMapper.OAuthAttributesToUser(attributes);
-        User savedUser = userRepository.save(newUser);
-        return new SaveResult(savedUser, true);
+        return userRepository.findByProviderAndSocialId(attributes.getProvider(), attributes.getSocialId())
+                .map(user -> {
+                    // 사용자가 이미 있을 경우, 이름이 비어있으면 OnBoarding 안한 것 이므로 새로운 유저로 간주
+                    boolean isNewUser = user.getName().isEmpty();
+                    return new SaveResult(user, isNewUser);
+                })
+                .orElseGet(() -> {
+                    // 사용자가 없을 경우, 새로운 유저로 저장
+                    User savedUser = userRepository.save(OAuthAttributeMapper.OAuthAttributesToUser(attributes));
+                    return new SaveResult(savedUser, true);
+                });
     }
 
     private void saveOrUpdateRefreshToken(User user, String refreshToken) {
-        refreshTokenRepository.findByUser(user)
-                .ifPresentOrElse(
-                        existingToken -> existingToken.updateToken(refreshToken),
-                        () -> refreshTokenRepository.save(
-                                RefreshToken.builder()
-                                        .token(refreshToken)
-                                        .user(user)
-                                        .build())
-                );
+        refreshTokenRepository.findByUser(user).ifPresentOrElse(
+                existingToken -> existingToken.updateToken(refreshToken),
+                () -> refreshTokenRepository.save(RefreshTokenMapper.buildRefreshToken(refreshToken, user))
+        );
     }
 
     private record SaveResult(User user, Boolean isNewUser) {}

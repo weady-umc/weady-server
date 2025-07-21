@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.Map;
 
@@ -44,11 +45,20 @@ public class GoogleLoginHandler implements SocialLoginHandler {
         params.add("redirect_uri", provider.getRedirectUri());
         params.add("code", authorizationCode);
 
-        Map<String, Object> response = WebClient.create()
-                .post().uri(provider.getProviderDetails().getTokenUri())
-                .bodyValue(params)
-                .retrieve().bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {}).block();
-        return (String) response.get("access_token");
+        log.info("Requesting Google Access Token with params: {}", params);
+
+        try {
+            Map<String, Object> response = WebClient.create()
+                    .post().uri(provider.getProviderDetails().getTokenUri())
+                    .bodyValue(params)
+                    .retrieve().bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {}).block();
+            return (String) response.get("access_token");
+        } catch (WebClientResponseException e) {
+            // ★★★★★ 구글이 보내준 실제 에러 내용을 확인 ★★★★★
+            log.error("Error from Google: status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString());
+            // 예외를 다시 던져서 애플리케이션 흐름을 중단시킴
+            throw e;
+        }
     }
 
     private Map<String, Object> getUserAttributes(ClientRegistration provider, String accessToken) {
