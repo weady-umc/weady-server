@@ -8,6 +8,9 @@ import java.util.Optional;
 
 public interface BoardRepository {
     Optional<Board> findById(Long id);
-    Slice<Board> getFilteredAndSortedResults(Long weatherTagId, Long seasonTagId, Long cursor, Pageable pageable);
     Board save(Board board);
+    Slice<Board> getFilteredAndSortedResults(Long weatherTagId, Long temperatureTagId, Long seasonTagId, Pageable pageable);
+
 }
+
+

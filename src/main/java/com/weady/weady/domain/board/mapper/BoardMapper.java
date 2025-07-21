@@ -53,15 +53,22 @@ public class BoardMapper {
 
     // 게시물 조회 dto
     public static BoardResponseDto toBoardResponseDto(Board board, User user) {
+        List<Long> styleIdList = board.getBoardStyleList().stream()
+                .map(style -> style.getClothesStyleCategory().getId())
+                .collect(Collectors.toList());
+
         return BoardResponseDto.builder()
                 .boardId(board.getId())
                 .isPublic(board.getIsPublic())
                 .content(board.getContent())
+                .weatherTagId(board.getWeatherTag().getId())
+                .temperatureTagId(board.getTemperatureTag().getId())
+                .seasonTagId(board.getSeasonTag().getId())
                 .userName(user.getName())
                 .userProfileImageUrl(user.getProfileImgUrl())
                 .likeCount(board.getGoodCount())
                 .placeDtoList(toBoardPlaceResponseListDto(board.getBoardPlaceList()))
-                .styleIdList(toBoardStyleResponseListDto(board.getBoardStyleList()))
+                .styleIdList(styleIdList)
                 .createdAt(board.getCreatedAt())
                 .build();
     }
@@ -76,49 +83,28 @@ public class BoardMapper {
                 .collect(Collectors.toList());
     }
 
-    public static List<BoardStyleResponseDto> toBoardStyleResponseListDto(List<BoardStyle> styles){
-        return styles.stream()
-                .map(style -> BoardStyleResponseDto.builder()
-                        .styleTagId(style.getClothesStyleCategory().getId())
-                        .build())
-                .collect(Collectors.toList());
+    // 보드 홈 게시물 조회 리스트
+    public static Slice<BoardHomeResponseDto> toBoardHomeResponseSliceDto(Slice<Board> boards) {
+        return boards.map(BoardMapper::toBoardHomeResponseDto);
+
     }
 
-    // 보드 홈 게시물 조회 리스트
-    public static BoardHomeResponseSliceListDto toBoardHomeResponseSliceListDto(Slice<Board> boards) {
 
-        List<BoardHomeResponseDto> boardHomeResponseDtos = boards.getContent().stream()
-                .map( board -> {
+    public static BoardHomeResponseDto toBoardHomeResponseDto(Board board) {
+        // imgOrder == 1 인 이미지의 url 가져오기
+        String firstOrderUrl = board.getBoardImg().stream()
+                .filter(boardImg -> boardImg.getImgOrder() == 1)
+                .map(BoardImg::getImgUrl)
+                .findFirst().orElse(null);
 
-                    // imgOrder == 1 인 이미지의 url 가져오기
-                    String firstOrderUrl = board.getBoardImg().stream()
-                            .filter(boardImg -> boardImg.getImgOrder() == 1)
-                            .map(BoardImg::getImgUrl)
-                            .findFirst().orElse(null);
-
-                    return BoardHomeResponseDto.builder()
-                            .boardID(board.getId())
-                            .imgUrl(firstOrderUrl)
-                            .userId(board.getUser().getId())
-                            .seasonTagId(board.getSeasonTag().getId())
-                            .weatherTagId(board.getWeatherTag().getId())
-                            .createdAt(board.getCreatedAt())
-                            .build();
-                })
-                .collect(Collectors.toList());
-
-        Long nextCursor = boardHomeResponseDtos.isEmpty() ? null : boardHomeResponseDtos.get(boardHomeResponseDtos.size() - 1).boardID(); //마지막 인덱스 id 가져오기
-
-
-        PageInfoDto pageInfoDto = PageInfoDto.builder()
-                .nextCursor(nextCursor)
-                .size(boardHomeResponseDtos.size())
-                .hasNext(boards.hasNext())
-                .build();
-
-        return BoardHomeResponseSliceListDto.builder()
-                .boardHomeResponseDTOList(boardHomeResponseDtos)
-                .pageInfoDto(pageInfoDto)
+        return BoardHomeResponseDto.builder()
+                .boardID(board.getId())
+                .imgUrl(firstOrderUrl)
+                .userId(board.getUser().getId())
+                .seasonTagId(board.getSeasonTag().getId())
+                .temperatureTagId(board.getTemperatureTag().getId())
+                .weatherTagId(board.getWeatherTag().getId())
+                .createdAt(board.getCreatedAt())
                 .build();
     }
 }
