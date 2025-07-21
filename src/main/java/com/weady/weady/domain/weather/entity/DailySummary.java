@@ -38,6 +38,6 @@ public class DailySummary extends BaseEntity {
 
     private LocalDate reportDate;
 
-    private Double TMN; // 최저기온
-    private Double TMX; // 최고기온
+    private Double TMX;
+    private Double TMN;
 }

@@ -52,14 +52,16 @@ public class User extends BaseEntity {
 
 
     // 연관관계편의메소드
-    public void addFavoriteLocation(Location location) {
+    public UserFavoriteLocation addFavoriteLocation(Location location) {
         UserFavoriteLocation favorite = UserFavoriteLocation.builder()
                 .user(this)
                 .location(location)
                 .build();
         this.userFavoriteLocations.add(favorite);
+        return favorite;
     }
     public void removeFavorite(Location location) {
         this.userFavoriteLocations.removeIf(favorite -> favorite.getLocation().equals(location));
     }
+
 }
