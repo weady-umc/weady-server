@@ -1,7 +1,5 @@
 package com.weady.weady.domain.board.dto;
 
-import com.weady.weady.domain.user.dto.ExampleUserResponse;
-import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -39,7 +37,6 @@ public class BoardResponse {
             String imgUrl, //대표 사진 url
 
             Long weatherTagId,
-            Long temperatureTagId,
             Long seasonTagId,
 
             LocalDateTime createdAt
@@ -47,11 +44,19 @@ public class BoardResponse {
 
     @Builder
     public record BoardHomeResponseListDto(
-            List<BoardHomeResponseDto> boardHomeResponseDTOList
+            List<BoardHomeResponseDto> boardHomeResponseDTOList,
+            Long weatherTagId,
+            Long seasonTagId,
+            PageInfoDto pageInfoDto
     ){}
 
-
     @Builder
+    public record PageInfoDto(
+            Long cursor,
+            Long size,
+            boolean hasNext
+    ){}
+        @Builder
     public record BoardImgResponseDto(
             String imgUrl,
             Integer imgOrder

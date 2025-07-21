@@ -1,7 +1,7 @@
 package com.weady.weady.domain.board.service;
 
-import com.weady.weady.domain.board.dto.BoardRequest;
 import com.weady.weady.domain.board.dto.BoardResponse;
+import com.weady.weady.domain.board.dto.request.BoardCreateRequestDto;
 import com.weady.weady.domain.board.entity.board.Board;
 import com.weady.weady.domain.board.mapper.BoardMapper;
 import com.weady.weady.domain.board.repository.BoardRepository;
@@ -15,12 +15,15 @@ import com.weady.weady.domain.tags.repository.temperature.TemperatureRepository;
 import com.weady.weady.domain.tags.repository.weather.WeatherRepository;
 import com.weady.weady.domain.user.entity.User;
 import com.weady.weady.domain.user.repository.UserRepository;
-import com.weady.weady.domain.user.service.ExampleUserService;
+import com.weady.weady.global.common.error.errorCode.BoardErrorCode;
 import com.weady.weady.global.common.error.errorCode.TagsErrorCode;
 import com.weady.weady.global.common.error.errorCode.UserErrorCode;
 import com.weady.weady.global.common.error.exception.BusinessException;
 import com.weady.weady.global.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,7 +39,6 @@ public class BoardService {
     private final TemperatureRepository temperatureRepository;
     private final WeatherRepository weatherRepository;
     private final ClothesStyleCategoryRepository styleCategoryRepository;
-    private final ExampleUserService exampleUserService;
     //private final S3Uploader s3Uploader;
 
 
@@ -46,7 +48,7 @@ public class BoardService {
      * @thorws
      */
     @Transactional
-    public BoardResponse.BoardResponseDto createPost(BoardRequest.BoardCreateRequestDto requestDto) {
+    public BoardResponse.BoardResponseDto createPost(BoardCreateRequestDto requestDto) {
 
         // 게시글 작성자 정보 조회
         User user = userRepository.findById(SecurityUtil.getCurrentUserId())
@@ -73,7 +75,37 @@ public class BoardService {
 
         return BoardMapper.toBoardResponseDto(board, user);
 
+    }
 
+    /**
+     * 보드 홈 - 전체 게시글 조회
+     * @return BoardHomeResponseListDto
+     * @thorws
+     */
+    @Transactional
+    public BoardResponse.BoardHomeResponseListDto getFilteredAndSortedBoards(Long seasonTagId, Long weatherTagId, Long cursor, Integer size) {
+
+        Pageable pageable = PageRequest.of(0, size);
+        Slice<Board> boards = boardRepository.getFilteredAndSortedResults(seasonTagId, weatherTagId, cursor, pageable);
+
+        return BoardMapper.toBoardHomeResponseListDto(boards);
+    }
+
+
+    /**
+     * 특정 게시글 조회
+     * @return BoardResponseDto
+     * @thorws
+     */
+    public BoardResponse.BoardResponseDto getPostById(Long id) {
+
+        User user = userRepository.findById(SecurityUtil.getCurrentUserId())
+                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
+
+        Board board = boardRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(BoardErrorCode.BOARD_NOT_FOUND));
+
+        return BoardMapper.toBoardResponseDto(board, user);
     }
 
 }

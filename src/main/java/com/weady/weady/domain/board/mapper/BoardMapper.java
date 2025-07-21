@@ -1,8 +1,10 @@
 package com.weady.weady.domain.board.mapper;
 
-import com.weady.weady.domain.board.dto.BoardRequest;
 import com.weady.weady.domain.board.dto.BoardResponse;
+import com.weady.weady.domain.board.dto.request.BoardCreateRequestDto;
+import com.weady.weady.domain.board.dto.request.BoardPlaceRequestDto;
 import com.weady.weady.domain.board.entity.board.Board;
+import com.weady.weady.domain.board.entity.board.BoardImg;
 import com.weady.weady.domain.board.entity.board.BoardPlace;
 import com.weady.weady.domain.board.entity.board.BoardStyle;
 import com.weady.weady.domain.tags.entity.ClothesStyleCategory;
@@ -10,13 +12,14 @@ import com.weady.weady.domain.tags.entity.SeasonTag;
 import com.weady.weady.domain.tags.entity.TemperatureTag;
 import com.weady.weady.domain.tags.entity.WeatherTag;
 import com.weady.weady.domain.user.entity.User;
+import org.springframework.data.domain.Slice;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class BoardMapper {
 
-    public static Board toBoard(BoardRequest.BoardCreateRequestDto request, User user,
+    public static Board toBoard(BoardCreateRequestDto request, User user,
                                 SeasonTag seasonTag, TemperatureTag temperatureTag, WeatherTag weatherTag) {
         return Board.builder()
                 .isPublic(request.isPublic())
@@ -28,7 +31,7 @@ public class BoardMapper {
                 .build();
     }
 
-    public static List<BoardPlace> toBoardPlaceList(List<BoardRequest.BoardPlaceRequestDto> requestDtos) {
+    public static List<BoardPlace> toBoardPlaceList(List<BoardPlaceRequestDto> requestDtos) {
         return requestDtos.stream()
                 .map(dto -> BoardPlace.builder()
                         .placeName(dto.placeName())
@@ -46,7 +49,9 @@ public class BoardMapper {
     }
 
 
-    // 응답 dto
+    /// 응답 dto ///
+
+    // 게시물 조회 dto
     public static BoardResponse.BoardResponseDto toBoardResponseDto(Board board, User user) {
         return BoardResponse.BoardResponseDto.builder()
                 .boardId(board.getId())
@@ -77,5 +82,41 @@ public class BoardMapper {
                         .styleTagId(style.getClothesStyleCategory().getId())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    // 보드 홈 게시물 조회 리스트
+    public static BoardResponse.BoardHomeResponseListDto toBoardHomeResponseListDto(Slice<Board> boards) {
+
+        List<BoardResponse.BoardHomeResponseDto> boardHomeResponseDtos = boards.getContent().stream()
+                .map( board -> {
+
+                    String firstOrder = board.getBoardImg().stream()
+                            .filter(boardImg -> boardImg.getImgOrder() == 1)
+                            .map(BoardImg::getImgUrl)
+                            .findFirst().orElse(null);
+
+                    return BoardResponse.BoardHomeResponseDto.builder()
+                            .boardID(board.getId())
+                            .imgUrl(firstOrder)
+                            .userId(board.getUser().getId())
+                            .seasonTagId(board.getSeasonTag().getId())
+                            .weatherTagId(board.getWeatherTag().getId())
+                            .createdAt(board.getCreatedAt())
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        List<Board> content = boards.getContent();
+        Long nextCursor = content.isEmpty() ? null : content.get(content.size() - 1).getId();
+
+        BoardResponse.PageInfoDto pageInfoDto = BoardResponse.PageInfoDto.builder()
+                .cursor(nextCursor)
+                .hasNext(boards.hasNext())
+                .build();
+
+        return BoardResponse.BoardHomeResponseListDto.builder()
+                .boardHomeResponseDTOList(boardHomeResponseDtos)
+                .pageInfoDto(pageInfoDto)
+                .build();
     }
 }
