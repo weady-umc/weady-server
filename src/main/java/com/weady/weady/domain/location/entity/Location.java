@@ -31,5 +31,4 @@ public class Location extends BaseEntity {
     @OneToOne(mappedBy = "location")
     private CurationCategory curationCategory;
 
-    // 여기 에서 user_favorite_location 과의 관계를 설정할 필요가 없음
 }
