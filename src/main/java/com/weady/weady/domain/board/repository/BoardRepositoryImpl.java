@@ -32,7 +32,7 @@ public class BoardRepositoryImpl implements BoardRepository {
         BooleanBuilder filterBuilder = new BooleanBuilder();
         OrderSpecifier<?> orderSpecifier = board.createdAt.desc();
 
-        filterBuilder.and(board.isPublic.isTrue());
+        filterBuilder.and(board.isPublic.isTrue()); // isPublic == true 인 게시물만
 
         if (weatherTagId != null) {
             filterBuilder.and(board.weatherTag.id.eq(weatherTagId));
@@ -48,19 +48,19 @@ public class BoardRepositoryImpl implements BoardRepository {
         }
 
 
-        List<Board> results = jpaQueryFactory
+        List<Board> contents = jpaQueryFactory
                 .selectFrom(board)
                 .where(filterBuilder)
                 .orderBy(orderSpecifier)
                 .limit(pageable.getPageSize() + 1)
                 .fetch();
 
-        boolean hasNext = results.size() > pageable.getPageSize();
+        boolean hasNext = contents.size() > pageable.getPageSize();
         if (hasNext) {
-            results.remove(pageable.getPageSize());
-
+            contents.remove(pageable.getPageSize()); //마지막 인덱스 게시물 제거(마지막으로 보낸 게시물은 hasNext 판별용)
         }
-        return new SliceImpl<>(results, pageable, hasNext);
+
+        return new SliceImpl<>(contents, pageable, hasNext);
     }
 
 }

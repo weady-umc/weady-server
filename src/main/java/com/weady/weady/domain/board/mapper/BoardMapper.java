@@ -14,6 +14,7 @@ import com.weady.weady.domain.tags.entity.WeatherTag;
 import com.weady.weady.domain.user.entity.User;
 import org.springframework.data.domain.Slice;
 
+import javax.security.sasl.SaslClient;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -85,19 +86,20 @@ public class BoardMapper {
     }
 
     // 보드 홈 게시물 조회 리스트
-    public static BoardResponse.BoardHomeResponseListDto toBoardHomeResponseListDto(Slice<Board> boards) {
+    public static BoardResponse.BoardHomeResponseSliceListDto toBoardHomeResponseSliceListDto(Slice<Board> boards) {
 
         List<BoardResponse.BoardHomeResponseDto> boardHomeResponseDtos = boards.getContent().stream()
                 .map( board -> {
 
-                    String firstOrder = board.getBoardImg().stream()
+                    // imgOrder == 1 인 이미지의 url 가져오기
+                    String firstOrderUrl = board.getBoardImg().stream()
                             .filter(boardImg -> boardImg.getImgOrder() == 1)
                             .map(BoardImg::getImgUrl)
                             .findFirst().orElse(null);
 
                     return BoardResponse.BoardHomeResponseDto.builder()
                             .boardID(board.getId())
-                            .imgUrl(firstOrder)
+                            .imgUrl(firstOrderUrl)
                             .userId(board.getUser().getId())
                             .seasonTagId(board.getSeasonTag().getId())
                             .weatherTagId(board.getWeatherTag().getId())
@@ -106,15 +108,17 @@ public class BoardMapper {
                 })
                 .collect(Collectors.toList());
 
-        List<Board> content = boards.getContent();
-        Long nextCursor = content.isEmpty() ? null : content.get(content.size() - 1).getId();
+        Long nextCursor = boardHomeResponseDtos.isEmpty()
+                ? null
+                : boardHomeResponseDtos.get(boardHomeResponseDtos.size() - 1).boardID(); //마지막 인덱스 id 가져오기
+
 
         BoardResponse.PageInfoDto pageInfoDto = BoardResponse.PageInfoDto.builder()
-                .cursor(nextCursor)
+                .nextCursor(nextCursor)
                 .hasNext(boards.hasNext())
                 .build();
 
-        return BoardResponse.BoardHomeResponseListDto.builder()
+        return BoardResponse.BoardHomeResponseSliceListDto.builder()
                 .boardHomeResponseDTOList(boardHomeResponseDtos)
                 .pageInfoDto(pageInfoDto)
                 .build();

@@ -39,14 +39,14 @@ public class BoardController {
 
     @GetMapping(value = "")
     @Operation(summary = "보드 홈 게시물 전체 조회 API", description = "전체 게시물을 조회하는 API입니다. 날씨, 계절 태그 ID로 게시글을 필터링 할 수 있습니다.")
-    public ResponseEntity<ApiResponse<BoardResponse.BoardHomeResponseListDto>> getFilteredAndSortedBoards (
+    public ResponseEntity<ApiResponse<BoardResponse.BoardHomeResponseSliceListDto>> getFilteredAndSortedBoards (
             @RequestParam(name = "seasonTagId") Long seasonTagId,
             @RequestParam(name = "weatherTagId") Long weatherTagId,
             @RequestParam(name = "cursor") Long cursor,
             @RequestParam(name = "size") Integer size
     ){
 
-        BoardResponse.BoardHomeResponseListDto responseDtoList = boardService.getFilteredAndSortedBoards(seasonTagId, weatherTagId, cursor, size);
+        BoardResponse.BoardHomeResponseSliceListDto responseDtoList = boardService.getFilteredAndSortedBoards(seasonTagId, weatherTagId, cursor, size);
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(responseDtoList, "게시글 조회 성공!"));
 
     }

@@ -83,12 +83,12 @@ public class BoardService {
      * @thorws
      */
     @Transactional
-    public BoardResponse.BoardHomeResponseListDto getFilteredAndSortedBoards(Long seasonTagId, Long weatherTagId, Long cursor, Integer size) {
+    public BoardResponse.BoardHomeResponseSliceListDto getFilteredAndSortedBoards(Long seasonTagId, Long weatherTagId, Long cursor, Integer size) {
 
         Pageable pageable = PageRequest.of(0, size);
         Slice<Board> boards = boardRepository.getFilteredAndSortedResults(seasonTagId, weatherTagId, cursor, pageable);
 
-        return BoardMapper.toBoardHomeResponseListDto(boards);
+        return BoardMapper.toBoardHomeResponseSliceListDto(boards);
     }
 
 

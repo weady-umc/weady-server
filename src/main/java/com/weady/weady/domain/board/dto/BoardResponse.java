@@ -43,16 +43,14 @@ public class BoardResponse {
     ){}
 
     @Builder
-    public record BoardHomeResponseListDto(
+    public record BoardHomeResponseSliceListDto(
             List<BoardHomeResponseDto> boardHomeResponseDTOList,
-            Long weatherTagId,
-            Long seasonTagId,
             PageInfoDto pageInfoDto
     ){}
 
     @Builder
     public record PageInfoDto(
-            Long cursor,
+            Long nextCursor,
             Long size,
             boolean hasNext
     ){}
