@@ -1,9 +1,11 @@
 package com.weady.weady.domain.weadychive.controller.curation;
 
 
-import com.weady.weady.domain.curation.dto.CurationCategoryResponse;
-import com.weady.weady.domain.weadychive.dto.curation.WeadychiveCurationRequest;
-import com.weady.weady.domain.weadychive.dto.curation.WeadychiveCurationResponse;
+
+import com.weady.weady.domain.weadychive.dto.curation.Request.ScrapCurationRequestDto;
+import com.weady.weady.domain.weadychive.dto.curation.Response.CurationDto;
+import com.weady.weady.domain.weadychive.dto.curation.Response.ScrappedCurationByUserResponseDto;
+
 import com.weady.weady.domain.weadychive.service.curation.WeadychiveCurationService;
 import com.weady.weady.global.common.apiResponse.ApiResponse;
 import com.weady.weady.global.common.apiResponse.ApiSuccessResponse;
@@ -30,7 +32,7 @@ public class WeadychiveController {
     @io.swagger.v3.oas.annotations.responses.ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
     })
-    public ResponseEntity<ApiResponse<WeadychiveCurationResponse.scrappedCurationByUserResponseDto>> getExpensesByTrip() {
+    public ResponseEntity<ApiResponse<ScrappedCurationByUserResponseDto>> getExpensesByTrip() {
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(weadychiveCurationService.getScrappedCuration()));
     }
 
@@ -39,7 +41,7 @@ public class WeadychiveController {
     @io.swagger.v3.oas.annotations.responses.ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
     })
-    public ResponseEntity<ApiResponse<WeadychiveCurationResponse.CurationDto>> bookmarkCuration(@Valid @RequestBody WeadychiveCurationRequest.scrapCurationRequestDto requestDto) {
+    public ResponseEntity<ApiResponse<CurationDto>> bookmarkCuration(@Valid @RequestBody ScrapCurationRequestDto requestDto) {
 
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(weadychiveCurationService.scrapCuration(requestDto)));
     }

@@ -1,8 +1,9 @@
 package com.weady.weady.domain.curation.controller;
 
 
-import com.weady.weady.domain.curation.dto.CurationCategoryResponse;
-import com.weady.weady.domain.curation.dto.CurationResponse;
+
+import com.weady.weady.domain.curation.dto.Response.CurationByCurationIdResponseDto;
+import com.weady.weady.domain.curation.dto.Response.CurationCategoryResponseDto;
 import com.weady.weady.domain.curation.entity.CurationCategory;
 import com.weady.weady.domain.curation.service.CurationService;
 import com.weady.weady.global.common.apiResponse.ApiResponse;
@@ -33,7 +34,7 @@ public class CurationController {
     @io.swagger.v3.oas.annotations.responses.ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
     })
-    public ResponseEntity<ApiResponse<List<CurationCategoryResponse.curationCategoryResponseDto>>> getExpensesByTrip(){
+    public ResponseEntity<ApiResponse<List<CurationCategoryResponseDto>>> getExpensesByTrip(){
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(curationService.getCurationCategory()));
     }
 
@@ -42,7 +43,7 @@ public class CurationController {
     @io.swagger.v3.oas.annotations.responses.ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
     })
-    public ResponseEntity<ApiResponse<CurationResponse.curationByCurationIdResponseDto>> getExpensesByTrip(@PathVariable("curationId") Long curationId){
+    public ResponseEntity<ApiResponse<CurationByCurationIdResponseDto>> getExpensesByTrip(@PathVariable("curationId") Long curationId){
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(curationService.getSpecificCuration(curationId)));
     }
 }

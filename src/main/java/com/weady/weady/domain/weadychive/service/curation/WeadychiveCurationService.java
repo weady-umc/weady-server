@@ -1,14 +1,15 @@
 package com.weady.weady.domain.weadychive.service.curation;
 
-import com.weady.weady.domain.curation.dto.CurationResponse;
+
 import com.weady.weady.domain.curation.entity.Curation;
 import com.weady.weady.domain.curation.entity.CurationImg;
 import com.weady.weady.domain.curation.mapper.CurationMapper;
 import com.weady.weady.domain.curation.repository.curation.CurationRepository;
 import com.weady.weady.domain.user.entity.User;
 import com.weady.weady.domain.user.repository.UserRepository;
-import com.weady.weady.domain.weadychive.dto.curation.WeadychiveCurationRequest;
-import com.weady.weady.domain.weadychive.dto.curation.WeadychiveCurationResponse;
+import com.weady.weady.domain.weadychive.dto.curation.Request.ScrapCurationRequestDto;
+import com.weady.weady.domain.weadychive.dto.curation.Response.CurationDto;
+import com.weady.weady.domain.weadychive.dto.curation.Response.ScrappedCurationByUserResponseDto;
 import com.weady.weady.domain.weadychive.entity.WeadychiveCuration;
 import com.weady.weady.domain.weadychive.mapper.curation.WeadychiveCurationMapper;
 import com.weady.weady.domain.weadychive.repository.curation.WeadychiveCurationRepository;
@@ -35,7 +36,7 @@ public class WeadychiveCurationService {
      * @return scrappedCurationByUserResponseDto
      * @throws ...
      */
-    public WeadychiveCurationResponse.scrappedCurationByUserResponseDto getScrappedCuration(){
+    public ScrappedCurationByUserResponseDto getScrappedCuration(){
 
         Long currentUserId = SecurityUtil.getCurrentUserId();
 
@@ -63,7 +64,7 @@ public class WeadychiveCurationService {
      * @return CurationDto
      * @throws ...
      */
-    public WeadychiveCurationResponse.CurationDto scrapCuration(WeadychiveCurationRequest.scrapCurationRequestDto requestDto){
+    public CurationDto scrapCuration(ScrapCurationRequestDto requestDto){
         Long currentUserId = SecurityUtil.getCurrentUserId();
 
         User user = userRepository.findById(currentUserId)
