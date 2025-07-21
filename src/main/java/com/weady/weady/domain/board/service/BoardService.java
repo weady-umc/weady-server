@@ -3,7 +3,6 @@ package com.weady.weady.domain.board.service;
 import com.weady.weady.domain.board.dto.BoardRequest;
 import com.weady.weady.domain.board.dto.BoardResponse;
 import com.weady.weady.domain.board.entity.board.Board;
-import com.weady.weady.domain.board.entity.board.BoardStyle;
 import com.weady.weady.domain.board.mapper.BoardMapper;
 import com.weady.weady.domain.board.repository.BoardRepository;
 import com.weady.weady.domain.tags.entity.ClothesStyleCategory;
@@ -11,10 +10,9 @@ import com.weady.weady.domain.tags.entity.SeasonTag;
 import com.weady.weady.domain.tags.entity.TemperatureTag;
 import com.weady.weady.domain.tags.entity.WeatherTag;
 import com.weady.weady.domain.tags.repository.season.SeasonRepository;
-import com.weady.weady.domain.tags.repository.clothesStyleCategory.ClothesStyleClothesCategoryRepository;
+import com.weady.weady.domain.tags.repository.clothesStyleCategory.ClothesStyleCategoryRepository;
 import com.weady.weady.domain.tags.repository.temperature.TemperatureRepository;
 import com.weady.weady.domain.tags.repository.weather.WeatherRepository;
-import com.weady.weady.domain.user.dto.ExampleUserResponse;
 import com.weady.weady.domain.user.entity.User;
 import com.weady.weady.domain.user.repository.UserRepository;
 import com.weady.weady.domain.user.service.ExampleUserService;
@@ -37,7 +35,7 @@ public class BoardService {
     private final SeasonRepository seasonRepository;
     private final TemperatureRepository temperatureRepository;
     private final WeatherRepository weatherRepository;
-    private final ClothesStyleClothesCategoryRepository styleCategoryRepository;
+    private final ClothesStyleCategoryRepository styleCategoryRepository;
     private final ExampleUserService exampleUserService;
     //private final S3Uploader s3Uploader;
 
