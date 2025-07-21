@@ -5,6 +5,6 @@ import lombok.Builder;
 @Builder
 public record PageInfoDto(
         Long nextCursor,
-        Long size,
+        Integer size,
         boolean hasNext
 ){}

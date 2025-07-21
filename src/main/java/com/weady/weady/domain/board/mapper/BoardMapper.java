@@ -107,13 +107,12 @@ public class BoardMapper {
                 })
                 .collect(Collectors.toList());
 
-        Long nextCursor = boardHomeResponseDtos.isEmpty()
-                ? null
-                : boardHomeResponseDtos.get(boardHomeResponseDtos.size() - 1).boardID(); //마지막 인덱스 id 가져오기
+        Long nextCursor = boardHomeResponseDtos.isEmpty() ? null : boardHomeResponseDtos.get(boardHomeResponseDtos.size() - 1).boardID(); //마지막 인덱스 id 가져오기
 
 
         PageInfoDto pageInfoDto = PageInfoDto.builder()
                 .nextCursor(nextCursor)
+                .size(boardHomeResponseDtos.size())
                 .hasNext(boards.hasNext())
                 .build();
 

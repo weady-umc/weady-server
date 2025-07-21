@@ -27,10 +27,13 @@ public class BoardRepositoryImpl implements BoardRepository {
     public Board save(Board board) {return jpaBoardRepository.save(board);}
 
 
+
+
+
     @Override
     public Slice<Board> getFilteredAndSortedResults(Long weatherTagId, Long seasonTagId, Long cursor, Pageable pageable) {
         BooleanBuilder filterBuilder = new BooleanBuilder();
-        OrderSpecifier<?> orderSpecifier = board.createdAt.desc();
+        OrderSpecifier<?>[] orderSpecifier = {board.createdAt.desc(), board.id.desc()};
 
         filterBuilder.and(board.isPublic.isTrue()); // isPublic == true 인 게시물만
 

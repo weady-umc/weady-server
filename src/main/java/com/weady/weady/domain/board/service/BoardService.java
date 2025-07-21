@@ -83,7 +83,7 @@ public class BoardService {
      * @return BoardHomeResponseListDto
      * @thorws
      */
-    @Transactional
+    @Transactional(readOnly = true)
     public BoardHomeResponseSliceListDto getFilteredAndSortedBoards(Long seasonTagId, Long weatherTagId, Long cursor, Integer size) {
 
         Pageable pageable = PageRequest.of(0, size);
