@@ -65,7 +65,7 @@ public class BoardMapper {
                 .temperatureTagId(board.getTemperatureTag().getId())
                 .seasonTagId(board.getSeasonTag().getId())
                 .userName(user.getName())
-                .userProfileImageUrl(user.getProfileImgUrl())
+                .userProfileImageUrl(user.getProfileImageUrl())
                 .likeCount(board.getGoodCount())
                 .placeDtoList(toBoardPlaceResponseListDto(board.getBoardPlaceList()))
                 .styleIdList(styleIdList)
