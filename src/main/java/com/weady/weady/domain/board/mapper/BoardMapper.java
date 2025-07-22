@@ -53,7 +53,7 @@ public class BoardMapper {
                 .isPublic(board.getIsPublic())
                 .content(board.getContent())
                 .userName(user.getName())
-                .userProfileImageUrl(user.getProfileImgUrl())
+                .userProfileImageUrl(user.getProfileImageUrl())
                 .likeCount(board.getGoodCount())
                 .placeDtoList(toBoardPlaceResponseListDto(board.getBoardPlaceList()))
                 .styleIdList(toBoardStyleResponseListDto(board.getBoardStyleList()))

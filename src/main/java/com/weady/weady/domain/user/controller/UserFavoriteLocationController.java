@@ -1,7 +1,7 @@
 package com.weady.weady.domain.user.controller;
 
 import com.weady.weady.domain.user.dto.AddUserFavoriteLocationResponse;
-import com.weady.weady.domain.user.dto.AdduserFavoriteLocationRequest;
+import com.weady.weady.domain.user.dto.AddUserFavoriteLocationRequest;
 import com.weady.weady.domain.user.service.UserFavoriteLocationService;
 import com.weady.weady.global.common.apiResponse.ApiResponse;
 import com.weady.weady.global.common.apiResponse.ApiSuccessResponse;
@@ -10,10 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,14 +21,25 @@ public class UserFavoriteLocationController {
 
     @PostMapping
     @Operation(summary = "즐겨찾기 지역 추가 API")
-
     public ResponseEntity<ApiResponse<AddUserFavoriteLocationResponse>>
-    addUserFavoriteLocation(@RequestBody AdduserFavoriteLocationRequest request){
+    addUserFavoriteLocation(@RequestBody AddUserFavoriteLocationRequest request){
+
         AddUserFavoriteLocationResponse response =
                 userFavoriteLocationService.addUserFavoriteLocation(request.hCode());
 
         ApiResponse<AddUserFavoriteLocationResponse> responseWrapper =
                 ApiSuccessResponse.of(response, "즐겨찾기 지역 추가에 성공했습니다.");
+
         return ResponseEntityUtil.buildResponseEntityWithStatus(responseWrapper, HttpStatus.CREATED);
+    }
+
+    @DeleteMapping("/{favoriteId}")
+    @Operation(summary = "즐겨찾기 지역 삭제 API")
+    public ResponseEntity<ApiResponse<Void>> deleteUserFavoriteLocation(@PathVariable Long favoriteId){
+
+        userFavoriteLocationService.deleteUserFavoriteLocation(favoriteId);
+        ApiResponse<Void> responseWrapper = ApiSuccessResponse.of("즐겨찾기 지역 삭제에 성공했습니다.");
+
+        return ResponseEntityUtil.buildDefaultResponseEntity(responseWrapper);
     }
 }

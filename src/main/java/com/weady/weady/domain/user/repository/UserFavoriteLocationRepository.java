@@ -5,7 +5,7 @@ import com.weady.weady.domain.user.entity.User;
 import com.weady.weady.domain.user.entity.UserFavoriteLocation;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface UserFavoriteLocationRepository extends JpaRepository<UserFavoriteLocation, Integer> {
+public interface UserFavoriteLocationRepository extends JpaRepository<UserFavoriteLocation, Long> {
 
     //지역 중복체크
     Boolean existsByUserAndLocation(User user, Location location);
