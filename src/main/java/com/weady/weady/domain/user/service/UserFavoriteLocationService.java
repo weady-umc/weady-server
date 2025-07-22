@@ -46,6 +46,7 @@ public class UserFavoriteLocationService {
         Location location = locationRepository.findLocationByhCode(hCode)
                 .orElseThrow(() -> new BusinessException(LocationErrorCode.LOCATION_NOT_FOUND));
 
+
         //이미 즐겨찾기로 추가되어있는지 중복 체크
         if(userFavoriteLocationRepository.existsByUserAndLocation(user,location))
             throw new BusinessException(LocationErrorCode.FAVORITE_ALREADY_EXISTS);

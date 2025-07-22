@@ -13,7 +13,7 @@ public class LocationRepositoryImpl implements LocationRepository {
     private final JpaLocationRepository jpaLocationRepository;
 
     @Override
-    public Optional<Location> findLocationByhCode(String hCode) {
+    public Optional<Location> findLocationByhCode(String hCode){
         return jpaLocationRepository.findLocationByhCode(hCode);
     }
 }
