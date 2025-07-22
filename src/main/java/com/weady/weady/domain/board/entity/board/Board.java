@@ -53,7 +53,7 @@ public class Board extends BaseEntity {
     // report
     @Builder.Default
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
-    List<Report> reports = new ArrayList<>();
+    private List<Report> reports = new ArrayList<>();
 
     // Relation
     @Builder.Default
@@ -68,7 +68,7 @@ public class Board extends BaseEntity {
     // 스타일 태그
     @Builder.Default
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
-    List<BoardStyle> boardStyleList = new ArrayList<>();
+    private List<BoardStyle> boardStyleList = new ArrayList<>();
 
 
     public void updateBoardPlaceList(List<BoardPlace> boardPlaceList){
