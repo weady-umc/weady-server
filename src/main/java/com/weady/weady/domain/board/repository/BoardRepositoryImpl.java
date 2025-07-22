@@ -4,7 +4,9 @@ import com.weady.weady.domain.board.entity.board.Board;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -25,5 +27,16 @@ public class BoardRepositoryImpl implements BoardRepository {
         return jpaBoardRepository.getFilteredAndSortedResults(weatherTagId, temperatureTagId, seasonTagId, pageable);
     }
 
+    @Override
+    @Transactional
+    public void increaseGoodCount(@Param("id") Long boardId) {
+        jpaBoardRepository.increaseGoodCount(boardId);
+    }
+
+    @Override
+    @Transactional
+    public void decreaseGoodCount(@Param("id") Long boardId) {
+        jpaBoardRepository.decreaseGoodCount(boardId);
+    }
 
 }

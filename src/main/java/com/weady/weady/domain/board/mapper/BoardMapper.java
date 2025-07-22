@@ -3,10 +3,7 @@ package com.weady.weady.domain.board.mapper;
 import com.weady.weady.domain.board.dto.request.BoardCreateRequestDto;
 import com.weady.weady.domain.board.dto.request.BoardPlaceRequestDto;
 import com.weady.weady.domain.board.dto.response.*;
-import com.weady.weady.domain.board.entity.board.Board;
-import com.weady.weady.domain.board.entity.board.BoardImg;
-import com.weady.weady.domain.board.entity.board.BoardPlace;
-import com.weady.weady.domain.board.entity.board.BoardStyle;
+import com.weady.weady.domain.board.entity.board.*;
 import com.weady.weady.domain.tags.entity.ClothesStyleCategory;
 import com.weady.weady.domain.tags.entity.SeasonTag;
 import com.weady.weady.domain.tags.entity.TemperatureTag;
@@ -48,6 +45,13 @@ public class BoardMapper {
                 .collect(Collectors.toList());
     }
 
+    public static BoardGood toBoardGood(Board board, User user) {
+        return BoardGood.builder()
+                .board(board)
+                .user(user)
+                .build();
+    }
+
 
     /// 응답 dto ///
 
@@ -65,8 +69,8 @@ public class BoardMapper {
                 .temperatureTagId(board.getTemperatureTag().getId())
                 .seasonTagId(board.getSeasonTag().getId())
                 .userName(user.getName())
-                .userProfileImageUrl(user.getProfileImgUrl())
-                .likeCount(board.getGoodCount())
+                .userProfileImageUrl(user.getProfileImageUrl())
+                .goodCount(board.getGoodCount())
                 .placeDtoList(toBoardPlaceResponseListDto(board.getBoardPlaceList()))
                 .styleIdList(styleIdList)
                 .createdAt(board.getCreatedAt())
@@ -92,7 +96,7 @@ public class BoardMapper {
 
     public static BoardHomeResponseDto toBoardHomeResponseDto(Board board) {
         // imgOrder == 1 인 이미지의 url 가져오기
-        String firstOrderUrl = board.getBoardImg().stream()
+        String firstOrderUrl = board.getBoardImgList().stream()
                 .filter(boardImg -> boardImg.getImgOrder() == 1)
                 .map(BoardImg::getImgUrl)
                 .findFirst().orElse(null);
@@ -105,6 +109,14 @@ public class BoardMapper {
                 .temperatureTagId(board.getTemperatureTag().getId())
                 .weatherTagId(board.getWeatherTag().getId())
                 .createdAt(board.getCreatedAt())
+                .build();
+    }
+
+
+    public static BoardGoodResponseDto toBoardGoodResponseDto(Boolean liked, Integer goodCount) {
+        return BoardGoodResponseDto.builder()
+                .liked(liked)
+                .goodCount(goodCount)
                 .build();
     }
 }

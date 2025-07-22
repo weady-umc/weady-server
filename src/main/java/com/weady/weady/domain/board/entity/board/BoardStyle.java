@@ -7,7 +7,7 @@ import lombok.*;
 
 @Entity
 @AllArgsConstructor
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
 @Getter
 public class BoardStyle extends BaseEntity {

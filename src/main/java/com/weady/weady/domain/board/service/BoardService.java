@@ -1,10 +1,13 @@
 package com.weady.weady.domain.board.service;
 
 import com.weady.weady.domain.board.dto.request.BoardCreateRequestDto;
+import com.weady.weady.domain.board.dto.response.BoardGoodResponseDto;
 import com.weady.weady.domain.board.dto.response.BoardHomeResponseDto;
 import com.weady.weady.domain.board.dto.response.BoardResponseDto;
 import com.weady.weady.domain.board.entity.board.Board;
+import com.weady.weady.domain.board.entity.board.BoardGood;
 import com.weady.weady.domain.board.mapper.BoardMapper;
+import com.weady.weady.domain.board.repository.BoardGoodRepository;
 import com.weady.weady.domain.board.repository.BoardRepository;
 import com.weady.weady.domain.tags.entity.ClothesStyleCategory;
 import com.weady.weady.domain.tags.entity.SeasonTag;
@@ -35,6 +38,7 @@ import java.util.List;
 public class BoardService {
 
     private final BoardRepository boardRepository;
+    private final BoardGoodRepository boardGoodRepository;
     private final UserRepository userRepository;
     private final SeasonRepository seasonRepository;
     private final TemperatureRepository temperatureRepository;
@@ -109,4 +113,63 @@ public class BoardService {
         return BoardMapper.toBoardResponseDto(board, user);
     }
 
+    /**
+     * 게시글 좋아요
+     * @return BoardGoodResponseDto
+     * @thorws
+     */
+    public BoardGoodResponseDto addGood(Long boardId) {
+
+        // 좋아요 누르는 유저 정보
+        User user = userRepository.findById(SecurityUtil.getCurrentUserId())
+                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
+
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new BusinessException(BoardErrorCode.BOARD_NOT_FOUND));
+
+        if (boardGoodRepository.existsByBoardAndUser(board, user)) { //이미 존재하는 경우
+            throw new BusinessException(BoardErrorCode.ALREADY_LIKED);
+        }
+
+        BoardGood boardGood = BoardMapper.toBoardGood(board, user);
+        boardGoodRepository.save(boardGood);
+
+        boardRepository.increaseGoodCount(boardId);
+        Board updatedBoard = boardRepository.findById(boardId)
+                .orElseThrow(() -> new BusinessException(BoardErrorCode.BOARD_NOT_FOUND));
+
+
+        Integer goodCount = updatedBoard.getGoodCount();
+
+        return BoardMapper.toBoardGoodResponseDto(true, goodCount);
+
+
+    }
+
+    /**
+     * 게시글 좋아요 취소
+     * @return BoardGoodResponseDto
+     * @thorws
+     */
+    @Transactional
+    public BoardGoodResponseDto cancelGood(Long boardId){
+
+        // 좋아요 누르는 유저 정보
+        User user = userRepository.findById(SecurityUtil.getCurrentUserId())
+                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
+
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new BusinessException(BoardErrorCode.BOARD_NOT_FOUND));
+
+        boardGoodRepository.deleteByBoardAndUser(board, user);
+
+        boardRepository.decreaseGoodCount(boardId);
+        Board updatedBoard = boardRepository.findById(boardId)
+                .orElseThrow(() -> new BusinessException(BoardErrorCode.BOARD_GOOD_NOT_FOUND));
+
+        Integer goodCount = updatedBoard.getGoodCount();
+
+        return BoardMapper.toBoardGoodResponseDto(false, goodCount);
+
+    }
 }

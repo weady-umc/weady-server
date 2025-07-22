@@ -13,7 +13,8 @@ public record BoardResponseDto(
         String userName,
         String userProfileImageUrl,
         Boolean isPublic,
-        Integer likeCount,
+        Boolean goodStatus, //게시글을 조회하는 사용자가 좋아요를 눌렀으면 true
+        Integer goodCount,
         //List<BoardImgResponseDTO> imageDtoList,
         String content,
 
