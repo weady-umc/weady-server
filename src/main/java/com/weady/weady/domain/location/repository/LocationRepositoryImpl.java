@@ -9,7 +9,7 @@ import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
-public class LocationRepositoryImpl implements LocationRepository{
+public class LocationRepositoryImpl implements LocationRepository {
     private final JpaLocationRepository jpaLocationRepository;
 
     @Override
