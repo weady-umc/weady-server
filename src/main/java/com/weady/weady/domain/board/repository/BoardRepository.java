@@ -6,7 +6,6 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.query.Param;
 
-import java.util.Optional;
 
 public interface BoardRepository extends JpaRepository<Board, Long> {
     Slice<Board> getFilteredAndSortedResults(Long weatherTagId, Long temperatureTagId, Long seasonTagId, Pageable pageable);
