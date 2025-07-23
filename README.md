@@ -4,7 +4,12 @@
 
 <br>
 
----
+## ERD
+<img width="6484" height="4226" alt="weady-erd" src="https://github.com/user-attachments/assets/8b72e272-3429-4563-8cca-4a95b33ac2b3" />
+
+
+<br>
+
 
 <br>
 

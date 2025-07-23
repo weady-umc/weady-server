@@ -1,0 +1,41 @@
+board
+board_comment
+board_good  x
+board_img
+board_place
+
+clothes_style_category x
+curation
+curation_category
+curation_img
+daily_summary x
+fashion x
+fashion_rule x
+location
+
+location_weather_short_datail x
+location_weather_snapshot x
+refresh_token
+report
+season_tag
+temperature_tag
+user
+user_clothes_style_category x
+user_favorite_location
+weadychive_board x
+weadychive_curation x
+weather_tag
+
+
+board_good  x
+clothes_style_category x
+daily_summary x
+fashion x
+fashion_rule x
+location_weather_short_detail x
+location_weather_snapshot x
+
+
+user_clothes_style_category x
+weadychive_board x
+weadychive_curation x
