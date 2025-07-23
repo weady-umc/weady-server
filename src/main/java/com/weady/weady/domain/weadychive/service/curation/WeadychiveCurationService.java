@@ -2,8 +2,6 @@ package com.weady.weady.domain.weadychive.service.curation;
 
 
 import com.weady.weady.domain.curation.entity.Curation;
-import com.weady.weady.domain.curation.entity.CurationImg;
-import com.weady.weady.domain.curation.mapper.CurationMapper;
 import com.weady.weady.domain.curation.repository.curation.CurationRepository;
 import com.weady.weady.domain.user.entity.User;
 import com.weady.weady.domain.user.repository.UserRepository;
@@ -14,7 +12,6 @@ import com.weady.weady.domain.weadychive.entity.WeadychiveCuration;
 import com.weady.weady.domain.weadychive.mapper.curation.WeadychiveCurationMapper;
 import com.weady.weady.domain.weadychive.repository.curation.WeadychiveCurationRepository;
 import com.weady.weady.global.util.SecurityUtil;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
