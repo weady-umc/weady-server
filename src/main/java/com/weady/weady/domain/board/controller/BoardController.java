@@ -1,6 +1,7 @@
 package com.weady.weady.domain.board.controller;
 
 import com.weady.weady.domain.board.dto.request.BoardCreateRequestDto;
+import com.weady.weady.domain.board.dto.response.BoardGoodResponseDto;
 import com.weady.weady.domain.board.dto.response.BoardHomeResponseDto;
 import com.weady.weady.domain.board.dto.response.BoardResponseDto;
 import com.weady.weady.domain.board.service.BoardService;
@@ -13,9 +14,7 @@ import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -62,4 +61,22 @@ public class BoardController {
         BoardResponseDto responseDto = boardService.getPostById(storeId);
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(responseDto, "게시글 조회 성공!"));
     }
+
+
+    @PostMapping(value = "/{boardId}/good")
+    @Operation(summary = "게시물 좋아요 api")
+    public ResponseEntity<ApiResponse<BoardGoodResponseDto>> addGood(@PathVariable(name = "boardId") Long boardId){
+
+        BoardGoodResponseDto responseDto = boardService.addGood(boardId);
+        return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(responseDto, "게시글 좋아요 성공!"));
+    }
+
+    @DeleteMapping(value = "/{boardId}/good")
+    @Operation(summary = "게시물 좋아요 취소 api")
+    public ResponseEntity<ApiResponse<BoardGoodResponseDto>> cancelGood(@PathVariable(name = "boardId") Long boardId){
+
+        BoardGoodResponseDto responseDto = boardService.cancelGood(boardId);
+        return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(responseDto, "게시글 좋아요 취소 성공!"));
+    }
+
 }
