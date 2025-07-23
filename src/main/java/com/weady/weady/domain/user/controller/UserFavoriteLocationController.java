@@ -1,7 +1,8 @@
 package com.weady.weady.domain.user.controller;
 
-import com.weady.weady.domain.user.dto.AddUserFavoriteLocationResponse;
-import com.weady.weady.domain.user.dto.AddUserFavoriteLocationRequest;
+import com.weady.weady.domain.user.dto.response.AddUserFavoriteLocationResponse;
+import com.weady.weady.domain.user.dto.request.AddUserFavoriteLocationRequest;
+import com.weady.weady.domain.user.dto.response.GetUserFavoriteLocationResponse;
 import com.weady.weady.domain.user.service.UserFavoriteLocationService;
 import com.weady.weady.global.common.apiResponse.ApiResponse;
 import com.weady.weady.global.common.apiResponse.ApiSuccessResponse;
@@ -11,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -40,6 +43,16 @@ public class UserFavoriteLocationController {
         userFavoriteLocationService.deleteUserFavoriteLocation(favoriteId);
         ApiResponse<Void> responseWrapper = ApiSuccessResponse.of("즐겨찾기 지역 삭제에 성공했습니다.");
 
+        return ResponseEntityUtil.buildDefaultResponseEntity(responseWrapper);
+    }
+
+    @GetMapping
+    @Operation(summary = "즐겨찾기 지역 조회 API")
+    public ResponseEntity<ApiResponse<List<GetUserFavoriteLocationResponse>>> getUserFavoriteLocations(){
+
+        List<GetUserFavoriteLocationResponse> response = userFavoriteLocationService.getUserFavoriteLocations();
+        ApiResponse<List<GetUserFavoriteLocationResponse>> responseWrapper =
+                ApiSuccessResponse.of(response,"즐겨찾기 지역 조회에 성공했습니다.");
         return ResponseEntityUtil.buildDefaultResponseEntity(responseWrapper);
     }
 }

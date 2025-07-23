@@ -2,8 +2,8 @@ package com.weady.weady.domain.user.service;
 
 import com.weady.weady.domain.tags.entity.ClothesStyleCategory;
 import com.weady.weady.domain.tags.repository.clothesStyleCategory.ClothesStyleCategoryRepository;
-import com.weady.weady.domain.user.dto.UserRequest;
-import com.weady.weady.domain.user.dto.UserResponse;
+import com.weady.weady.domain.user.dto.request.UserRequest;
+import com.weady.weady.domain.user.dto.response.UserResponse;
 import com.weady.weady.domain.user.entity.User;
 import com.weady.weady.domain.user.mapper.UserMapper;
 import com.weady.weady.domain.user.repository.UserRepository;

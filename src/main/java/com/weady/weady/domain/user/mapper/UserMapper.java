@@ -2,12 +2,11 @@ package com.weady.weady.domain.user.mapper;
 
 import com.weady.weady.domain.tags.dto.TagResponse;
 import com.weady.weady.domain.tags.mapper.TagMapper;
-import com.weady.weady.domain.user.dto.ExampleUserResponse;
-import com.weady.weady.domain.user.dto.UserResponse;
+import com.weady.weady.domain.user.dto.response.ExampleUserResponse;
+import com.weady.weady.domain.user.dto.response.UserResponse;
 import com.weady.weady.domain.user.entity.User;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class UserMapper {
 
