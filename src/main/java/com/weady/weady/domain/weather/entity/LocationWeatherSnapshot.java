@@ -24,31 +24,17 @@ public class LocationWeatherSnapshot extends BaseEntity {
 
     private LocalDateTime observationTime;
 
-    private Integer date;
+    private Integer date; // 20250723
 
-    private Integer time;
+    private Integer time; // 1300
 
-    private Float tmp;
+    private Float feelTmp; //체감온도
 
-    private Float uuu;
+    private Float sky; //하늘
 
-    private Float vvv;
+    private Float wsd; //풍속
 
-    private Integer vec;
+    private Float pty; //강수형태 (눈,비, ...)
 
-    private Float wsd;
-
-    private Float sky;
-
-    private Float pty;
-
-    private Float pop;
-
-    private Float pcp;
-
-    private Float reh;
-
-    private Float wav;
-
-    private Float sno;
+    private Float pop; //강수확률
 }
