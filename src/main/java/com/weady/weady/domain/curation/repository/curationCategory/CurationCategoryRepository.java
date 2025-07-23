@@ -8,5 +8,4 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CurationCategoryRepository extends JpaRepository<CurationCategory, Long> {
-    Optional<CurationCategory> findByLocationId(Long locationId);
 }
