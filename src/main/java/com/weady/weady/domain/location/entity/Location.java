@@ -16,7 +16,10 @@ public class Location extends BaseEntity {
     private Long id;
 
     @Column(length = 50)
-    private String hCode;
+    private String bCode;
+
+    @Column(length = 50)
+    private String name;
 
     private Integer nx;
     private Integer ny;

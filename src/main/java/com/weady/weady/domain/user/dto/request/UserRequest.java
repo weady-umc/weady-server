@@ -1,4 +1,4 @@
-package com.weady.weady.domain.user.dto;
+package com.weady.weady.domain.user.dto.request;
 
 import com.weady.weady.domain.user.entity.Gender;
 import com.weady.weady.domain.user.entity.User;
