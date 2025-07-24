@@ -53,7 +53,7 @@ jobs:
             
             # Private 레포 pull 전 로그인
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | \
-              docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+              docker login -u "${{ vars.DOCKERHUB_USERNAME }}" --password-stdin
             
             docker pull ${{ env.IMAGE }}
             docker compose -f ~/docker-compose.yml up -d --pull always --remove-orphans
