@@ -1,6 +1,6 @@
 package com.weady.weady.domain.user.controller;
 
-import com.weady.weady.domain.user.dto.ExampleUserResponse;
+import com.weady.weady.domain.user.dto.response.ExampleUserResponse;
 import com.weady.weady.domain.user.service.ExampleUserService;
 import com.weady.weady.global.common.apiResponse.ApiResponse;
 import com.weady.weady.global.common.apiResponse.ApiSuccessResponse;
