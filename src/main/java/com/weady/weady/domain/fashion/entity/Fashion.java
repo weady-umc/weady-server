@@ -1,6 +1,5 @@
 package com.weady.weady.domain.fashion.entity;
 
-import com.weady.weady.global.common.entity.BaseEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -12,7 +11,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-public class Fashion extends BaseEntity {
+public class Fashion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,4 +20,8 @@ public class Fashion extends BaseEntity {
     private String name;
 
     private String imgUrl;
+
+    private Double startTemp;
+
+    private Double endTemp;
 }
