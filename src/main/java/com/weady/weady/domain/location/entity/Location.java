@@ -19,16 +19,19 @@ public class Location extends BaseEntity {
     private String bCode;
 
     @Column(length = 50)
-    private String name;
+    private String address1;
+    @Column(length = 50)
+    private String address2;
+    @Column(length = 50)
+    private String address3;
+    @Column(length = 50)
+    private String address4;
 
     private Integer nx;
     private Integer ny;
 
-    @Column(length = 20)
-    private String midTermLandRegId;
-
-    @Column(length = 20)
-    private String midTermTempRegId;
+    @Column(length = 50)
+    private String midTermRegCode;
 
 
     @OneToOne(mappedBy = "location")
