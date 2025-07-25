@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface JpaWeadychiveCurationRepository extends JpaRepository<WeadychiveCuration,Long> {
     List<WeadychiveCuration> findAllByUserId(Long userId);
+    //서비스 로직에 있는 거를 jpql로...
 }
