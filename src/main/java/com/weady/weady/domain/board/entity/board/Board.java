@@ -30,8 +30,10 @@ public class Board extends BaseEntity {
 
     private Integer imgCount;
 
+    @Setter
     @Builder.Default
     private Integer goodCount = 0;
+
 
     //날씨 태그
     @ManyToOne(fetch = FetchType.LAZY)
@@ -53,12 +55,12 @@ public class Board extends BaseEntity {
     // report
     @Builder.Default
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
-    List<Report> reports = new ArrayList<>();
+    private List<Report> reports = new ArrayList<>();
 
-    // Relation
+    // 이미지
     @Builder.Default
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<BoardImg> boardImg = new ArrayList<>();
+    private List<BoardImg> boardImgList = new ArrayList<>();
 
     // 장소 정보
     @Builder.Default
@@ -68,7 +70,12 @@ public class Board extends BaseEntity {
     // 스타일 태그
     @Builder.Default
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
-    List<BoardStyle> boardStyleList = new ArrayList<>();
+    private List<BoardStyle> boardStyleList = new ArrayList<>();
+
+    // 좋아요
+    @Builder.Default
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BoardGood> boardGoodList = new ArrayList<>();
 
 
     public void updateBoardPlaceList(List<BoardPlace> boardPlaceList){

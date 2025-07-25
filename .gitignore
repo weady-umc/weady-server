@@ -36,8 +36,8 @@ out/
 ### VS Code ###
 .vscode/
 
-### local yml###
-application-local.yml
+### QueryDSL ###
+src/main/generated
 
 application.yml
 src/main/resources/application.yml

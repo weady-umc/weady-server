@@ -1,4 +1,10 @@
 package com.weady.weady.domain.location.repository;
 
-public interface LocationRepository {
+import com.weady.weady.domain.location.entity.Location;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface LocationRepository extends JpaRepository<Location, Long> {
+    Optional<Location> findLocationBybCode(String bCode);
 }

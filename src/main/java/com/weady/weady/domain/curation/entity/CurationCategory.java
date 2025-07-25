@@ -27,6 +27,7 @@ public class CurationCategory extends BaseEntity {
     @JoinColumn(name="location_id",nullable = false)
     private Location location;
 
+    @Builder.Default
     @OneToMany(mappedBy = "curationCategory")
     private List<Curation> curations = new ArrayList<>();
 

@@ -5,7 +5,7 @@ import com.weady.weady.domain.auth.entity.RefreshToken;
 import com.weady.weady.domain.user.entity.User;
 
 public class RefreshTokenMapper {
-    public static RefreshToken toRefreshToken(String token, User user) {
+    public static RefreshToken buildRefreshToken(String token, User user) {
         return RefreshToken.builder()
                 .token(token)
                 .user(user)
