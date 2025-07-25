@@ -38,6 +38,7 @@ public class Curation extends BaseEntity {
     @JoinColumn(name="weather_tag",nullable = false)
     private WeatherTag weatherTag;
 
+
     @OneToMany(mappedBy = "curation")
     private List<CurationImg> imgs = new ArrayList<>();
 
