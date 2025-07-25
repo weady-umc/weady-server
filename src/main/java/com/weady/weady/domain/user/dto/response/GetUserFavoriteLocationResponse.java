@@ -1,11 +1,17 @@
 package com.weady.weady.domain.user.dto.response;
 
+import lombok.Builder;
+
+@Builder
 public record GetUserFavoriteLocationResponse(
 
         Long favoriteId,
         String bCode,
-        String locationName,
-        Float tmp,
+        String locationAddress1,
+        String locationAddress2,
+        String locationAddress3,
+        String locationAddress4,
+        Float currentTemp,
         Float actualTmx,
         Float actualTmn
 
