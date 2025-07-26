@@ -1,6 +1,6 @@
 package com.weady.weady.domain.weather.entity;
 
-import com.weady.weady.global.common.entity.BaseEntity;
+import com.weady.weady.common.entity.BaseEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;

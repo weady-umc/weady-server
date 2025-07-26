@@ -4,7 +4,7 @@ import com.weady.weady.domain.tags.entity.SeasonTag;
 import com.weady.weady.domain.tags.entity.TemperatureTag;
 import com.weady.weady.domain.tags.entity.WeatherTag;
 import com.weady.weady.domain.user.entity.User;
-import com.weady.weady.global.common.entity.BaseEntity;
+import com.weady.weady.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
