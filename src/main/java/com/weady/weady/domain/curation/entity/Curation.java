@@ -3,7 +3,7 @@ package com.weady.weady.domain.curation.entity;
 
 import com.weady.weady.domain.tags.entity.SeasonTag;
 import com.weady.weady.domain.tags.entity.WeatherTag;
-import com.weady.weady.global.common.entity.BaseEntity;
+import com.weady.weady.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -38,6 +38,7 @@ public class Curation extends BaseEntity {
     @JoinColumn(name="weather_tag",nullable = false)
     private WeatherTag weatherTag;
 
+    @Builder.Default
     @OneToMany(mappedBy = "curation")
     private List<CurationImg> imgs = new ArrayList<>();
 

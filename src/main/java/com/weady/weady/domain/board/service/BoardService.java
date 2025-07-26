@@ -19,11 +19,11 @@ import com.weady.weady.domain.tags.repository.temperature.TemperatureRepository;
 import com.weady.weady.domain.tags.repository.weather.WeatherRepository;
 import com.weady.weady.domain.user.entity.User;
 import com.weady.weady.domain.user.repository.UserRepository;
-import com.weady.weady.global.common.error.errorCode.BoardErrorCode;
-import com.weady.weady.global.common.error.errorCode.TagsErrorCode;
-import com.weady.weady.global.common.error.errorCode.UserErrorCode;
-import com.weady.weady.global.common.error.exception.BusinessException;
-import com.weady.weady.global.util.SecurityUtil;
+import com.weady.weady.common.error.errorCode.BoardErrorCode;
+import com.weady.weady.common.error.errorCode.TagsErrorCode;
+import com.weady.weady.common.error.errorCode.UserErrorCode;
+import com.weady.weady.common.error.exception.BusinessException;
+import com.weady.weady.common.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -78,9 +78,72 @@ public class BoardService {
 
         boardRepository.save(board);
 
-        return BoardMapper.toBoardResponseDto(board, user);
+        return BoardMapper.toBoardResponseDto(board, user, false);
 
     }
+
+    /**
+     * 게시글 수정
+     * @return BoardResponseDto
+     * @thorws
+     */
+    @Transactional
+    public BoardResponseDto updatePost(BoardCreateRequestDto requestDto, Long boardId) {
+
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(()-> new BusinessException(BoardErrorCode.BOARD_NOT_FOUND));
+
+        User boardUser = board.getUser(); // 작성자
+
+        Long userId = SecurityUtil.getCurrentUserId(); // 현재 로그인 한 사용자
+
+        if (!userId.equals(boardUser.getId())){
+            throw new BusinessException(BoardErrorCode.UNAUTHORIZED_UPDATE);
+        }
+
+        //날씨 태그 조회
+        SeasonTag seasonTag = seasonRepository.findById(requestDto.seasonTagId())
+                .orElseThrow(()-> new BusinessException(TagsErrorCode.SEASON_TAG_NOT_FOUND));
+
+        TemperatureTag temperatureTag = temperatureRepository.findById(requestDto.temperatureTagId())
+                .orElseThrow(()-> new BusinessException(TagsErrorCode.TEMPERATURE_TAG_NOT_FOUND));
+
+        WeatherTag weatherTag = weatherRepository.findById(requestDto.weatherTagId())
+                .orElseThrow(() -> new BusinessException(TagsErrorCode.WEATHER_TAG_NOT_FOUND));
+
+        List<ClothesStyleCategory> categories = styleCategoryRepository.findAllById(requestDto.styleIds());
+
+        // 변경 사항 업데이트
+        board.updateBoard(requestDto.isPublic(), requestDto.content(), seasonTag, temperatureTag, weatherTag);
+        board.updateBoardPlaceList(BoardMapper.toBoardPlaceList(requestDto.boardPlaceRequestDtoList()));
+        board.updateBoardStyleList(BoardMapper.toBoardStyleList(categories));
+
+        boolean goodStatus = boardGoodRepository.existsByBoardAndUser(board, boardUser);
+
+        return BoardMapper.toBoardResponseDto(board, boardUser, goodStatus);
+
+    }
+
+    /**
+     * 게시글 삭제
+     * @return
+     * @thorws
+     */
+    @Transactional
+    public void deletePost(Long boardId) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(()-> new BusinessException(BoardErrorCode.BOARD_NOT_FOUND));
+
+        User user = userRepository.findById(SecurityUtil.getCurrentUserId())
+                .orElseThrow(()-> new BusinessException(UserErrorCode.USER_NOT_FOUND));
+
+        if (board.getUser().equals(user)) {
+            boardRepository.delete(board);
+            return;
+        }
+        throw new BusinessException(BoardErrorCode.UNAUTHORIZED_DELETE);
+    }
+
 
     /**
      * 보드 홈 - 전체 게시글 조회
@@ -110,7 +173,9 @@ public class BoardService {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(BoardErrorCode.BOARD_NOT_FOUND));
 
-        return BoardMapper.toBoardResponseDto(board, user);
+        boolean goodStatus = boardGoodRepository.existsByBoardAndUser(board, user);
+
+        return BoardMapper.toBoardResponseDto(board, user, goodStatus);
     }
 
     /**
@@ -118,6 +183,7 @@ public class BoardService {
      * @return BoardGoodResponseDto
      * @thorws
      */
+    @Transactional
     public BoardGoodResponseDto addGood(Long boardId) {
 
         // 좋아요 누르는 유저 정보
@@ -134,12 +200,8 @@ public class BoardService {
         BoardGood boardGood = BoardMapper.toBoardGood(board, user);
         boardGoodRepository.save(boardGood);
 
-        boardRepository.increaseGoodCount(boardId);
-        Board updatedBoard = boardRepository.findById(boardId)
-                .orElseThrow(() -> new BusinessException(BoardErrorCode.BOARD_NOT_FOUND));
-
-
-        Integer goodCount = updatedBoard.getGoodCount();
+        board.increaseGoodCount();
+        Integer goodCount = board.getGoodCount();
 
         return BoardMapper.toBoardGoodResponseDto(true, goodCount);
 
@@ -163,11 +225,9 @@ public class BoardService {
 
         boardGoodRepository.deleteByBoardAndUser(board, user);
 
-        boardRepository.decreaseGoodCount(boardId);
-        Board updatedBoard = boardRepository.findById(boardId)
-                .orElseThrow(() -> new BusinessException(BoardErrorCode.BOARD_GOOD_NOT_FOUND));
+        board.decreaseGoodCount();
 
-        Integer goodCount = updatedBoard.getGoodCount();
+        Integer goodCount = board.getGoodCount();
 
         return BoardMapper.toBoardGoodResponseDto(false, goodCount);
 
