@@ -16,8 +16,6 @@ public class KakaoClient {
                 .baseUrl("https://dapi.kakao.com")
                 .defaultHeader("Authorization", "KakaoAK " + kakaoApiKey)
                 .build();
-
-        log.info("🔑 Kakao API Key loaded: {}", kakaoApiKey);
     }
 
     public KakaoApiResponse getRegionInfo(double longitude, double latitude) {
