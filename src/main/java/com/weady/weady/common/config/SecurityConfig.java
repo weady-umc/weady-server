@@ -1,6 +1,6 @@
 package com.weady.weady.common.config;
 
-import com.weady.weady.common.jwt.JwtAuthenticationFilter;
+import com.weady.weady.common.security.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

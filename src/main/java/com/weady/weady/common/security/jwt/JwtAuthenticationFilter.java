@@ -1,4 +1,4 @@
-package com.weady.weady.common.jwt;
+package com.weady.weady.common.security.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

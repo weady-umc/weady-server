@@ -1,5 +1,7 @@
 package com.weady.weady.domain.user.entity;
 
+import com.weady.weady.common.error.errorCode.LocationErrorCode;
+import com.weady.weady.common.error.exception.BusinessException;
 import com.weady.weady.domain.location.entity.Location;
 import com.weady.weady.domain.tags.entity.ClothesStyleCategory;
 import com.weady.weady.common.entity.BaseEntity;
@@ -17,7 +19,6 @@ import java.util.Set;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "user")
 @Builder
-@Setter
 public class User extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,6 +28,7 @@ public class User extends BaseEntity {
     @JoinColumn(name = "now_location_id")
     private Location nowLocation;
 
+    @Setter
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "default_location_id")
     private UserFavoriteLocation defaultLocation;
@@ -68,9 +70,15 @@ public class User extends BaseEntity {
         this.gender = gender;
     }
 
+    public void updateNowLocation(Location location){
+        if (location == null) {
+            throw new BusinessException(LocationErrorCode.LOCATION_NOT_FOUND);
+        }
+        this.nowLocation = location;
+    }
+
     // 연관관계편의메소드
     public UserFavoriteLocation addFavoriteLocation(Location location) {
-
         UserFavoriteLocation favorite = UserFavoriteLocation.builder()
                 .user(this)
                 .location(location)
