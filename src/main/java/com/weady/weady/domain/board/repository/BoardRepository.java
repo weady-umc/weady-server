@@ -4,7 +4,6 @@ import com.weady.weady.domain.board.entity.board.Board;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -23,14 +22,6 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
             @Param("temperatureTagId") Long temperatureTagId,
             @Param("seasonTagId") Long seasonTagId,
             Pageable pageable);
-
-    @Modifying(clearAutomatically = true)
-    @Query("UPDATE Board b SET b.goodCount = b.goodCount + 1 WHERE b.id = :id")
-    void increaseGoodCount(@Param("id") Long boardId);
-
-    @Modifying(clearAutomatically = true)
-    @Query("UPDATE Board b SET b.goodCount = b.goodCount - 1 WHERE b.id = :id")
-    void decreaseGoodCount(@Param("id") Long boardId);
 
 }
 
