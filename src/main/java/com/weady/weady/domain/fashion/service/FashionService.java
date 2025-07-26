@@ -7,11 +7,11 @@ import com.weady.weady.domain.user.entity.User;
 import com.weady.weady.domain.user.repository.UserRepository;
 import com.weady.weady.domain.weather.entity.LocationWeatherSnapshot;
 import com.weady.weady.domain.weather.repository.LocationWeatherSnapshotRepository;
-import com.weady.weady.global.common.error.errorCode.FashionErrorCode;
-import com.weady.weady.global.common.error.errorCode.UserErrorCode;
-import com.weady.weady.global.common.error.errorCode.WeatherErrorCode;
-import com.weady.weady.global.common.error.exception.BusinessException;
-import com.weady.weady.global.util.SecurityUtil;
+import com.weady.weady.common.error.errorCode.FashionErrorCode;
+import com.weady.weady.common.error.errorCode.UserErrorCode;
+import com.weady.weady.common.error.errorCode.WeatherErrorCode;
+import com.weady.weady.common.error.exception.BusinessException;
+import com.weady.weady.common.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

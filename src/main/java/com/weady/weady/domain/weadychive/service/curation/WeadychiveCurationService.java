@@ -11,7 +11,7 @@ import com.weady.weady.domain.weadychive.dto.curation.Response.ScrappedCurationB
 import com.weady.weady.domain.weadychive.entity.WeadychiveCuration;
 import com.weady.weady.domain.weadychive.mapper.curation.WeadychiveCurationMapper;
 import com.weady.weady.domain.weadychive.repository.curation.WeadychiveCurationRepository;
-import com.weady.weady.global.util.SecurityUtil;
+import com.weady.weady.common.util.SecurityUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

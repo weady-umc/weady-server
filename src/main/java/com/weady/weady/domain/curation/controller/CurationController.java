@@ -4,11 +4,10 @@ package com.weady.weady.domain.curation.controller;
 
 import com.weady.weady.domain.curation.dto.Response.CurationByCurationIdResponseDto;
 import com.weady.weady.domain.curation.dto.Response.CurationCategoryResponseDto;
-import com.weady.weady.domain.curation.entity.CurationCategory;
 import com.weady.weady.domain.curation.service.CurationService;
-import com.weady.weady.global.common.apiResponse.ApiResponse;
-import com.weady.weady.global.common.apiResponse.ApiSuccessResponse;
-import com.weady.weady.global.util.ResponseEntityUtil;
+import com.weady.weady.common.apiResponse.ApiResponse;
+import com.weady.weady.common.apiResponse.ApiSuccessResponse;
+import com.weady.weady.common.util.ResponseEntityUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

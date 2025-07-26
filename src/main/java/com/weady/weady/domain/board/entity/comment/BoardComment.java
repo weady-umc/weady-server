@@ -2,7 +2,7 @@ package com.weady.weady.domain.board.entity.comment;
 
 import com.weady.weady.domain.board.entity.board.Board;
 import com.weady.weady.domain.user.entity.User;
-import com.weady.weady.global.common.entity.BaseEntity;
+import com.weady.weady.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
