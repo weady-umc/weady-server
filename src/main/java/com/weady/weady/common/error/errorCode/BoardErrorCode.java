@@ -1,4 +1,4 @@
-package com.weady.weady.common.error.errorCode;
+package com.weady.weady.global.common.error.errorCode;
 
 
 import lombok.Getter;
