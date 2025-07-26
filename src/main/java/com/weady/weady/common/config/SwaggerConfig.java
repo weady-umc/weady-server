@@ -116,9 +116,9 @@ public class SwaggerConfig {
     @Bean
     public GroupedOpenApi userApi() {
         return GroupedOpenApi.builder()
-                .group("user")
+                .group("users")
                 .displayName("8. 유저 API")
-                .pathsToMatch("/api/v1/user/**")
+                .pathsToMatch("/api/v1/users/**")
                 .build();
     }
 

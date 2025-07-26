@@ -28,6 +28,7 @@ public class User extends BaseEntity {
     @JoinColumn(name = "now_location_id")
     private Location nowLocation;
 
+    @Setter
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "default_location_id")
     private UserFavoriteLocation defaultLocation;
