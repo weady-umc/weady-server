@@ -1,7 +1,7 @@
 package com.weady.weady.domain.user.controller;
 
-import com.weady.weady.domain.user.dto.request.UserRequest;
-import com.weady.weady.domain.user.dto.response.UserResponse;
+import com.weady.weady.domain.user.dto.request.OnboardRequest;
+import com.weady.weady.domain.user.dto.response.OnboardResponse;
 import com.weady.weady.domain.user.service.UserService;
 import com.weady.weady.common.apiResponse.ApiResponse;
 import com.weady.weady.common.apiResponse.ApiSuccessResponse;
@@ -20,7 +20,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
     private final UserService userService;
     @PostMapping("/onboarding")
-    public ResponseEntity<ApiResponse<UserResponse.onboardResponse>> onboard(@RequestBody @Valid UserRequest.onboardRequestDto request) {
+    public ResponseEntity<ApiResponse<OnboardResponse>> onboard(@RequestBody @Valid OnboardRequest request) {
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(userService.onboard(request)));
     }
+
+    @PostMapping("/now-location")
+    public ResponseEntity<ApiResponse<OnboardResponse>> updateNowLocation(@RequestBody OnboardRequest request){
+        return null;
+    }
+
 }
