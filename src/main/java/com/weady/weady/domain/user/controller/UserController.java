@@ -1,7 +1,9 @@
 package com.weady.weady.domain.user.controller;
 
 import com.weady.weady.domain.user.dto.request.OnboardRequest;
+import com.weady.weady.domain.user.dto.request.UpdateNowLocationRequest;
 import com.weady.weady.domain.user.dto.response.OnboardResponse;
+import com.weady.weady.domain.user.dto.response.UpdateNowLocationResponse;
 import com.weady.weady.domain.user.service.UserService;
 import com.weady.weady.common.apiResponse.ApiResponse;
 import com.weady.weady.common.apiResponse.ApiSuccessResponse;
@@ -25,8 +27,8 @@ public class UserController {
     }
 
     @PostMapping("/now-location")
-    public ResponseEntity<ApiResponse<OnboardResponse>> updateNowLocation(@RequestBody OnboardRequest request){
-        return null;
+    public ResponseEntity<ApiResponse<UpdateNowLocationResponse>> updateNowLocation(@RequestBody UpdateNowLocationRequest request){
+        return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(userService.updateNowLocation(request)));
     }
 
 }
