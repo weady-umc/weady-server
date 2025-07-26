@@ -1,5 +1,6 @@
 package com.weady.weady.domain.user.service;
 
+import com.weady.weady.common.external.kakao.KakaoRegionService;
 import com.weady.weady.domain.tags.entity.ClothesStyleCategory;
 import com.weady.weady.domain.tags.repository.clothesStyleCategory.ClothesStyleCategoryRepository;
 import com.weady.weady.domain.user.dto.request.OnboardRequest;
@@ -19,6 +20,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class UserService {
+    private final KakaoRegionService kakaoRegionService;
     private final UserRepository userRepository;
     private final ClothesStyleCategoryRepository clothesStyleCategoryRepository;
 
@@ -32,8 +34,8 @@ public class UserService {
         user.changeGender(request.gender());
         user.syncStyleCategories(styleCategories);
 
-
         return UserMapper.toOnboardResponse(user);
     }
+
 
 }

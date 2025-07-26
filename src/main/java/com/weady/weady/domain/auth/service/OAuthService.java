@@ -13,7 +13,7 @@ import com.weady.weady.domain.user.entity.User;
 import com.weady.weady.domain.user.repository.UserRepository;
 import com.weady.weady.common.error.errorCode.AuthErrorCode;
 import com.weady.weady.common.error.exception.BusinessException;
-import com.weady.weady.common.jwt.JwtTokenProvider;
+import com.weady.weady.common.security.jwt.JwtTokenProvider;
 import com.weady.weady.common.util.SecurityUtil;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;

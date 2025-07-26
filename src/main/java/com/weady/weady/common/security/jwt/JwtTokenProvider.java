@@ -1,4 +1,4 @@
-package com.weady.weady.common.jwt;
+package com.weady.weady.common.security.jwt;
 
 import com.weady.weady.domain.user.entity.User;
 import com.weady.weady.common.error.errorCode.AuthErrorCode;
