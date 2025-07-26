@@ -28,15 +28,31 @@ public class BoardController {
     private final BoardService boardService;
 
     @PostMapping(value = "/create") // , consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "게시물 작성 api", description = "로그인 한 사용자가 게시물을 작성하는 API입니다.")
+    @Operation(summary = "게시물 작성 API", description = "로그인 한 사용자가 게시물을 작성하는 API입니다.")
     public ResponseEntity<ApiResponse<BoardResponseDto>> createPost (
             //@RequestPart(value = "images", required = false) List<MultipartFile> images,
             @RequestBody BoardCreateRequestDto postData){
-        BoardResponseDto responseDto = boardService.createPost(postData);
 
+        BoardResponseDto responseDto = boardService.createPost(postData);
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(responseDto, "게시글 작성 성공!"));
     }
 
+    @PatchMapping(value = "/{boardId}")
+    @Operation(summary = "게시물 수정 API")
+    public ResponseEntity<ApiResponse<BoardResponseDto>> updatePost (
+            @PathVariable(name = "boardId") Long boardId,
+            @RequestBody BoardCreateRequestDto postData) {
+
+        BoardResponseDto responseDto = boardService.updatePost(postData, boardId);
+        return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(responseDto, "게시글 수정 성공!"));
+    }
+
+    @DeleteMapping(value = "/{boardId}")
+    @Operation(summary = "게시물 삭제 API")
+    public ResponseEntity<ApiResponse<Void>> deletePost(@PathVariable(name = "boardId") Long boardId) {
+        boardService.deletePost(boardId);
+        return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of("게시물 삭제 성공!"));
+    }
 
     @GetMapping(value = "")
     @Operation(summary = "보드 홈 게시물 전체 조회 API", description = "전체 게시물을 조회하는 API입니다. 날씨, 계절 태그 ID로 게시글을 필터링 할 수 있습니다.")
@@ -54,17 +70,17 @@ public class BoardController {
 
 
     @GetMapping(value = "/{boardId}")
-    @Operation(summary = "게시물 조회 api", description = "특정 게시물을 조회하는 API입니다.")
+    @Operation(summary = "게시물 조회 API", description = "특정 게시물을 조회하는 API입니다.")
     @Parameters({
             @Parameter(name="boardId", description = "게시물의 아이디, path variable 입니다.")})
-    public ResponseEntity<ApiResponse<BoardResponseDto>> getPostById(@PathVariable(name = "boardId") Long storeId){
-        BoardResponseDto responseDto = boardService.getPostById(storeId);
+    public ResponseEntity<ApiResponse<BoardResponseDto>> getPostById(@PathVariable(name = "boardId") Long boardId){
+        BoardResponseDto responseDto = boardService.getPostById(boardId);
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(responseDto, "게시글 조회 성공!"));
     }
 
 
     @PostMapping(value = "/{boardId}/good")
-    @Operation(summary = "게시물 좋아요 api")
+    @Operation(summary = "게시물 좋아요 API")
     public ResponseEntity<ApiResponse<BoardGoodResponseDto>> addGood(@PathVariable(name = "boardId") Long boardId){
 
         BoardGoodResponseDto responseDto = boardService.addGood(boardId);
@@ -72,7 +88,7 @@ public class BoardController {
     }
 
     @DeleteMapping(value = "/{boardId}/good")
-    @Operation(summary = "게시물 좋아요 취소 api")
+    @Operation(summary = "게시물 좋아요 취소 API")
     public ResponseEntity<ApiResponse<BoardGoodResponseDto>> cancelGood(@PathVariable(name = "boardId") Long boardId){
 
         BoardGoodResponseDto responseDto = boardService.cancelGood(boardId);

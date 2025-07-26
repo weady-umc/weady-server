@@ -77,14 +77,37 @@ public class Board extends BaseEntity {
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BoardGood> boardGoodList = new ArrayList<>();
 
+    public void updateBoard(Boolean isPublic, String content, SeasonTag seasonTag,
+                            TemperatureTag temperatureTag, WeatherTag weatherTag) {
+        this.isPublic = isPublic;
+        this.content = content;
+        this.seasonTag = seasonTag;
+        this.temperatureTag = temperatureTag;
+        this.weatherTag = weatherTag;
+    }
+
 
     public void updateBoardPlaceList(List<BoardPlace> boardPlaceList){
         boardPlaceList.forEach(boardPlace -> {boardPlace.setBoard(this);});
-        this.boardPlaceList = boardPlaceList;
+
+        this.boardPlaceList.clear();
+        this.boardPlaceList.addAll(boardPlaceList);
     }
 
     public void updateBoardStyleList(List<BoardStyle> boardStyleList){
         boardStyleList.forEach(boardStyle -> {boardStyle.setBoard(this);});
-        this.boardStyleList = boardStyleList;
+
+        // 게시글 수정 시 orphanRemoval 오류 발생 방지
+        this.boardStyleList.clear();
+        this.boardStyleList.addAll(boardStyleList);
+
+    }
+
+    public void increaseGoodCount() {
+        this.goodCount = this.goodCount + 1;
+    }
+
+    public void decreaseGoodCount() {
+        this.goodCount = this.goodCount - 1;
     }
 }
