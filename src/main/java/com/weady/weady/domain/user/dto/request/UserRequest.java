@@ -2,7 +2,7 @@ package com.weady.weady.domain.user.dto.request;
 
 import com.weady.weady.domain.user.entity.Gender;
 import com.weady.weady.domain.user.entity.User;
-import com.weady.weady.global.common.validation.annotation.Unique;
+import com.weady.weady.common.validation.annotation.Unique;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

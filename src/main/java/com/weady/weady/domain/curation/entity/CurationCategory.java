@@ -2,7 +2,7 @@ package com.weady.weady.domain.curation.entity;
 
 
 import com.weady.weady.domain.location.entity.Location;
-import com.weady.weady.global.common.entity.BaseEntity;
+import com.weady.weady.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,6 +27,7 @@ public class CurationCategory extends BaseEntity {
     @JoinColumn(name="location_id",nullable = false)
     private Location location;
 
+    @Builder.Default
     @OneToMany(mappedBy = "curationCategory")
     private List<Curation> curations = new ArrayList<>();
 

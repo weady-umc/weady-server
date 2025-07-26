@@ -4,6 +4,6 @@ import lombok.Builder;
 
 @Builder
 public record BoardGoodResponseDto(
-        Boolean liked,
+        Boolean goodStatus,
         Integer goodCount
 ){}

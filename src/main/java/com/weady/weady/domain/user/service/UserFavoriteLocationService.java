@@ -11,10 +11,10 @@ import com.weady.weady.domain.user.repository.UserFavoriteLocationRepository;
 import com.weady.weady.domain.user.repository.UserRepository;
 import com.weady.weady.domain.weather.entity.DailySummary;
 import com.weady.weady.domain.weather.entity.LocationWeatherShortDetail;
-import com.weady.weady.global.common.error.errorCode.LocationErrorCode;
-import com.weady.weady.global.common.error.errorCode.UserErrorCode;
-import com.weady.weady.global.common.error.exception.BusinessException;
-import com.weady.weady.global.util.SecurityUtil;
+import com.weady.weady.common.error.errorCode.LocationErrorCode;
+import com.weady.weady.common.error.errorCode.UserErrorCode;
+import com.weady.weady.common.error.exception.BusinessException;
+import com.weady.weady.common.util.SecurityUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,7 +32,6 @@ public class UserFavoriteLocationService {
     private final UserRepository userRepository;
     private final LocationRepository locationRepository;
     private final UserFavoriteLocationRepository userFavoriteLocationRepository;
-    private final UserFavoriteLocationMapper userFavoriteLocationMapper;
 
     /**
      * 사용자의 즐겨찾기 지역을 추가하는 비즈니스 로직을 수행.
@@ -61,7 +60,7 @@ public class UserFavoriteLocationService {
         //즐겨찾기 Entity생성 후 저장
         UserFavoriteLocation favoriteLocation = user.addFavoriteLocation(location);
 
-        return userFavoriteLocationMapper.toAddResponseDto(favoriteLocation);
+        return UserFavoriteLocationMapper.toAddResponseDto(favoriteLocation);
     }
 
     /**
@@ -111,15 +110,14 @@ public class UserFavoriteLocationService {
                     LocationWeatherShortDetail weather = (LocationWeatherShortDetail) row[1];
                     DailySummary summary = (DailySummary) row[2];
 
-                    return userFavoriteLocationMapper.toGetResponse(favorite, weather, summary);
+                    return UserFavoriteLocationMapper.toGetResponse(favorite, weather, summary);
                 })
                 .collect(Collectors.toList());
     }
 
     private User getAuthenticatedUser() {
         Long userId = SecurityUtil.getCurrentUserId();
-        User user = userRepository.findById(userId)
+        return userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
-        return user;
     }
 }

@@ -10,6 +10,7 @@ import java.util.List;
 @Builder
 public record BoardResponseDto(
         Long boardId,
+        Long userId,
         String userName,
         String userProfileImageUrl,
         Boolean isPublic,

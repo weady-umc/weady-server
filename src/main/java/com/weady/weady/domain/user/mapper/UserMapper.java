@@ -1,6 +1,6 @@
 package com.weady.weady.domain.user.mapper;
 
-import com.weady.weady.domain.tags.dto.TagResponse;
+import com.weady.weady.domain.tags.dto.ClothesStyleCategoryResponseDto;
 import com.weady.weady.domain.tags.mapper.TagMapper;
 import com.weady.weady.domain.user.dto.response.ExampleUserResponse;
 import com.weady.weady.domain.user.dto.response.UserResponse;
@@ -20,7 +20,7 @@ public class UserMapper {
     }
 
     public static UserResponse.onboardResponse toOnboardResponse(User user) {
-        List<TagResponse.ClothesStyleCategoryResponseDto> clothesStyleCategoryResponses = user.getStyleCategories()
+        List<ClothesStyleCategoryResponseDto> clothesStyleCategoryResponses = user.getStyleCategories()
                 .stream().map(TagMapper::toClothesStyleCategoryResponseDto).toList();
 
         return UserResponse.onboardResponse.builder()

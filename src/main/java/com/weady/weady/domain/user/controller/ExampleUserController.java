@@ -2,9 +2,9 @@ package com.weady.weady.domain.user.controller;
 
 import com.weady.weady.domain.user.dto.response.ExampleUserResponse;
 import com.weady.weady.domain.user.service.ExampleUserService;
-import com.weady.weady.global.common.apiResponse.ApiResponse;
-import com.weady.weady.global.common.apiResponse.ApiSuccessResponse;
-import com.weady.weady.global.util.ResponseEntityUtil;
+import com.weady.weady.common.apiResponse.ApiResponse;
+import com.weady.weady.common.apiResponse.ApiSuccessResponse;
+import com.weady.weady.common.util.ResponseEntityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
