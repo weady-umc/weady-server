@@ -24,6 +24,7 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
             @Param("weatherTagId") Long weatherTagId,
             @Param("temperatureTagId") Long temperatureTagId,
             @Param("seasonTagId") Long seasonTagId,
+            @Param("userId") Long userId,
             Pageable pageable);
 
 }

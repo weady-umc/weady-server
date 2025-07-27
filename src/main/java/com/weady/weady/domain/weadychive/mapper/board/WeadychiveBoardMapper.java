@@ -1,16 +1,12 @@
 package com.weady.weady.domain.weadychive.mapper.board;
 
-import com.weady.weady.domain.board.dto.response.BoardHomeResponseDto;
 import com.weady.weady.domain.board.entity.board.Board;
 import com.weady.weady.domain.board.entity.board.BoardImg;
-import com.weady.weady.domain.board.mapper.BoardMapper;
 import com.weady.weady.domain.user.entity.User;
 import com.weady.weady.domain.weadychive.dto.board.response.ScrapBoardResponseDto;
 import com.weady.weady.domain.weadychive.dto.board.response.ScrappedBoardByUserResponseDto;
 import com.weady.weady.domain.weadychive.entity.WeadychiveBoard;
 import org.springframework.data.domain.Slice;
-
-import java.util.List;
 
 public class WeadychiveBoardMapper {
 

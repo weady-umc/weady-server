@@ -26,6 +26,8 @@ import com.weady.weady.common.error.errorCode.TagsErrorCode;
 import com.weady.weady.common.error.errorCode.UserErrorCode;
 import com.weady.weady.common.error.exception.BusinessException;
 import com.weady.weady.common.util.SecurityUtil;
+import com.weady.weady.domain.user.service.UserFavoriteLocationService;
+import com.weady.weady.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -56,9 +58,9 @@ public class BoardService {
      */
     @Transactional(readOnly = true)
     public Slice<BoardHomeResponseDto> getFilteredAndSortedBoards(Long seasonTagId, Long temperatureTagId, Long weatherTagId, Integer size) {
-
+        Long userId = SecurityUtil.getCurrentUserId();
         Pageable pageable = PageRequest.of(0, size);
-        Slice<Board> boards = boardRepository.getFilteredAndSortedResults(seasonTagId, temperatureTagId, weatherTagId, pageable);
+        Slice<Board> boards = boardRepository.getFilteredAndSortedResults(seasonTagId, temperatureTagId, weatherTagId, userId, pageable);
 
         return BoardMapper.toBoardHomeResponseSliceDto(boards);
     }
@@ -69,13 +71,11 @@ public class BoardService {
      * @return BoardResponseDto
      * @thorws
      */
-    public BoardResponseDto getPostById(Long id) {
+    public BoardResponseDto getPostById(Long boardId) {
 
+        Board board = getBoardById(boardId);
         User user = userRepository.findById(SecurityUtil.getCurrentUserId())
                 .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
-
-        Board board = boardRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(BoardErrorCode.BOARD_NOT_FOUND));
 
         boolean goodStatus = boardGoodRepository.existsByBoardAndUser(board, user);
 
@@ -125,9 +125,7 @@ public class BoardService {
     @Transactional
     public BoardResponseDto updatePost(BoardCreateRequestDto requestDto, Long boardId) {
 
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(()-> new BusinessException(BoardErrorCode.BOARD_NOT_FOUND));
-
+        Board board = getBoardById(boardId);
         User boardUser = board.getUser(); // 작성자
 
         Long userId = SecurityUtil.getCurrentUserId(); // 현재 로그인 한 사용자
@@ -166,9 +164,8 @@ public class BoardService {
      */
     @Transactional
     public void deletePost(Long boardId) {
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(()-> new BusinessException(BoardErrorCode.BOARD_NOT_FOUND));
 
+        Board board = getBoardById(boardId);
         User user = userRepository.findById(SecurityUtil.getCurrentUserId())
                 .orElseThrow(()-> new BusinessException(UserErrorCode.USER_NOT_FOUND));
 
@@ -193,8 +190,7 @@ public class BoardService {
         User user = userRepository.findById(SecurityUtil.getCurrentUserId())
                 .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
 
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new BusinessException(BoardErrorCode.BOARD_NOT_FOUND));
+        Board board = getBoardById(boardId);
 
         if (boardGoodRepository.existsByBoardAndUser(board, user)) { //이미 존재하는 경우
             throw new BusinessException(BoardErrorCode.ALREADY_LIKED);
@@ -223,8 +219,7 @@ public class BoardService {
         User user = userRepository.findById(SecurityUtil.getCurrentUserId())
                 .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
 
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new BusinessException(BoardErrorCode.BOARD_NOT_FOUND));
+        Board board = getBoardById(boardId);
 
         if (!boardGoodRepository.existsByBoardAndUser(board, user)) { //이미 존재하는 경우
             throw new BusinessException(BoardErrorCode.BOARD_GOOD_NOT_FOUND);
@@ -251,8 +246,11 @@ public class BoardService {
         User user = userRepository.findById(SecurityUtil.getCurrentUserId())
                 .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
 
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new BusinessException(BoardErrorCode.BOARD_NOT_FOUND));
+        Board board = getBoardById(boardId);
+
+        if (boardHiddenRepository.existsByBoardAndUser(board, user)) { //이미 존재하는 경우
+            throw new BusinessException(BoardErrorCode.ALREADY_HIDDEN);
+        }
 
         BoardHidden boardHidden = BoardMapper.toBoardHidden(board, user);
         boardHiddenRepository.save(boardHidden);
@@ -270,10 +268,18 @@ public class BoardService {
         User user = userRepository.findById(SecurityUtil.getCurrentUserId())
                 .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
 
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new BusinessException(BoardErrorCode.BOARD_NOT_FOUND));
+        Board board = getBoardById(boardId);
 
+        if (!boardHiddenRepository.existsByBoardAndUser(board, user)) { //이미 존재하는 경우
+            throw new BusinessException(BoardErrorCode.BOARD_HIDDEN_NOT_FOUND);
+        }
         boardHiddenRepository.deleteByBoardAndUser(board, user);
+    }
+
+
+    public Board getBoardById(Long boardId) {
+        return boardRepository.findById(boardId)
+                .orElseThrow(() -> new BusinessException(BoardErrorCode.BOARD_NOT_FOUND));
     }
 }
 

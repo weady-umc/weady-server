@@ -7,5 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface BoardHiddenRepository extends JpaRepository<BoardHidden, Long> {
 
+    boolean existsByBoardAndUser(Board board, User user);
     void deleteByBoardAndUser(Board board, User user);
 }
