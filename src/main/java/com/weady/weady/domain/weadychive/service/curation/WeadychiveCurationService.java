@@ -12,6 +12,9 @@ import com.weady.weady.domain.weadychive.entity.WeadychiveCuration;
 import com.weady.weady.domain.weadychive.mapper.curation.WeadychiveCurationMapper;
 
 import com.weady.weady.domain.weadychive.repository.curation.WeadychiveCurationRepository;
+import com.weady.weady.global.common.error.errorCode.CurationErrorCode;
+import com.weady.weady.global.common.error.errorCode.UserErrorCode;
+import com.weady.weady.global.common.error.exception.BusinessException;
 import com.weady.weady.global.util.SecurityUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -32,14 +35,14 @@ public class WeadychiveCurationService {
     /**
      * 스크랩한 큐레이션 가져오기
      * @return scrappedCurationByUserResponseDto
-     * @throws ...
+     * @thorws UserErrorCode.USER_NOT_FOUND 사용자를 찾을 수 없을때 예외를 발생
      */
     public ScrappedCurationByUserResponseDto getScrappedCuration(){
 
         Long currentUserId = SecurityUtil.getCurrentUserId();
 
         User user = userRepository.findById(currentUserId)
-                .orElseThrow();
+                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
 
         String userName = user.getName();
 
@@ -60,19 +63,20 @@ public class WeadychiveCurationService {
     /**
      * 큐레이션 스크랩하기
      * @return CurationDto
-     * @throws ...
+     * @thorws UserErrorCode.USER_NOT_FOUND 사용자를 찾을 수 없을때 예외를 발생
+     * @thorws CurationErrorCode.CURATION_NOT_FOUND 큐레이션이 존재하지 않을경우 예외 발생
      */
     public CurationDto scrapCuration(ScrapCurationRequestDto requestDto){
         Long currentUserId = SecurityUtil.getCurrentUserId();
 
         User user = userRepository.findById(currentUserId)
-                .orElseThrow();
+                .orElseThrow(()-> new BusinessException(UserErrorCode.USER_NOT_FOUND));
 
         Long curationId = requestDto.curationId();
 
 
         Curation curation = curationRepository.findById(curationId)
-                .orElseThrow();
+                .orElseThrow(()->new BusinessException(CurationErrorCode.CURATION_NOT_FOUND));
 
         WeadychiveCuration weadychiveCuration =  WeadychiveCurationMapper.toEntity(user , curation);
 

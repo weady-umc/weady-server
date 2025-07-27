@@ -10,6 +10,8 @@ import com.weady.weady.domain.curation.mapper.CurationCategoryMapper;
 import com.weady.weady.domain.curation.mapper.CurationMapper;
 import com.weady.weady.domain.curation.repository.curation.CurationRepository;
 import com.weady.weady.domain.curation.repository.curationCategory.CurationCategoryRepository;
+import com.weady.weady.global.common.error.errorCode.CurationErrorCode;
+import com.weady.weady.global.common.error.exception.BusinessException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -43,11 +45,11 @@ public class CurationService {
     /**
      * 큐레이션 상세정보 조회
      * @return curationByCurationIdResponseDto
-     * @throws ...
+     * @thorws CurationErrorCode.CURATION_NOT_FOUND 큐레이션이 존재하지 않을경우 예외 발생
      */
     public CurationByCurationIdResponseDto getSpecificCuration(Long curationId){
         Curation curation = curationRepository.findById(curationId)
-                .orElseThrow(() -> new EntityNotFoundException("curation not found"));
+                .orElseThrow(() -> new BusinessException(CurationErrorCode.CURATION_NOT_FOUND));
 
         String curationTitle = curation.getTitle();
         List<CurationImg> imgs = curation.getImgs();
