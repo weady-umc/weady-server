@@ -1,12 +1,14 @@
 package com.weady.weady.domain.weadychive.repository.curation;
 
-import com.weady.weady.domain.curation.entity.CurationCategory;
 import com.weady.weady.domain.weadychive.entity.WeadychiveCuration;
-import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface WeadychiveCurationRepository extends JpaRepository<WeadychiveCuration, Long> {
+public interface WeadychiveCurationRepository extends JpaRepository<WeadychiveCuration,Long> {
     List<WeadychiveCuration> findAllByUserId(Long userId);
+
+    void deleteByUserIdAndCurationId(Long userId, Long curationId);
+
+    //서비스 로직에 있는 거를 jpql로...
 }

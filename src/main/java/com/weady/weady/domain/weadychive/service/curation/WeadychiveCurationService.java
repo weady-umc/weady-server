@@ -10,6 +10,7 @@ import com.weady.weady.domain.weadychive.dto.curation.Response.CurationDto;
 import com.weady.weady.domain.weadychive.dto.curation.Response.ScrappedCurationByUserResponseDto;
 import com.weady.weady.domain.weadychive.entity.WeadychiveCuration;
 import com.weady.weady.domain.weadychive.mapper.curation.WeadychiveCurationMapper;
+
 import com.weady.weady.domain.weadychive.repository.curation.WeadychiveCurationRepository;
 import com.weady.weady.global.util.SecurityUtil;
 import jakarta.transaction.Transactional;
@@ -78,5 +79,16 @@ public class WeadychiveCurationService {
         weadychiveCurationRepository.save(weadychiveCuration);
 
         return WeadychiveCurationMapper.toCurationResponseDto(curationId, curation.getTitle(), curation.getBackgroundImgUrl());
+    }
+
+    /**
+     * 큐레이션 스크랩 취소하기
+     * @return
+     * @throws ...
+     */
+    public void cancelCuration(Long curationId){
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+
+        weadychiveCurationRepository.deleteByUserIdAndCurationId(currentUserId, curationId);
     }
 }
