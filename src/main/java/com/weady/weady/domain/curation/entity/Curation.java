@@ -26,15 +26,15 @@ public class Curation extends BaseEntity {
     @Column(name = "background_img_url")
     private String backgroundImgUrl;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="curation_category_id",nullable = false)
     private CurationCategory curationCategory;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="season_tag",nullable = false)
     private SeasonTag seasonTag;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="weather_tag",nullable = false)
     private WeatherTag weatherTag;
 

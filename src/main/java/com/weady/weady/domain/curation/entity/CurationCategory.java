@@ -23,7 +23,7 @@ public class CurationCategory extends BaseEntity {
     @Column(name="view_name")
     private String viewName;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="location_id",nullable = false)
     private Location location;
 
