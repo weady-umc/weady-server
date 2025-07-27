@@ -37,7 +37,6 @@ public class WeadychiveBoardController {
     }
 
 
-
     @PostMapping("/bookmarks")
     @Operation(summary = "게시물 스크랩하기 API")
     @io.swagger.v3.oas.annotations.responses.ApiResponses({

@@ -6,8 +6,10 @@ import com.weady.weady.domain.board.dto.response.BoardHomeResponseDto;
 import com.weady.weady.domain.board.dto.response.BoardResponseDto;
 import com.weady.weady.domain.board.entity.board.Board;
 import com.weady.weady.domain.board.entity.board.BoardGood;
+import com.weady.weady.domain.board.entity.board.BoardHidden;
 import com.weady.weady.domain.board.mapper.BoardMapper;
 import com.weady.weady.domain.board.repository.BoardGoodRepository;
+import com.weady.weady.domain.board.repository.BoardHiddenRepository;
 import com.weady.weady.domain.board.repository.BoardRepository;
 import com.weady.weady.domain.tags.entity.ClothesStyleCategory;
 import com.weady.weady.domain.tags.entity.SeasonTag;
@@ -39,6 +41,7 @@ public class BoardService {
 
     private final BoardRepository boardRepository;
     private final BoardGoodRepository boardGoodRepository;
+    private final BoardHiddenRepository boardHiddenRepository;
     private final UserRepository userRepository;
     private final SeasonRepository seasonRepository;
     private final TemperatureRepository temperatureRepository;
@@ -235,4 +238,42 @@ public class BoardService {
         return BoardMapper.toBoardGoodResponseDto(false, goodCount);
 
     }
+
+
+    /**
+     * 11. 게시글 숨김
+     * @return
+     * @thorws
+     */
+    @Transactional
+    public void hideBoard(Long boardId) {
+
+        User user = userRepository.findById(SecurityUtil.getCurrentUserId())
+                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
+
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new BusinessException(BoardErrorCode.BOARD_NOT_FOUND));
+
+        BoardHidden boardHidden = BoardMapper.toBoardHidden(board, user);
+        boardHiddenRepository.save(boardHidden);
+
+    }
+
+    /**
+     * 12. 게시글 숨김 취소
+     * @return
+     * @thorws
+     */
+    @Transactional
+    public void unhideBoard(Long boardId){
+
+        User user = userRepository.findById(SecurityUtil.getCurrentUserId())
+                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
+
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new BusinessException(BoardErrorCode.BOARD_NOT_FOUND));
+
+        boardHiddenRepository.deleteByBoardAndUser(board, user);
+    }
 }
+
