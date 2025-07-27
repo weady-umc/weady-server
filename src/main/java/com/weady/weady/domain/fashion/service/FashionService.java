@@ -3,12 +3,10 @@ package com.weady.weady.domain.fashion.service;
 import com.weady.weady.domain.fashion.dto.Response.FashionDetailResponseDto;
 import com.weady.weady.domain.fashion.dto.Response.FashionSummaryResponseDto;
 import com.weady.weady.domain.fashion.entity.Fashion;
+import com.weady.weady.domain.fashion.mapper.FashionMapper;
 import com.weady.weady.domain.fashion.repository.FashionRepository;
 import com.weady.weady.domain.location.entity.Location;
 import com.weady.weady.domain.location.repository.LocationRepository;
-import com.weady.weady.domain.tags.entity.SeasonTag;
-import com.weady.weady.domain.tags.entity.TemperatureTag;
-import com.weady.weady.domain.tags.entity.WeatherTag;
 import com.weady.weady.domain.user.entity.User;
 import com.weady.weady.domain.user.repository.UserRepository;
 import com.weady.weady.domain.weather.entity.DailySummary;
@@ -26,6 +24,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+
+import static com.weady.weady.domain.fashion.mapper.FashionMapper.toClothing;
+import static com.weady.weady.domain.fashion.mapper.FashionMapper.toTag;
 
 @Service
 @RequiredArgsConstructor
@@ -121,20 +122,12 @@ public class FashionService {
         Fashion currentFashion = findFashionFor(feelTemp, fashions);;
 
         FashionDetailResponseDto.Recommendation recommendation =
-                new FashionDetailResponseDto.Recommendation(
-                        currentSnapshot.getTime(),
-                        currentSnapshot.getFeelTmp(),
-                        toClothing(currentFashion)
-                );
+                FashionMapper.toRecommendation(currentSnapshot, currentFashion);
 
         List<FashionDetailResponseDto.ChartPoint> chart = snapshots.stream()
                 .map(s -> {
                     Fashion fashion = findFashionFor(s.getFeelTmp(), fashions);
-                    return new FashionDetailResponseDto.ChartPoint(
-                            s.getTime(),
-                            s.getFeelTmp(),
-                            toClothing(fashion)
-                    );
+                    return FashionMapper.toChartPoint(s, fashion);
                 })
                 .toList();
 
@@ -151,17 +144,7 @@ public class FashionService {
         Location location = locationRepository.findById(locationId)
                 .orElseThrow(() -> new BusinessException(LocationErrorCode.LOCATION_NOT_FOUND));
 
-        return new FashionDetailResponseDto(
-                location.getId(),
-                location.getBCode(),
-                location.getAddress1(),
-                location.getAddress2(),
-                location.getAddress3(),
-                location.getAddress4(),
-                recommendation,
-                chart,
-                tags
-        );
+        return FashionMapper.toDetailResponse(location, recommendation, chart, tags);
     }
 
     private Fashion findFashionFor(float feelTmp, List<Fashion> fashions) {
@@ -169,22 +152,6 @@ public class FashionService {
                 .filter(f -> f.getStartTemp() <= feelTmp && feelTmp <= f.getEndTemp())
                 .findFirst()
                 .orElseThrow(() -> new BusinessException(FashionErrorCode.FASHION_NOT_FOUND));
-    }
-
-    private FashionDetailResponseDto.Clothing toClothing(Fashion fashion) {
-        return new FashionDetailResponseDto.Clothing(fashion.getName(), fashion.getImgUrl());
-    }
-
-    private FashionDetailResponseDto.Tag toTag(SeasonTag tag) {
-        return new FashionDetailResponseDto.Tag(tag.getId(), tag.getName());
-    }
-
-    private FashionDetailResponseDto.Tag toTag(WeatherTag tag) {
-        return new FashionDetailResponseDto.Tag(tag.getId(), tag.getName());
-    }
-
-    private FashionDetailResponseDto.Tag toTag(TemperatureTag tag) {
-        return new FashionDetailResponseDto.Tag(tag.getId(), tag.getName());
     }
 
 }
