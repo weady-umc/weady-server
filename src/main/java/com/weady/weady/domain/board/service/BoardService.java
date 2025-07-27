@@ -46,9 +46,41 @@ public class BoardService {
     private final ClothesStyleCategoryRepository styleCategoryRepository;
     //private final S3Uploader s3Uploader;
 
+    /**
+     * 1. 보드 홈 - 전체 게시글 조회
+     * @return BoardHomeResponseListDto
+     * @thorws
+     */
+    @Transactional(readOnly = true)
+    public Slice<BoardHomeResponseDto> getFilteredAndSortedBoards(Long seasonTagId, Long temperatureTagId, Long weatherTagId, Integer size) {
+
+        Pageable pageable = PageRequest.of(0, size);
+        Slice<Board> boards = boardRepository.getFilteredAndSortedResults(seasonTagId, temperatureTagId, weatherTagId, pageable);
+
+        return BoardMapper.toBoardHomeResponseSliceDto(boards);
+    }
+
 
     /**
-     * 게시글 작성
+     * 2. 특정 게시글 조회
+     * @return BoardResponseDto
+     * @thorws
+     */
+    public BoardResponseDto getPostById(Long id) {
+
+        User user = userRepository.findById(SecurityUtil.getCurrentUserId())
+                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
+
+        Board board = boardRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(BoardErrorCode.BOARD_NOT_FOUND));
+
+        boolean goodStatus = boardGoodRepository.existsByBoardAndUser(board, user);
+
+        return BoardMapper.toBoardResponseDto(board, user, goodStatus);
+    }
+
+    /**
+     * 3. 게시글 작성
      * @return BoardResponseDto
      * @thorws
      */
@@ -83,7 +115,7 @@ public class BoardService {
     }
 
     /**
-     * 게시글 수정
+     * 4. 게시글 수정
      * @return BoardResponseDto
      * @thorws
      */
@@ -125,7 +157,7 @@ public class BoardService {
     }
 
     /**
-     * 게시글 삭제
+     * 5. 게시글 삭제
      * @return
      * @thorws
      */
@@ -145,41 +177,9 @@ public class BoardService {
     }
 
 
-    /**
-     * 보드 홈 - 전체 게시글 조회
-     * @return BoardHomeResponseListDto
-     * @thorws
-     */
-    @Transactional(readOnly = true)
-    public Slice<BoardHomeResponseDto> getFilteredAndSortedBoards(Long seasonTagId, Long temperatureTagId, Long weatherTagId, Integer size) {
-
-        Pageable pageable = PageRequest.of(0, size);
-        Slice<Board> boards = boardRepository.getFilteredAndSortedResults(seasonTagId, temperatureTagId, weatherTagId, pageable);
-
-        return BoardMapper.toBoardHomeResponseSliceDto(boards);
-    }
-
 
     /**
-     * 특정 게시글 조회
-     * @return BoardResponseDto
-     * @thorws
-     */
-    public BoardResponseDto getPostById(Long id) {
-
-        User user = userRepository.findById(SecurityUtil.getCurrentUserId())
-                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
-
-        Board board = boardRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(BoardErrorCode.BOARD_NOT_FOUND));
-
-        boolean goodStatus = boardGoodRepository.existsByBoardAndUser(board, user);
-
-        return BoardMapper.toBoardResponseDto(board, user, goodStatus);
-    }
-
-    /**
-     * 게시글 좋아요
+     * 8. 게시글 좋아요
      * @return BoardGoodResponseDto
      * @thorws
      */
@@ -209,7 +209,7 @@ public class BoardService {
     }
 
     /**
-     * 게시글 좋아요 취소
+     * 9. 게시글 좋아요 취소
      * @return BoardGoodResponseDto
      * @thorws
      */
@@ -223,6 +223,9 @@ public class BoardService {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new BusinessException(BoardErrorCode.BOARD_NOT_FOUND));
 
+        if (!boardGoodRepository.existsByBoardAndUser(board, user)) { //이미 존재하는 경우
+            throw new BusinessException(BoardErrorCode.BOARD_GOOD_NOT_FOUND);
+        }
         boardGoodRepository.deleteByBoardAndUser(board, user);
 
         board.decreaseGoodCount();
