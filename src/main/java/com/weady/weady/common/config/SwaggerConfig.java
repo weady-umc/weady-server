@@ -90,8 +90,8 @@ public class SwaggerConfig {
         return GroupedOpenApi.builder()
                 .group("tag,category")
                 .displayName("5. category, tag API")
-                .pathsToMatch("/api/v1/category/**")
-                .pathsToMatch("/api/v1/tag/**")
+                .pathsToMatch("/api/v1/categories/**")
+                .pathsToMatch("/api/v1/tags/**")
                 .build();
     }
 
