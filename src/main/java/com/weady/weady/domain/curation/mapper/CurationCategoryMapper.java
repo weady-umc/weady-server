@@ -8,11 +8,11 @@ import java.util.List;
 
 public class CurationCategoryMapper {
 
-    public static CurationCategoryResponseDto toCurationCategoryResponseDto(Long locationId,
+    public static CurationCategoryResponseDto toCurationCategoryResponseDto(Long curationCategoryId,
                                                                             String locationName)
     {
         return CurationCategoryResponseDto.builder()
-                .locationId(locationId)
+                .curationCategoryId(curationCategoryId)
                 .locationName(locationName)
                 .build();
     }

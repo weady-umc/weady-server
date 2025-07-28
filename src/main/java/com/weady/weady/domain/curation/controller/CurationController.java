@@ -29,7 +29,7 @@ public class CurationController {
     private final CurationService curationService;
 
 
-    @GetMapping(" ")
+    @GetMapping("/curationCategory")
     @Operation(summary = "큐레이션 카테고리 조회 API")
     @io.swagger.v3.oas.annotations.responses.ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
