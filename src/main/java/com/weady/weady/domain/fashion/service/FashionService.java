@@ -1,5 +1,6 @@
 package com.weady.weady.domain.fashion.service;
 
+import com.weady.weady.common.error.errorCode.LocationErrorCode;
 import com.weady.weady.domain.fashion.dto.Response.FashionDetailResponseDto;
 import com.weady.weady.domain.fashion.dto.Response.FashionSummaryResponseDto;
 import com.weady.weady.domain.fashion.entity.Fashion;
