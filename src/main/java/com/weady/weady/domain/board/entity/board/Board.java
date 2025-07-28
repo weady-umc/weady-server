@@ -104,6 +104,7 @@ public class Board extends BaseEntity {
     }
 
     public void increaseGoodCount() {
+
         this.goodCount = this.goodCount + 1;
     }
 
