@@ -115,6 +115,19 @@ public class UserFavoriteLocationService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public void setDefaultLocation(Long userFavoriteLocationId) {
+
+        //User 엔티티 조회
+        User user = getAuthenticatedUser();
+
+        //userFavoriteLocationId를 통해 업데이트 할 UserFavoriteLocation Entity 조회
+        UserFavoriteLocation updateFavoriteLocation = userFavoriteLocationRepository.findById(userFavoriteLocationId)
+                .orElseThrow(() -> new BusinessException(LocationErrorCode.FAVORITE_NOT_FOUND));
+
+        user.setDefaultLocation(updateFavoriteLocation);
+    }
+
     private User getAuthenticatedUser() {
         Long userId = SecurityUtil.getCurrentUserId();
         return userRepository.findById(userId)
