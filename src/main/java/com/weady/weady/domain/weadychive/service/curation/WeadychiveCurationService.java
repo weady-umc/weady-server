@@ -47,14 +47,23 @@ public class WeadychiveCurationService {
         String userName = user.getName();
 
 
-        List<WeadychiveCuration> scrappedCurations = weadychiveCurationRepository.findAllByUserId(currentUserId);
+//        List<WeadychiveCuration> scrappedCurations = weadychiveCurationRepository.findAllByUserId(currentUserId);
+//
+//        List<Long> curationIds = scrappedCurations.stream() //리스트로 큐레이션 id들 가져오기
+//                .map(scrap -> scrap.getCuration().getId())
+//                .collect(Collectors.toList());
+//
+//        //여기서 SELECT * FROM curation WHERE id IN (1, 2, 1) 이 연산 실행. 이떄 1은 중복되지 않음
+//        List<Curation> curations = curationRepository.findAllById(curationIds);
 
-        List<Long> curationIds = scrappedCurations.stream() //리스트로 큐레이션 id들 가져오기
-                .map(scrap -> scrap.getCuration().getId())
+        List<WeadychiveCuration> scrappedCurations = weadychiveCurationRepository.findAllWithCurationByUserId(currentUserId);
+
+        // curation 리스트 추출
+        List<Curation> curations = scrappedCurations.stream()
+                .map(WeadychiveCuration::getCuration)
                 .collect(Collectors.toList());
 
-        //여기서 SELECT * FROM curation WHERE id IN (1, 2, 1) 이 연산 실행. 이떄 1은 중복되지 않음
-        List<Curation> curations = curationRepository.findAllById(curationIds);
+
 
         return WeadychiveCurationMapper.toScrappedCurationResponseDto(userName,curations);
 
