@@ -22,9 +22,7 @@ public class LocationWeatherSnapshot extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private Location location;
 
-    private Integer observationDate;
-
-    private Integer observationTime;
+    private LocalDateTime observationTime;
 
     private Integer date; // 20250723
 
