@@ -3,6 +3,7 @@ package com.weady.weady.domain.curation.controller;
 
 
 import com.weady.weady.domain.curation.dto.Response.CurationByCurationIdResponseDto;
+import com.weady.weady.domain.curation.dto.Response.CurationByLocationResponseDto;
 import com.weady.weady.domain.curation.dto.Response.CurationCategoryResponseDto;
 import com.weady.weady.domain.curation.entity.CurationCategory;
 import com.weady.weady.domain.curation.service.CurationService;
@@ -34,7 +35,7 @@ public class CurationController {
     @io.swagger.v3.oas.annotations.responses.ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
     })
-    public ResponseEntity<ApiResponse<List<CurationCategoryResponseDto>>> getExpensesByTrip(){
+    public ResponseEntity<ApiResponse<List<CurationCategoryResponseDto>>> getCurationCategory(){
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(curationService.getCurationCategory()));
     }
 
@@ -43,7 +44,16 @@ public class CurationController {
     @io.swagger.v3.oas.annotations.responses.ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
     })
-    public ResponseEntity<ApiResponse<CurationByCurationIdResponseDto>> getExpensesByTrip(@PathVariable("curationId") Long curationId){
+    public ResponseEntity<ApiResponse<CurationByCurationIdResponseDto>> getSpecificCurationByCurationId(@PathVariable("curationId") Long curationId){
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(curationService.getSpecificCuration(curationId)));
+    }
+
+    @GetMapping("/curationCategory/{curationCategoryId}")
+    @Operation(summary = "큐레이션 카테고리를 통한 큐레이션 조회 API")
+    @io.swagger.v3.oas.annotations.responses.ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
+    })
+    public ResponseEntity<ApiResponse<CurationByLocationResponseDto>> getCurationByCurationCategoryId(@PathVariable("curationCategoryId") Long curationCategoryId){
+        return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(curationService.getCurationByCurationCategoryId(curationCategoryId)));
     }
 }
