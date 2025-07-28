@@ -1,6 +1,7 @@
 package com.weady.weady.domain.fashion.mapper;
 
 import com.weady.weady.domain.fashion.dto.Response.FashionDetailResponseDto;
+import com.weady.weady.domain.fashion.dto.Response.FashionSummaryResponseDto;
 import com.weady.weady.domain.fashion.entity.Fashion;
 import com.weady.weady.domain.location.entity.Location;
 import com.weady.weady.domain.tags.entity.SeasonTag;
@@ -11,6 +12,15 @@ import com.weady.weady.domain.weather.entity.LocationWeatherSnapshot;
 import java.util.List;
 
 public class FashionMapper {
+    public static FashionSummaryResponseDto toSummaryResponse(Long locationId,
+                                                              Fashion fashion) {
+        return FashionSummaryResponseDto.builder()
+                .locationId(locationId)
+                .recommendation(fashion.getName())
+                .imageUrl(fashion.getImgUrl())
+                .build();
+    }
+
     public static FashionDetailResponseDto toDetailResponse(Location location,
                                                             FashionDetailResponseDto.Recommendation recommendation,
                                                             List<FashionDetailResponseDto.ChartPoint> chart,

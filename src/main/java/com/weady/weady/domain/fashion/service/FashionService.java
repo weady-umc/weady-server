@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 
 import static com.weady.weady.domain.fashion.mapper.FashionMapper.toClothing;
 import static com.weady.weady.domain.fashion.mapper.FashionMapper.toTag;
@@ -50,12 +51,7 @@ public class FashionService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
 
-        Long locationId = null;
-        if (user.getDefaultLocation() != null && user.getDefaultLocation().getLocation() != null) {
-            locationId = user.getDefaultLocation().getLocation().getId();
-        } else if (user.getNowLocation() != null) {
-            locationId = user.getNowLocation().getId();
-        }
+        Long locationId = getUserDefaultLocationId(user);
 
         LocalDateTime today = LocalDateTime.now();
         int date = Integer.parseInt(today.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
@@ -70,12 +66,8 @@ public class FashionService {
         Fashion fashion = fashionRepository
                 .findByTemperatureRange(feelTemp)
                 .orElseThrow(() -> new BusinessException(FashionErrorCode.FASHION_NOT_FOUND));
-
-        return new FashionSummaryResponseDto(
-                locationId,
-                fashion.getName(),
-                fashion.getImgUrl()
-        );
+        
+        return FashionMapper.toSummaryResponse(locationId, fashion);
     }
 
     /**
@@ -92,12 +84,7 @@ public class FashionService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
 
-        Long locationId = null;
-        if (user.getDefaultLocation() != null && user.getDefaultLocation().getLocation() != null) {
-            locationId = user.getDefaultLocation().getLocation().getId();
-        } else if (user.getNowLocation() != null) {
-            locationId = user.getNowLocation().getId();
-        }
+        Long locationId = getUserDefaultLocationId(user);
 
         LocalDateTime today = LocalDateTime.now();
         int date = Integer.parseInt(today.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
@@ -154,4 +141,12 @@ public class FashionService {
                 .orElseThrow(() -> new BusinessException(FashionErrorCode.FASHION_NOT_FOUND));
     }
 
+    private Long getUserDefaultLocationId(User user){
+        if (user.getDefaultLocation() != null && user.getDefaultLocation().getLocation() != null) {
+            return user.getDefaultLocation().getLocation().getId();
+        }
+        return Optional.ofNullable(user.getNowLocation())
+                .map(Location::getId)
+                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_DEFAULT_LOCATION_NOT_FOUNT));
+    }
 }
