@@ -32,6 +32,7 @@ public class LocationWeatherShortDetail extends BaseEntity {
 
     private Float wsd;
 
+    @Enumerated(EnumType.STRING)
     private SkyCode skyCode; // 1=맑음 2=구름많음 3=흐림 4=비 5=눈
 
     private Float pop;
@@ -39,4 +40,6 @@ public class LocationWeatherShortDetail extends BaseEntity {
     private Float pcp;
 
     private Float reh;
+
+    private Float vec;
 }
