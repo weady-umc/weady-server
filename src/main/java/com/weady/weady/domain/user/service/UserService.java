@@ -8,8 +8,10 @@ import com.weady.weady.domain.tags.entity.ClothesStyleCategory;
 import com.weady.weady.domain.tags.repository.clothesStyleCategory.ClothesStyleCategoryRepository;
 import com.weady.weady.domain.user.dto.request.OnboardRequest;
 import com.weady.weady.domain.user.dto.request.UpdateNowLocationRequest;
+import com.weady.weady.domain.user.dto.request.UpdateUserProfileRequest;
 import com.weady.weady.domain.user.dto.response.OnboardResponse;
 import com.weady.weady.domain.user.dto.response.UpdateNowLocationResponse;
+import com.weady.weady.domain.user.dto.response.UpdateUserProfileResponse;
 import com.weady.weady.domain.user.entity.User;
 import com.weady.weady.domain.user.mapper.UserMapper;
 import com.weady.weady.domain.user.repository.UserRepository;
@@ -57,4 +59,14 @@ public class UserService {
 
     }
 
+    @Transactional
+    public UpdateUserProfileResponse updateUserProfile(UpdateUserProfileRequest request){
+        User user = userRepository.findById(SecurityUtil.getCurrentUserId())
+                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
+
+        user.changeName(request.name());
+        user.changeProfileImageUrl(request.profileImageUrl());
+
+        return UserMapper.toUpdateUserProfileResponse(user);
+    }
 }
