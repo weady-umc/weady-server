@@ -59,6 +59,18 @@ public class BoardMapper {
                 .build();
     }
 
+    //content null일 수도 있는데,,,
+    public static Report toReport(Board board, User user, ReportType reportType, String content) {
+        return Report.builder()
+                .board(board)
+                .user(user)
+                .reportType(reportType)
+                .content(content)
+                .build();
+    }
+
+
+
 
     /// 응답 dto ///
 

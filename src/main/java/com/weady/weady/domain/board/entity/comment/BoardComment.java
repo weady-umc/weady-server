@@ -30,7 +30,6 @@ public class BoardComment extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn
-    private BoardComment boardComment;
-
+    private BoardComment parentComment;
 
 }

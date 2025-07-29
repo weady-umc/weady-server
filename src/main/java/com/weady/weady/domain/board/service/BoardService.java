@@ -1,16 +1,16 @@
 package com.weady.weady.domain.board.service;
 
 import com.weady.weady.domain.board.dto.request.BoardCreateRequestDto;
+import com.weady.weady.domain.board.dto.request.ReportRequestDto;
 import com.weady.weady.domain.board.dto.response.BoardGoodResponseDto;
 import com.weady.weady.domain.board.dto.response.BoardHomeResponseDto;
 import com.weady.weady.domain.board.dto.response.BoardResponseDto;
-import com.weady.weady.domain.board.entity.board.Board;
-import com.weady.weady.domain.board.entity.board.BoardGood;
-import com.weady.weady.domain.board.entity.board.BoardHidden;
+import com.weady.weady.domain.board.entity.board.*;
 import com.weady.weady.domain.board.mapper.BoardMapper;
 import com.weady.weady.domain.board.repository.BoardGoodRepository;
 import com.weady.weady.domain.board.repository.BoardHiddenRepository;
 import com.weady.weady.domain.board.repository.BoardRepository;
+import com.weady.weady.domain.board.repository.ReportRepository;
 import com.weady.weady.domain.tags.entity.ClothesStyleCategory;
 import com.weady.weady.domain.tags.entity.SeasonTag;
 import com.weady.weady.domain.tags.entity.TemperatureTag;
@@ -44,6 +44,7 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final BoardGoodRepository boardGoodRepository;
     private final BoardHiddenRepository boardHiddenRepository;
+    private final ReportRepository reportRepository;
     private final UserRepository userRepository;
     private final SeasonRepository seasonRepository;
     private final TemperatureRepository temperatureRepository;
@@ -234,6 +235,34 @@ public class BoardService {
 
     }
 
+    /**
+     * 10. 게시물 신고
+     * @return
+     * @thorws
+     */
+    @Transactional
+    public void reportPost(Long boardId, ReportRequestDto requestDto) {
+
+        // 신고하는 유저 정보
+        User user = userRepository.findById(SecurityUtil.getCurrentUserId())
+                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
+
+        Board board = getBoardById(boardId);
+
+        ReportType reportType = requestDto.reportType();
+
+        if (reportRepository.existsByBoardAndUser(board, user)) { //이미 신고 한 경우
+            throw new BusinessException(BoardErrorCode.ALREADY_REPORTED);
+        }
+
+        Report report = BoardMapper.toReport(board, user, requestDto.reportType(), requestDto.content());
+        reportRepository.save(report);
+
+        // 게시물 신고 시, 신고자에게는 해당 게시물 숨김 처리
+        hidePost(boardId);
+
+    }
+
 
     /**
      * 11. 게시글 숨김
@@ -241,7 +270,7 @@ public class BoardService {
      * @thorws
      */
     @Transactional
-    public void hideBoard(Long boardId) {
+    public void hidePost(Long boardId) {
 
         User user = userRepository.findById(SecurityUtil.getCurrentUserId())
                 .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
@@ -263,7 +292,7 @@ public class BoardService {
      * @thorws
      */
     @Transactional
-    public void unhideBoard(Long boardId){
+    public void unhidePost(Long boardId){
 
         User user = userRepository.findById(SecurityUtil.getCurrentUserId())
                 .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
