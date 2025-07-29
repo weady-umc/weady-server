@@ -1,14 +1,19 @@
 package com.weady.weady.common.error;
 
 import com.weady.weady.common.apiResponse.ApiErrorResponse;
+import com.weady.weady.common.apiResponse.ApiResponse;
 import com.weady.weady.common.error.errorCode.CommonErrorCode;
 import com.weady.weady.common.error.errorCode.ErrorCode;
 import com.weady.weady.common.error.exception.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.List;
 
 /**
  * 애플리케이션 전역에서 발생하는 예외를 처리하는 클래스입니다.
@@ -38,5 +43,22 @@ public class GlobalExceptionHandler {
         log.error("Unhandled Exception: ", ex);
         ApiErrorResponse response = ApiErrorResponse.of(CommonErrorCode.INTERNAL_SERVER_ERROR);
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * MethodArgumentNotValidException 타입의 예외를 처리합니다.
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    protected ResponseEntity<ApiErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+        log.warn("Validation Exception: {}", ex.getMessage());
+        String errorMessage = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(FieldError::getDefaultMessage)
+                .findFirst()
+                .orElse("유효성 검사에 실패했습니다.");
+
+        ApiErrorResponse response = ApiErrorResponse.of(400, errorMessage);
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 }

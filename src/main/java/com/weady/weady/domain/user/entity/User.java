@@ -69,6 +69,7 @@ public class User extends BaseEntity {
     public void changeGender(Gender gender) {
         this.gender = gender;
     }
+    public void changeProfileImageUrl(String profileImageUrl) { this.profileImageUrl = profileImageUrl; }
 
     public void updateNowLocation(Location location){
         if (location == null) {

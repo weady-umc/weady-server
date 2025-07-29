@@ -5,6 +5,7 @@ import com.weady.weady.domain.tags.dto.ClothesStyleCategoryResponseDto;
 import com.weady.weady.domain.tags.mapper.TagMapper;
 import com.weady.weady.domain.user.dto.response.OnboardResponse;
 import com.weady.weady.domain.user.dto.response.UpdateNowLocationResponse;
+import com.weady.weady.domain.user.dto.response.UpdateUserProfileResponse;
 import com.weady.weady.domain.user.entity.User;
 
 import java.util.List;
@@ -30,6 +31,14 @@ public class UserMapper {
                 .address2(location.getAddress2())
                 .address3(location.getAddress3())
                 .address4(location.getAddress4())
+                .build();
+    }
+
+    public static UpdateUserProfileResponse toUpdateUserProfileResponse(User user) {
+        return UpdateUserProfileResponse.builder()
+                .userId(user.getId())
+                .name(user.getName())
+                .profileImageUrl(user.getProfileImageUrl())
                 .build();
     }
 
