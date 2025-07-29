@@ -1,10 +1,7 @@
 package com.weady.weady.domain.weather.entity;
 
 import com.weady.weady.common.entity.BaseEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
@@ -23,7 +20,9 @@ public class WeatherMidDetail extends BaseEntity {
 
     private Float pop; // 강수 확률
 
+    @Enumerated(EnumType.STRING)
     private SkyCode amSkyCode; // 하늘 상태 코드 (1=맑음, 2=구름많음, 3=흐림, 4=비, 5=눈)
+    @Enumerated(EnumType.STRING)
     private SkyCode pmSkyCode;
 
     private Float tmx; // 최고 기온
