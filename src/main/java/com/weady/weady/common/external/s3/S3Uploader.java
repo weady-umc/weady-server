@@ -38,7 +38,7 @@ public class S3Uploader {
     public String upload(MultipartFile file, String dirName) {
         String originalFileName = file.getOriginalFilename();
 
-        // ✅ 파일명이 null일 경우 대비 + 공백/한글 인코딩 처리
+        //  공백, 한글 인코딩 처리
         String safeFileName = java.net.URLEncoder.encode(originalFileName, StandardCharsets.UTF_8)
                 .replaceAll("\\+", "%20");
 
