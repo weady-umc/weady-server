@@ -52,6 +52,13 @@ public class BoardMapper {
                 .build();
     }
 
+    public static BoardHidden toBoardHidden(Board board, User user) {
+        return BoardHidden.builder()
+                .board(board)
+                .user(user)
+                .build();
+    }
+
 
     /// 응답 dto ///
 

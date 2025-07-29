@@ -3,6 +3,7 @@ package com.weady.weady.common.config;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.servers.Server;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,7 +28,8 @@ public class SwaggerConfig {
         return new OpenAPI()
                 .info(apiInfo())
                 .addSecurityItem(securityRequirement)
-                .components(components);
+                .components(components)
+                .addServersItem(new Server().url("https://weadyapi.pro"));  // ✅ 이거 추가!
     }
 
     private Info apiInfo() {
@@ -90,8 +92,8 @@ public class SwaggerConfig {
         return GroupedOpenApi.builder()
                 .group("tag,category")
                 .displayName("5. category, tag API")
-                .pathsToMatch("/api/v1/category/**")
-                .pathsToMatch("/api/v1/tag/**")
+                .pathsToMatch("/api/v1/categories/**")
+                .pathsToMatch("/api/v1/tags/**")
                 .build();
     }
 

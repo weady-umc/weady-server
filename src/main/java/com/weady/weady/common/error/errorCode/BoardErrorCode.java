@@ -12,7 +12,11 @@ public enum BoardErrorCode implements ErrorCode {
     BOARD_GOOD_NOT_FOUND(404, "좋아요 기록을 찾을 수 없습니다."),
     ALREADY_LIKED(409, "이미 좋아요 한 게시물입니다."),
     UNAUTHORIZED_UPDATE(403, "게시물 수정 권한이 없습니다."),
-    UNAUTHORIZED_DELETE(403, "게시물 삭제 권한이 없습니다.")
+    UNAUTHORIZED_DELETE(403, "게시물 삭제 권한이 없습니다."),
+    WEADYCHIVE_BOARD_NOT_FOUND(404, "스크랩 기록을 찾을 수 없습니다."),
+    ALREADY_SCRAPED(409, "이미 스크랩 한 게시물입니다."),
+    BOARD_HIDDEN_NOT_FOUND(404, "숨김 기록을 찾을 수 없습니다."),
+    ALREADY_HIDDEN(409, "이미 숨김 처리된 게시물입니다.")
     ;
 
     private final int code;
