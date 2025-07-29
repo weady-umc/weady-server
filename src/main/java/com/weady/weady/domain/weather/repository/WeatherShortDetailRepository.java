@@ -9,8 +9,8 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.List;
 
-@Repository
-public interface WeatherMainRepository extends JpaRepository<LocationWeatherShortDetail, Long> {
+
+public interface WeatherShortDetailRepository extends JpaRepository<LocationWeatherShortDetail, Long> {
 
     @Query("SELECT l, lwsd, ds " +
             "FROM Location l " +

@@ -21,11 +21,11 @@ public class WeatherMidDetail extends BaseEntity {
 
     private Integer date; // 언제 날씨 정보인지
 
-    private Integer pop; // 강수 확률
+    private Float pop; // 강수 확률
 
     private SkyCode amSkyCode; // 하늘 상태 코드 (1=맑음, 2=구름많음, 3=흐림, 4=비, 5=눈)
     private SkyCode pmSkyCode;
 
-    private Integer tmx; // 최고 기온
-    private Integer tmn; // 최저 기온
+    private Float tmx; // 최고 기온
+    private Float tmn; // 최저 기온
 }

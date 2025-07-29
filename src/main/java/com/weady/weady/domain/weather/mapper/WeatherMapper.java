@@ -2,14 +2,18 @@ package com.weady.weady.domain.weather.mapper;
 
 import com.weady.weady.domain.location.entity.Location;
 import com.weady.weady.domain.weather.dto.response.GetLocationWeatherShortDetailResponse;
+import com.weady.weady.domain.weather.dto.response.GetWeatherMidDetailResponse;
 import com.weady.weady.domain.weather.entity.DailySummary;
 import com.weady.weady.domain.weather.entity.LocationWeatherShortDetail;
-import org.springframework.stereotype.Component;
+import com.weady.weady.domain.weather.entity.WeatherMidDetail;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
-@Component
 public class WeatherMapper {
     public static GetLocationWeatherShortDetailResponse toShortWeatherResponse(
             Location location,
@@ -54,6 +58,19 @@ public class WeatherMapper {
                 .hourlyForecasts(hourlyForecasts)
                 .hourlyPrecipitations(hourlyPrecipitations)
                 .hourlyWinds(hourlyWinds)
+                .build();
+    }
+
+    public static GetWeatherMidDetailResponse toMidWeatherResponse(WeatherMidDetail weatherMid) {
+
+        LocalDate localDate = LocalDate.parse(String.valueOf(weatherMid.getDate()), DateTimeFormatter.ofPattern("yyyyMMdd"));
+
+        return GetWeatherMidDetailResponse.builder()
+                .dayOfWeek(localDate.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREAN))
+                .amSkyStatus(weatherMid.getAmSkyCode())
+                .pmSkyStatus(weatherMid.getPmSkyCode())
+                .minTemp(weatherMid.getTmn())
+                .maxTemp(weatherMid.getTmx())
                 .build();
     }
 
