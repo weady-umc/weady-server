@@ -10,9 +10,9 @@ import java.lang.reflect.Type;
 @Component
 public class MultipartJackson2HttpMessageConverter extends AbstractJackson2HttpMessageConverter {
 
-    /**
-     * "Content-Type: multipart/form-data" 헤더를 지원하는 HTTP 요청 변환기
-     * 파일과 JSON 데이터를 동시에 처리할 수 있게 해줌
+    /** Swagger에서 multipart/form-data 타입으로 파일과 JSON을 같이 보내는 경우
+     * application/octet-stream 타입으로 인식되는 오류를 해결하기 위한 컨버터 클래스.
+     * application/octet-stream 타입의 요청 바디를 JSON으로 파싱합니다.
      */
     public MultipartJackson2HttpMessageConverter(ObjectMapper objectMapper) {
         super(objectMapper, MediaType.APPLICATION_OCTET_STREAM);

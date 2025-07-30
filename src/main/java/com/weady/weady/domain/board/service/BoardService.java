@@ -81,6 +81,7 @@ public class BoardService {
         User user = userRepository.findById(SecurityUtil.getCurrentUserId())
                 .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
 
+
         boolean goodStatus = boardGoodRepository.existsByBoardAndUser(board, user);
 
         return BoardMapper.toBoardResponseDto(board, user, goodStatus);
