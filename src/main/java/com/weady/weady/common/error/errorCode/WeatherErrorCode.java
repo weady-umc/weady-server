@@ -6,7 +6,9 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum WeatherErrorCode implements ErrorCode {
-    WEATHER_SNAPSHOT_NOT_FOUND(404, "날씨 snapshot 데이터를 찾을 수 없습니다.");
+    WEATHER_SNAPSHOT_NOT_FOUND(404, "날씨 snapshot 데이터를 찾을 수 없습니다."),
+    WEATHER_DATA_NOT_FOUND(404, "날씨 정보를 찾을 수 없습니다."),
+    SUMMARY_DATA_NOT_FOUND(404, "날씨요약 정보를 찾을 수 없습니다.");
 
     private final int code;
     private final String message;
