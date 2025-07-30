@@ -1,5 +1,6 @@
 package com.weady.weady.domain.board.service;
 
+import com.weady.weady.common.external.s3.S3Uploader;
 import com.weady.weady.domain.board.dto.request.BoardCreateRequestDto;
 import com.weady.weady.domain.board.dto.request.ReportRequestDto;
 import com.weady.weady.domain.board.dto.response.BoardGoodResponseDto;
@@ -34,8 +35,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -50,12 +53,12 @@ public class BoardService {
     private final TemperatureRepository temperatureRepository;
     private final WeatherRepository weatherRepository;
     private final ClothesStyleCategoryRepository styleCategoryRepository;
-    //private final S3Uploader s3Uploader;
+    private final S3Uploader s3Uploader;
 
     /**
      * 1. 보드 홈 - 전체 게시글 조회
      * @return BoardHomeResponseListDto
-     * @thorws
+     * @throws
      */
     @Transactional(readOnly = true)
     public Slice<BoardHomeResponseDto> getFilteredAndSortedBoards(Long seasonTagId, Long temperatureTagId, Long weatherTagId, Integer size) {
@@ -70,7 +73,7 @@ public class BoardService {
     /**
      * 2. 특정 게시글 조회
      * @return BoardResponseDto
-     * @thorws
+     * @throws
      */
     public BoardResponseDto getPostById(Long boardId) {
 
@@ -86,31 +89,38 @@ public class BoardService {
     /**
      * 3. 게시글 작성
      * @return BoardResponseDto
-     * @thorws
+     * @throws
      */
     @Transactional
-    public BoardResponseDto createPost(BoardCreateRequestDto requestDto) {
+    public BoardResponseDto createPost(List<MultipartFile> images, BoardCreateRequestDto postData) {
 
         // 게시글 작성자 정보 조회
         User user = userRepository.findById(SecurityUtil.getCurrentUserId())
                 .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
 
-        //날씨 태그 조회
-        SeasonTag seasonTag = seasonRepository.findById(requestDto.seasonTagId())
+        // 날씨 태그 조회
+        SeasonTag seasonTag = seasonRepository.findById(postData.seasonTagId())
                 .orElseThrow(()-> new BusinessException(TagsErrorCode.SEASON_TAG_NOT_FOUND));
 
-        TemperatureTag temperatureTag = temperatureRepository.findById(requestDto.temperatureTagId())
+        TemperatureTag temperatureTag = temperatureRepository.findById(postData.temperatureTagId())
                 .orElseThrow(()-> new BusinessException(TagsErrorCode.TEMPERATURE_TAG_NOT_FOUND));
 
-        WeatherTag weatherTag = weatherRepository.findById(requestDto.weatherTagId())
+        WeatherTag weatherTag = weatherRepository.findById(postData.weatherTagId())
                 .orElseThrow(() -> new BusinessException(TagsErrorCode.WEATHER_TAG_NOT_FOUND));
 
-        List<ClothesStyleCategory> categories = styleCategoryRepository.findAllById(requestDto.styleIds());
+        List<ClothesStyleCategory> categories = styleCategoryRepository.findAllById(postData.styleIds());
+
+        // 이미지 업로드
+        List<String> imageUrls = images.stream()
+                .map(image -> s3Uploader.upload(image, "board"))
+                .collect(Collectors.toList());
+
 
         // 데이터 저장
-        Board board = BoardMapper.toBoard(requestDto, user, seasonTag, temperatureTag, weatherTag);
-        board.updateBoardPlaceList(BoardMapper.toBoardPlaceList(requestDto.boardPlaceRequestDtoList()));
+        Board board = BoardMapper.toBoard(postData, user, seasonTag, temperatureTag, weatherTag, images.size());
+        board.updateBoardPlaceList(BoardMapper.toBoardPlaceList(postData.boardPlaceRequestDtoList()));
         board.updateBoardStyleList(BoardMapper.toBoardStyleList(categories));
+        board.updateBoardImgList(BoardMapper.toBoardImgList(imageUrls, board));
 
         boardRepository.save(board);
 
@@ -121,10 +131,10 @@ public class BoardService {
     /**
      * 4. 게시글 수정
      * @return BoardResponseDto
-     * @thorws
+     * @throws
      */
     @Transactional
-    public BoardResponseDto updatePost(BoardCreateRequestDto requestDto, Long boardId) {
+    public BoardResponseDto updatePost(List<MultipartFile> images, BoardCreateRequestDto requestDto, Long boardId) {
 
         Board board = getBoardById(boardId);
         User boardUser = board.getUser(); // 작성자
@@ -147,10 +157,16 @@ public class BoardService {
 
         List<ClothesStyleCategory> categories = styleCategoryRepository.findAllById(requestDto.styleIds());
 
+        // 이미지 업로드
+        List<String> imageUrls = images.stream()
+                .map(image -> s3Uploader.upload(image, "board"))
+                .collect(Collectors.toList());
+
         // 변경 사항 업데이트
-        board.updateBoard(requestDto.isPublic(), requestDto.content(), seasonTag, temperatureTag, weatherTag);
+        board.updateBoard(requestDto.isPublic(), requestDto.content(), seasonTag, temperatureTag, weatherTag, images.size());
         board.updateBoardPlaceList(BoardMapper.toBoardPlaceList(requestDto.boardPlaceRequestDtoList()));
         board.updateBoardStyleList(BoardMapper.toBoardStyleList(categories));
+        board.updateBoardImgList(BoardMapper.toBoardImgList(imageUrls, board));
 
         boolean goodStatus = boardGoodRepository.existsByBoardAndUser(board, boardUser);
 
@@ -160,8 +176,7 @@ public class BoardService {
 
     /**
      * 5. 게시글 삭제
-     * @return
-     * @thorws
+     * @throws BoardErrorCode.UNAUTHORIZED_DELETE : 게시글 작성자와 현재 로그인 한 사용자가 다른 경우 예외
      */
     @Transactional
     public void deletePost(Long boardId) {
@@ -182,7 +197,7 @@ public class BoardService {
     /**
      * 8. 게시글 좋아요
      * @return BoardGoodResponseDto
-     * @thorws
+     * @throws BoardErrorCode.ALREADY_LIKED
      */
     @Transactional
     public BoardGoodResponseDto addGood(Long boardId) {
@@ -211,7 +226,7 @@ public class BoardService {
     /**
      * 9. 게시글 좋아요 취소
      * @return BoardGoodResponseDto
-     * @thorws
+     * @throws BoardErrorCode.BOARD_GOOD_NOT_FOUND
      */
     @Transactional
     public BoardGoodResponseDto cancelGood(Long boardId){
@@ -222,7 +237,7 @@ public class BoardService {
 
         Board board = getBoardById(boardId);
 
-        if (!boardGoodRepository.existsByBoardAndUser(board, user)) { //이미 존재하는 경우
+        if (!boardGoodRepository.existsByBoardAndUser(board, user)) { //데이터가 존재하지 않는 경우
             throw new BusinessException(BoardErrorCode.BOARD_GOOD_NOT_FOUND);
         }
         boardGoodRepository.deleteByBoardAndUser(board, user);
@@ -237,8 +252,7 @@ public class BoardService {
 
     /**
      * 10. 게시물 신고
-     * @return
-     * @thorws
+     * @throws BoardErrorCode.ALREADY_REPORTED
      */
     @Transactional
     public void reportPost(Long boardId, ReportRequestDto requestDto) {
@@ -266,8 +280,7 @@ public class BoardService {
 
     /**
      * 11. 게시글 숨김
-     * @return
-     * @thorws
+     * @throws BoardErrorCode.ALREADY_HIDDEN
      */
     @Transactional
     public void hidePost(Long boardId) {
@@ -288,8 +301,7 @@ public class BoardService {
 
     /**
      * 12. 게시글 숨김 취소
-     * @return
-     * @thorws
+     * @throws BoardErrorCode.BOARD_HIDDEN_NOT_FOUND
      */
     @Transactional
     public void unhidePost(Long boardId){
@@ -299,7 +311,7 @@ public class BoardService {
 
         Board board = getBoardById(boardId);
 
-        if (!boardHiddenRepository.existsByBoardAndUser(board, user)) { //이미 존재하는 경우
+        if (!boardHiddenRepository.existsByBoardAndUser(board, user)) { //데이터가 존재하지 않는 경우
             throw new BusinessException(BoardErrorCode.BOARD_HIDDEN_NOT_FOUND);
         }
         boardHiddenRepository.deleteByBoardAndUser(board, user);

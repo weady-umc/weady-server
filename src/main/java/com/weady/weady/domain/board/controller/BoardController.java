@@ -12,12 +12,17 @@ import com.weady.weady.common.util.ResponseEntityUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Slice;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 
 @RestController
@@ -53,24 +58,32 @@ public class BoardController {
     }
 
 
-    @PostMapping(value = "/create") // , consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "3. 게시물 작성 API", description = "로그인 한 사용자가 게시물을 작성하는 API입니다.")
     public ResponseEntity<ApiResponse<BoardResponseDto>> createPost(
-            //@RequestPart(value = "images", required = false) List<MultipartFile> images,
-            @RequestBody BoardCreateRequestDto postData) {
+            @RequestPart(value = "images") List<MultipartFile> images,
 
-        BoardResponseDto responseDto = boardService.createPost(postData);
+            @Parameter(
+                    description = "이미지 파일 제외 게시물 작성 DTO",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+            @RequestPart (value = "postData") BoardCreateRequestDto postData) {
+
+        BoardResponseDto responseDto = boardService.createPost(images, postData);
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(responseDto, "게시글 작성 성공!"));
     }
 
 
-    @PatchMapping(value = "/{boardId}")
+    @PatchMapping(value = "/{boardId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "4. 게시물 수정 API")
     public ResponseEntity<ApiResponse<BoardResponseDto>> updatePost(
             @PathVariable(name = "boardId") Long boardId,
-            @RequestBody BoardCreateRequestDto postData) {
+            @RequestPart(value = "images") List<MultipartFile> images,
 
-        BoardResponseDto responseDto = boardService.updatePost(postData, boardId);
+            @Parameter(
+                    description = "이미지 파일 제외 requestDto",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+            @RequestPart (value = "postData") BoardCreateRequestDto postData){
+        BoardResponseDto responseDto = boardService.updatePost(images, postData, boardId);
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(responseDto, "게시글 수정 성공!"));
     }
 
