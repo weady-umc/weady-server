@@ -43,4 +43,16 @@ public class WeadychiveController {
 
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(weadychiveCurationService.scrapCuration(requestDto)));
     }
+
+    @DeleteMapping("/bookmarks/{curationId}")
+    @Operation(summary = "큐레이션 스크랩 취소하기 API")
+    @io.swagger.v3.oas.annotations.responses.ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
+    })
+    public ResponseEntity<ApiResponse<Void>> cancelBookmarkCuration(@PathVariable("curationId") Long curationId) {
+        weadychiveCurationService.cancelCuration(curationId);
+
+        return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(null));
+    }
+
 }

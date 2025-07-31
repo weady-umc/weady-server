@@ -3,6 +3,6 @@ package com.weady.weady.domain.curation.dto.Response;
 import lombok.Builder;
 
 @Builder
-public record CurationCategoryResponseDto(Long locationId,
+public record CurationCategoryResponseDto(Long curationCategoryId,
                                           String locationName
 ) {}
