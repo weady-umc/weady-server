@@ -147,7 +147,7 @@ public class BoardMapper {
                 .findFirst().orElse(null);
 
         return BoardHomeResponseDto.builder()
-                .boardID(board.getId())
+                .boardId(board.getId())
                 .imgUrl(firstOrderUrl)
                 .userId(board.getUser().getId())
                 .seasonTagId(board.getSeasonTag().getId())
