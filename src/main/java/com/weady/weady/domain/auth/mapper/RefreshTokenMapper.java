@@ -1,6 +1,7 @@
 package com.weady.weady.domain.auth.mapper;
 
-import com.weady.weady.domain.auth.dto.AuthResponse;
+import com.weady.weady.domain.auth.dto.LoginResponseDto;
+import com.weady.weady.domain.auth.dto.ReissueResponseDto;
 import com.weady.weady.domain.auth.entity.RefreshToken;
 import com.weady.weady.domain.user.entity.User;
 
@@ -12,15 +13,15 @@ public class RefreshTokenMapper {
                 .build();
     }
 
-    public static AuthResponse.ReissueResponseDto toReissueResponseDto(String accessToken, String refreshToken) {
-        return AuthResponse.ReissueResponseDto.builder()
+    public static ReissueResponseDto toReissueResponseDto(String accessToken, String refreshToken) {
+        return ReissueResponseDto.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
     }
 
-    public static AuthResponse.LoginResponseDto toLoginResponseDto(String accessToken, String refreshToken, boolean isNewUser) {
-        return AuthResponse.LoginResponseDto.builder()
+    public static LoginResponseDto toLoginResponseDto(String accessToken, String refreshToken, boolean isNewUser) {
+        return LoginResponseDto.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .isNewUser(isNewUser)
