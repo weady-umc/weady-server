@@ -3,9 +3,11 @@ package com.weady.weady.domain.user.controller;
 import com.weady.weady.domain.user.dto.request.OnboardRequest;
 import com.weady.weady.domain.user.dto.request.UpdateNowLocationRequest;
 import com.weady.weady.domain.user.dto.request.UpdateUserProfileRequest;
+import com.weady.weady.domain.user.dto.response.GetMyPageResponse;
 import com.weady.weady.domain.user.dto.response.OnboardResponse;
 import com.weady.weady.domain.user.dto.response.UpdateNowLocationResponse;
 import com.weady.weady.domain.user.dto.response.UpdateUserProfileResponse;
+import com.weady.weady.domain.user.service.MyPageService;
 import com.weady.weady.domain.user.service.UserService;
 import com.weady.weady.common.apiResponse.ApiResponse;
 import com.weady.weady.common.apiResponse.ApiSuccessResponse;
@@ -13,6 +15,7 @@ import com.weady.weady.common.util.ResponseEntityUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,6 +23,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/users")
 public class UserController {
     private final UserService userService;
+    private final MyPageService myPageService;
+
     @PostMapping("/onboarding")
     public ResponseEntity<ApiResponse<OnboardResponse>> onboard(@RequestBody @Valid OnboardRequest request) {
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(userService.onboard(request)));
@@ -33,5 +38,14 @@ public class UserController {
     @PatchMapping("/profile")
     public ResponseEntity<ApiResponse<UpdateUserProfileResponse>> updateUserProfile(@RequestBody @Valid UpdateUserProfileRequest request){
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(userService.updateUserProfile(request)));
+    }
+
+    @GetMapping("/my-page")
+    public ResponseEntity<ApiResponse<GetMyPageResponse>> getMyPage(
+            @RequestParam int year,
+            @RequestParam int month) {
+        GetMyPageResponse response = myPageService.getMyPage(year, month);
+
+        return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(response));
     }
 }
