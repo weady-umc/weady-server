@@ -1,7 +1,9 @@
 package com.weady.weady.domain.auth.service;
 
-import com.weady.weady.domain.auth.dto.AuthRequest;
-import com.weady.weady.domain.auth.dto.AuthResponse; // 수정된 DTO 임포트
+import com.weady.weady.domain.auth.dto.LoginRequestDto;
+import com.weady.weady.domain.auth.dto.LoginResponseDto;
+import com.weady.weady.domain.auth.dto.ReissueRequestDto;
+import com.weady.weady.domain.auth.dto.ReissueResponseDto;
 import com.weady.weady.domain.auth.entity.RefreshToken;
 import com.weady.weady.domain.auth.mapper.OAuthAttributeMapper;
 import com.weady.weady.domain.auth.mapper.RefreshTokenMapper;
@@ -47,29 +49,28 @@ public class OAuthService {
 
     /** 소셜 로그인 처리 메서드
      * @param providerName: 소셜 로그인 제공자 이름 (예: "KAKAO", "NAVER", "GOOGLE")
-     * @param authorizationCode: 소셜 로그인 인증 코드
+     * @param request: 소셜 로그인 accessToken
      *
      * @return AuthResponse.LoginResponseDto: 로그인 응답 DTO
-     * @throws AuthErrorCode.UNSUPPORTED_PROVIDER: 지원하지 않는 소셜 로그인 제공자일 경우 예외 발생
      * */
     @Transactional
-    public AuthResponse.LoginResponseDto socialLogin(String providerName, String authorizationCode) {
+    public LoginResponseDto socialLoginWithAccessToken(String providerName, LoginRequestDto request) {
         Provider provider = Provider.valueOf(providerName.toUpperCase());
         SocialLoginHandler handler = handlerMap.get(provider);
 
         if (handler == null) {
             throw new BusinessException(AuthErrorCode.UNSUPPORTED_PROVIDER, providerName);
         }
-        OAuthAttributes attributes = handler.getUserProfile(authorizationCode);
 
+        OAuthAttributes attributes = handler.getUserProfileByAccessToken(request.accessToken());
         SaveResult saveResult = saveOrUpdateUser(attributes);
         User user = saveResult.user();
 
-        String accessToken = jwtTokenProvider.createAccessToken(user);
+        String jwtAccessToken = jwtTokenProvider.createAccessToken(user);
         String refreshToken = jwtTokenProvider.createRefreshToken(user);
         saveOrUpdateRefreshToken(user, refreshToken);
 
-        return RefreshTokenMapper.toLoginResponseDto(accessToken, refreshToken, saveResult.isNewUser());
+        return RefreshTokenMapper.toLoginResponseDto(jwtAccessToken, refreshToken, saveResult.isNewUser());
     }
 
     /**
@@ -81,7 +82,7 @@ public class OAuthService {
      * @throws AuthErrorCode.INVALID_REFRESH_TOKEN: 유효하지 않은 리프레시 토큰일 경우 예외 발생
      * */
     @Transactional
-    public AuthResponse.ReissueResponseDto reissueTokens(AuthRequest.ReissueRequestDto requestDto) {
+    public ReissueResponseDto reissueTokens(ReissueRequestDto requestDto) {
         String refreshTokenValue = requestDto.refreshToken();
         if (!jwtTokenProvider.validateToken(refreshTokenValue)) {
             throw new BusinessException(AuthErrorCode.INVALID_REFRESH_TOKEN);

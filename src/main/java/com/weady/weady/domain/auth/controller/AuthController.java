@@ -2,6 +2,10 @@ package com.weady.weady.domain.auth.controller;
 
 import com.weady.weady.domain.auth.dto.AuthRequest;
 import com.weady.weady.domain.auth.dto.AuthResponse;
+import com.weady.weady.domain.auth.dto.LoginRequestDto;
+import com.weady.weady.domain.auth.dto.LoginResponseDto;
+import com.weady.weady.domain.auth.dto.ReissueRequestDto;
+import com.weady.weady.domain.auth.dto.ReissueResponseDto;
 import com.weady.weady.domain.auth.service.OAuthService;
 import com.weady.weady.common.apiResponse.ApiResponse;
 import com.weady.weady.common.apiResponse.ApiSuccessResponse;
@@ -17,10 +21,12 @@ public class AuthController {
 
     private final OAuthService oAuthService;
 
-    @PostMapping("/login/{provider}")
-    public ResponseEntity<ApiResponse<AuthResponse.LoginResponseDto>> socialLogin( @PathVariable String provider,
-                                                                                   @RequestBody AuthRequest.LoginRequestDto request) {
-        AuthResponse.LoginResponseDto response = oAuthService.socialLogin(provider, request.authorizationCode());
+    @PostMapping("/{provider}")
+    public ResponseEntity<ApiResponse<LoginResponseDto>> loginWithAccessToken( @PathVariable String provider,
+                                                                               @RequestBody LoginRequestDto request) {
+
+        LoginResponseDto response = oAuthService.socialLoginWithAccessToken(provider, request);
+
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(response));
     }
 
@@ -31,8 +37,8 @@ public class AuthController {
     }
 
     @PostMapping("/reissue")
-    public ResponseEntity<ApiResponse<AuthResponse.ReissueResponseDto>> reissue(@RequestBody AuthRequest.ReissueRequestDto request) {
-        AuthResponse.ReissueResponseDto response = oAuthService.reissueTokens(request);
+    public ResponseEntity<ApiResponse<ReissueResponseDto>> reissue(@RequestBody ReissueRequestDto request) {
+        ReissueResponseDto response = oAuthService.reissueTokens(request);
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(response, "토큰 재발급 성공"));
     }
 
