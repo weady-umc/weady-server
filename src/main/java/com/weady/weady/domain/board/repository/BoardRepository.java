@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 
 public interface BoardRepository extends JpaRepository<Board, Long> {
 
@@ -27,6 +29,20 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
             @Param("userId") Long userId,
             Pageable pageable);
 
+
+    @Query("""
+        SELECT b
+        FROM Board b
+        WHERE b.user.id = :userId
+          AND FUNCTION('YEAR', b.createdAt) = :year
+          AND FUNCTION('MONTH', b.createdAt) = :month
+        ORDER BY b.createdAt ASC
+    """)
+    List<Board> findBoardsByUserIdAndYearMonth(@Param("userId") Long userId,
+                                               @Param("year") int year,
+                                               @Param("month") int month);
+
 }
+
 
 
