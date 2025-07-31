@@ -9,10 +9,8 @@ import com.weady.weady.domain.weather.service.WeatherService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -28,6 +26,20 @@ public class WeatherController {
 
         GetLocationWeatherShortDetailResponse responseData = weatherService.getShortWeatherInfo(locationId);
         ApiResponse<GetLocationWeatherShortDetailResponse> responseWrapper = ApiSuccessResponse.of(responseData, "단기 예보 조회에 성공했습니다.");
+
+        return ResponseEntityUtil.buildDefaultResponseEntity(responseWrapper);
+    }
+
+    @GetMapping("/preview")
+    @Operation(summary = "지역 날씨 미리보기 API")
+    public ResponseEntity<ApiResponse<GetLocationWeatherShortDetailResponse>> getWeatherPreview(
+            @RequestParam(required = false) String b_code,
+            @RequestParam Double x,
+            @RequestParam Double y
+    ){
+
+        GetLocationWeatherShortDetailResponse responseData = weatherService.getWeatherPreview(b_code, x, y);
+        ApiResponse<GetLocationWeatherShortDetailResponse> responseWrapper = ApiSuccessResponse.of(responseData, "지역 날씨 미리보기에 성공했습니다.");
 
         return ResponseEntityUtil.buildDefaultResponseEntity(responseWrapper);
     }
