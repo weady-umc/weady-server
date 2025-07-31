@@ -78,12 +78,13 @@ public class Board extends BaseEntity {
     private List<BoardGood> boardGoodList = new ArrayList<>();
 
     public void updateBoard(Boolean isPublic, String content, SeasonTag seasonTag,
-                            TemperatureTag temperatureTag, WeatherTag weatherTag) {
+                            TemperatureTag temperatureTag, WeatherTag weatherTag, Integer imgCount) {
         this.isPublic = isPublic;
         this.content = content;
         this.seasonTag = seasonTag;
         this.temperatureTag = temperatureTag;
         this.weatherTag = weatherTag;
+        this.imgCount = imgCount;
     }
 
 
@@ -101,6 +102,13 @@ public class Board extends BaseEntity {
         this.boardStyleList.clear();
         this.boardStyleList.addAll(boardStyleList);
 
+    }
+
+    public void updateBoardImgList(List<BoardImg> boardImgList){
+        boardImgList.forEach(boardImg -> {boardImg.setBoard(this);});
+
+        this.boardImgList.clear();
+        this.boardImgList.addAll(boardImgList);
     }
 
     public void increaseGoodCount() {

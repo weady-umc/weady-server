@@ -23,7 +23,7 @@ public class CurationImg extends BaseEntity {
     @Column(name="img_address")
     private String imgAddress;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="curation_id",nullable = false)
     private Curation curation;
 }

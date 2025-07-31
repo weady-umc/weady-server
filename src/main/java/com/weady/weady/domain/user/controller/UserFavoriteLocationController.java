@@ -29,7 +29,7 @@ public class UserFavoriteLocationController {
     addUserFavoriteLocation(@RequestBody AddUserFavoriteLocationRequest request){
 
         AddUserFavoriteLocationResponse response =
-                userFavoriteLocationService.addUserFavoriteLocation(request.hCode());
+                userFavoriteLocationService.addUserFavoriteLocation(request.bCode());
 
         ApiResponse<AddUserFavoriteLocationResponse> responseWrapper =
                 ApiSuccessResponse.of(response, "즐겨찾기 지역 추가에 성공했습니다.");

@@ -2,6 +2,7 @@ package com.weady.weady.domain.weather.repository;
 
 import com.weady.weady.domain.weather.entity.DailySummary;
 import org.springframework.data.jpa.repository.JpaRepository;
+
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -9,6 +10,9 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 public interface DailySummaryRepository extends JpaRepository<DailySummary, Long> {
+  
+    Optional<DailySummary> findByLocationId(Long locationId);
+  
     @Query("""
         select ds
         from DailySummary ds
@@ -20,4 +24,6 @@ public interface DailySummaryRepository extends JpaRepository<DailySummary, Long
     """)
     Optional<DailySummary> findByLocationIdAndReportDateWithTags(@Param("locationId") Long locationId,
                                                                  @Param("reportDate") LocalDate reportDate);
+           
+    
 }

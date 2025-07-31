@@ -13,17 +13,19 @@ import org.springframework.data.domain.Slice;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class BoardMapper {
 
     public static Board toBoard(BoardCreateRequestDto request, User user,
-                                SeasonTag seasonTag, TemperatureTag temperatureTag, WeatherTag weatherTag) {
+                                SeasonTag seasonTag, TemperatureTag temperatureTag, WeatherTag weatherTag, Integer imgCount) {
         return Board.builder()
                 .isPublic(request.isPublic())
                 .content(request.content())
                 .seasonTag(seasonTag)
                 .temperatureTag(temperatureTag)
                 .weatherTag(weatherTag)
+                .imgCount(imgCount)
                 .user(user)
                 .build();
     }
@@ -33,6 +35,16 @@ public class BoardMapper {
                 .map(dto -> BoardPlace.builder()
                         .placeName(dto.placeName())
                         .placeAddress(dto.placeAddress())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    public static List<BoardImg> toBoardImgList(List<String> imgUrls, Board board) {
+        return IntStream.range(0, imgUrls.size())
+                .mapToObj(i -> BoardImg.builder()
+                        .board(board)
+                        .imgOrder(i+1)  // 순서는 1부터 시작!
+                        .imgUrl(imgUrls.get(i))
                         .build())
                 .collect(Collectors.toList());
     }
@@ -59,7 +71,6 @@ public class BoardMapper {
                 .build();
     }
 
-    //content null일 수도 있는데,,,
     public static Report toReport(Board board, User user, ReportType reportType, String content) {
         return Report.builder()
                 .board(board)
@@ -93,6 +104,8 @@ public class BoardMapper {
                 .userProfileImageUrl(user.getProfileImageUrl())
                 .goodCount(board.getGoodCount())
                 .placeDtoList(toBoardPlaceResponseListDto(board.getBoardPlaceList()))
+                .imgCount(board.getImgCount())
+                .imageDtoList(toBoardImgResponseListDto(board.getBoardImgList()))
                 .styleIdList(styleIdList)
                 .createdAt(board.getCreatedAt())
                 .build();
@@ -107,6 +120,17 @@ public class BoardMapper {
                         .build())
                 .collect(Collectors.toList());
     }
+
+
+    public static List<BoardImgResponseDto> toBoardImgResponseListDto(List<BoardImg> images){
+        return images.stream()
+                .map(image -> BoardImgResponseDto.builder()
+                        .imgOrder(image.getImgOrder())
+                        .imgUrl(image.getImgUrl())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
 
     // 보드 홈 게시물 조회 리스트
     public static Slice<BoardHomeResponseDto> toBoardHomeResponseSliceDto(Slice<Board> boards) {
@@ -123,7 +147,7 @@ public class BoardMapper {
                 .findFirst().orElse(null);
 
         return BoardHomeResponseDto.builder()
-                .boardID(board.getId())
+                .boardId(board.getId())
                 .imgUrl(firstOrderUrl)
                 .userId(board.getUser().getId())
                 .seasonTagId(board.getSeasonTag().getId())
