@@ -7,17 +7,15 @@ import com.weady.weady.domain.weadychive.dto.curation.Response.CurationDto;
 import com.weady.weady.domain.weadychive.dto.curation.Response.ScrappedCurationByUserResponseDto;
 
 import com.weady.weady.domain.weadychive.service.curation.WeadychiveCurationService;
-import com.weady.weady.global.common.apiResponse.ApiResponse;
-import com.weady.weady.global.common.apiResponse.ApiSuccessResponse;
-import com.weady.weady.global.util.ResponseEntityUtil;
+import com.weady.weady.common.apiResponse.ApiResponse;
+import com.weady.weady.common.apiResponse.ApiSuccessResponse;
+import com.weady.weady.common.util.ResponseEntityUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RequiredArgsConstructor
 @RestController

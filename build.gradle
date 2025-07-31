@@ -21,6 +21,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	compileOnly 'org.projectlombok:lombok'
@@ -45,6 +46,9 @@ dependencies {
 	// WebClient 사용을 위한 WebFlux 의존성
 	implementation 'org.springframework:spring-webflux'
 
+	//S3
+	implementation 'com.amazonaws:aws-java-sdk-s3:1.12.734'
+	implementation 'net.coobird:thumbnailator:0.4.19' // 이미지 리사이징, 썸네일 처리
 }
 
 tasks.named('test') {

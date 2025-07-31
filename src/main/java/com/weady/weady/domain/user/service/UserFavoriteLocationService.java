@@ -11,10 +11,10 @@ import com.weady.weady.domain.user.repository.UserFavoriteLocationRepository;
 import com.weady.weady.domain.user.repository.UserRepository;
 import com.weady.weady.domain.weather.entity.DailySummary;
 import com.weady.weady.domain.weather.entity.LocationWeatherShortDetail;
-import com.weady.weady.global.common.error.errorCode.LocationErrorCode;
-import com.weady.weady.global.common.error.errorCode.UserErrorCode;
-import com.weady.weady.global.common.error.exception.BusinessException;
-import com.weady.weady.global.util.SecurityUtil;
+import com.weady.weady.common.error.errorCode.LocationErrorCode;
+import com.weady.weady.common.error.errorCode.UserErrorCode;
+import com.weady.weady.common.error.exception.BusinessException;
+import com.weady.weady.common.util.SecurityUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -113,6 +113,19 @@ public class UserFavoriteLocationService {
                     return UserFavoriteLocationMapper.toGetResponse(favorite, weather, summary);
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void setDefaultLocation(Long userFavoriteLocationId) {
+
+        //User 엔티티 조회
+        User user = getAuthenticatedUser();
+
+        //userFavoriteLocationId를 통해 업데이트 할 UserFavoriteLocation Entity 조회
+        UserFavoriteLocation updateFavoriteLocation = userFavoriteLocationRepository.findById(userFavoriteLocationId)
+                .orElseThrow(() -> new BusinessException(LocationErrorCode.FAVORITE_NOT_FOUND));
+
+        user.setDefaultLocation(updateFavoriteLocation);
     }
 
     private User getAuthenticatedUser() {

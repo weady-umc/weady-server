@@ -52,11 +52,30 @@ public class BoardMapper {
                 .build();
     }
 
+    public static BoardHidden toBoardHidden(Board board, User user) {
+        return BoardHidden.builder()
+                .board(board)
+                .user(user)
+                .build();
+    }
+
+    //content null일 수도 있는데,,,
+    public static Report toReport(Board board, User user, ReportType reportType, String content) {
+        return Report.builder()
+                .board(board)
+                .user(user)
+                .reportType(reportType)
+                .content(content)
+                .build();
+    }
+
+
+
 
     /// 응답 dto ///
 
     // 게시물 조회 dto
-    public static BoardResponseDto toBoardResponseDto(Board board, User user) {
+    public static BoardResponseDto toBoardResponseDto(Board board, User user, boolean goodStatus) {
         List<Long> styleIdList = board.getBoardStyleList().stream()
                 .map(style -> style.getClothesStyleCategory().getId())
                 .collect(Collectors.toList());
@@ -64,10 +83,12 @@ public class BoardMapper {
         return BoardResponseDto.builder()
                 .boardId(board.getId())
                 .isPublic(board.getIsPublic())
+                .goodStatus(goodStatus)
                 .content(board.getContent())
                 .weatherTagId(board.getWeatherTag().getId())
                 .temperatureTagId(board.getTemperatureTag().getId())
                 .seasonTagId(board.getSeasonTag().getId())
+                .userId(user.getId())
                 .userName(user.getName())
                 .userProfileImageUrl(user.getProfileImageUrl())
                 .goodCount(board.getGoodCount())
@@ -113,9 +134,9 @@ public class BoardMapper {
     }
 
 
-    public static BoardGoodResponseDto toBoardGoodResponseDto(Boolean liked, Integer goodCount) {
+    public static BoardGoodResponseDto toBoardGoodResponseDto(Boolean goodStatus, Integer goodCount) {
         return BoardGoodResponseDto.builder()
-                .liked(liked)
+                .goodStatus(goodStatus)
                 .goodCount(goodCount)
                 .build();
     }
