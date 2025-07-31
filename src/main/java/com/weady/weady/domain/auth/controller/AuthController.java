@@ -1,7 +1,5 @@
 package com.weady.weady.domain.auth.controller;
 
-import com.weady.weady.domain.auth.dto.AuthRequest;
-import com.weady.weady.domain.auth.dto.AuthResponse;
 import com.weady.weady.domain.auth.dto.LoginRequestDto;
 import com.weady.weady.domain.auth.dto.LoginResponseDto;
 import com.weady.weady.domain.auth.dto.ReissueRequestDto;

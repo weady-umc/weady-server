@@ -76,7 +76,7 @@ public class OAuthService {
     /**
      * 리프레시 토큰을 사용하여 새로운 액세스 토큰과 리프레시 토큰을 발급하는 메서드
      * 이 메서드는 리프레시 토큰이 유효한지 검증하고, 해당 토큰에 연결된 사용자를 찾아 새로운 액세스 토큰과 리프레시 토큰을 생성합니다.
-     * @param refreshTokenValue: 리프레시 토큰 값
+     * @param requestDto: 리프레시 토큰 값
      *
      * @return AuthResponse.ReissueResponseDto: 새로운 액세스 토큰과 리프레시 토큰을 포함한 응답 DTO
      * @throws AuthErrorCode.INVALID_REFRESH_TOKEN: 유효하지 않은 리프레시 토큰일 경우 예외 발생
