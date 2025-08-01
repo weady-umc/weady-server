@@ -18,11 +18,6 @@ public record OnboardRequest(
         @Unique(entity = User.class, field = "name", message = "이미 사용 중인 닉네임입니다.")
         String name,
         @NotNull(message = "성별은 필수 입력 값입니다.")
-        @Schema(
-                description = "사용자 성별",
-                allowableValues = {"W", "M", "NONE"},
-                example = "W"
-        )
         Gender gender,
         List<Long> styleIds,
 
