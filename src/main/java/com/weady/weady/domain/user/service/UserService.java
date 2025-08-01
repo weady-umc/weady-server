@@ -13,11 +13,14 @@ import com.weady.weady.domain.user.dto.response.OnboardResponse;
 import com.weady.weady.domain.user.dto.response.UpdateNowLocationResponse;
 import com.weady.weady.domain.user.dto.response.UpdateUserProfileResponse;
 import com.weady.weady.domain.user.entity.User;
+import com.weady.weady.domain.user.entity.UserTermsAgreement;
 import com.weady.weady.domain.user.mapper.UserMapper;
+import com.weady.weady.domain.user.mapper.UserTermsMapper;
 import com.weady.weady.domain.user.repository.UserRepository;
 import com.weady.weady.common.error.errorCode.UserErrorCode;
 import com.weady.weady.common.error.exception.BusinessException;
 import com.weady.weady.common.util.SecurityUtil;
+import com.weady.weady.domain.user.repository.UserTermsAgreementRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +34,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final ClothesStyleCategoryRepository clothesStyleCategoryRepository;
     private final LocationRepository locationRepository;
+    private final UserTermsAgreementRepository userTermsAgreementRepository;
 
     @Transactional
     public OnboardResponse onboard(OnboardRequest request){
@@ -41,6 +45,11 @@ public class UserService {
         user.changeName(request.name());
         user.changeGender(request.gender());
         user.syncStyleCategories(styleCategories);
+
+        List<UserTermsAgreement> agreements = request.agreements().stream()
+                .map(dto -> UserTermsMapper.toUserTermsAgreement(user, dto.termsType(), dto.isAgreed()))
+                .toList();
+        userTermsAgreementRepository.saveAll(agreements);
 
         return UserMapper.toOnboardResponse(user);
     }
