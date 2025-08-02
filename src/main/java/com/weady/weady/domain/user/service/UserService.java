@@ -9,10 +9,12 @@ import com.weady.weady.domain.tags.repository.clothesStyleCategory.ClothesStyleC
 import com.weady.weady.domain.user.dto.request.OnboardRequest;
 import com.weady.weady.domain.user.dto.request.UpdateNowLocationRequest;
 import com.weady.weady.domain.user.dto.request.UpdateUserProfileRequest;
+import com.weady.weady.domain.user.dto.response.GetUserDefaultLocationResponse;
 import com.weady.weady.domain.user.dto.response.OnboardResponse;
 import com.weady.weady.domain.user.dto.response.UpdateNowLocationResponse;
 import com.weady.weady.domain.user.dto.response.UpdateUserProfileResponse;
 import com.weady.weady.domain.user.entity.User;
+import com.weady.weady.domain.user.entity.UserFavoriteLocation;
 import com.weady.weady.domain.user.entity.UserTermsAgreement;
 import com.weady.weady.domain.user.mapper.UserMapper;
 import com.weady.weady.domain.user.mapper.UserTermsMapper;
@@ -26,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -77,5 +80,16 @@ public class UserService {
         user.changeProfileImageUrl(request.profileImageUrl());
 
         return UserMapper.toUpdateUserProfileResponse(user);
+    }
+
+    @Transactional(readOnly = true)
+    public GetUserDefaultLocationResponse getUserDefaultLocation(){
+        User user = userRepository.findById(SecurityUtil.getCurrentUserId())
+                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
+
+        Location location = user.getDefaultLocation() != null
+                ? user.getDefaultLocation().getLocation() : user.getNowLocation();
+
+        return UserMapper.toResponse(location);
     }
 }
