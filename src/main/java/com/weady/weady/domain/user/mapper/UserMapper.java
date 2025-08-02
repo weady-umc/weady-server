@@ -3,6 +3,7 @@ package com.weady.weady.domain.user.mapper;
 import com.weady.weady.domain.location.entity.Location;
 import com.weady.weady.domain.tags.dto.ClothesStyleCategoryResponseDto;
 import com.weady.weady.domain.tags.mapper.TagMapper;
+import com.weady.weady.domain.user.dto.response.GetUserDefaultLocationResponse;
 import com.weady.weady.domain.user.dto.response.OnboardResponse;
 import com.weady.weady.domain.user.dto.response.UpdateNowLocationResponse;
 import com.weady.weady.domain.user.dto.response.UpdateUserProfileResponse;
@@ -42,4 +43,14 @@ public class UserMapper {
                 .build();
     }
 
+    public static GetUserDefaultLocationResponse toResponse(Location location){
+        return GetUserDefaultLocationResponse.builder()
+                .defaultLocationId(location.getId())
+                .bCode(location.getBCode())
+                .address1(location.getAddress1())
+                .address2(location.getAddress2())
+                .address3(location.getAddress3())
+                .address4(location.getAddress4())
+                .build();
+    }
 }
