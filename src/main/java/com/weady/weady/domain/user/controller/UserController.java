@@ -3,10 +3,7 @@ package com.weady.weady.domain.user.controller;
 import com.weady.weady.domain.user.dto.request.OnboardRequest;
 import com.weady.weady.domain.user.dto.request.UpdateNowLocationRequest;
 import com.weady.weady.domain.user.dto.request.UpdateUserProfileRequest;
-import com.weady.weady.domain.user.dto.response.GetMyPageResponse;
-import com.weady.weady.domain.user.dto.response.OnboardResponse;
-import com.weady.weady.domain.user.dto.response.UpdateNowLocationResponse;
-import com.weady.weady.domain.user.dto.response.UpdateUserProfileResponse;
+import com.weady.weady.domain.user.dto.response.*;
 import com.weady.weady.domain.user.service.MyPageService;
 import com.weady.weady.domain.user.service.UserService;
 import com.weady.weady.common.apiResponse.ApiResponse;
@@ -15,7 +12,6 @@ import com.weady.weady.common.util.ResponseEntityUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -30,13 +26,18 @@ public class UserController {
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(userService.onboard(request)));
     }
 
-    @PostMapping("/now-location")
+    @PatchMapping("/now-location")
     public ResponseEntity<ApiResponse<UpdateNowLocationResponse>> updateNowLocation(@RequestBody UpdateNowLocationRequest request){
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(userService.updateNowLocation(request)));
     }
 
+    @GetMapping("/default-location")
+    public ResponseEntity<ApiResponse<GetUserDefaultLocationResponse>> getUserDefaultLocation(){
+        return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(userService.getUserDefaultLocation()));
+    }
+
     @PatchMapping("/profile")
-    public ResponseEntity<ApiResponse<UpdateUserProfileResponse>> updateUserProfile(@RequestBody @Valid UpdateUserProfileRequest request){
+    public ResponseEntity<ApiResponse<UpdateUserProfileResponse>> updateUserProfile(@RequestBody @Valid UpdateUserProfileRequest request) {
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(userService.updateUserProfile(request)));
     }
 
