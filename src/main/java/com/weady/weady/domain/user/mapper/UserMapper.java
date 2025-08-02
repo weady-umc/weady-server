@@ -46,6 +46,11 @@ public class UserMapper {
     public static GetUserDefaultLocationResponse toResponse(Location location){
         return GetUserDefaultLocationResponse.builder()
                 .defaultLocationId(location.getId())
+                .bCode(location.getBCode())
+                .address1(location.getAddress1())
+                .address2(location.getAddress2())
+                .address3(location.getAddress3())
+                .address4(location.getAddress4())
                 .build();
     }
 }
