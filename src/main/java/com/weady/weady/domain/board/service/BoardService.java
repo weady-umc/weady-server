@@ -122,6 +122,7 @@ public class BoardService {
         board.updateBoardPlaceList(BoardMapper.toBoardPlaceList(postData.boardPlaceRequestDtoList()));
         board.updateBoardStyleList(BoardMapper.toBoardStyleList(categories));
         board.updateBoardImgList(BoardMapper.toBoardImgList(imageUrls, board));
+        board.updateBoardBrandList(BoardMapper.toBoardBrandList(postData.boardBrandRequestDtoList()));
 
         boardRepository.save(board);
 
@@ -168,6 +169,7 @@ public class BoardService {
         board.updateBoardPlaceList(BoardMapper.toBoardPlaceList(requestDto.boardPlaceRequestDtoList()));
         board.updateBoardStyleList(BoardMapper.toBoardStyleList(categories));
         board.updateBoardImgList(BoardMapper.toBoardImgList(imageUrls, board));
+        board.updateBoardBrandList(BoardMapper.toBoardBrandList(requestDto.boardBrandRequestDtoList()));
 
         boolean goodStatus = boardGoodRepository.existsByBoardAndUser(board, boardUser);
 

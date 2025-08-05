@@ -20,13 +20,15 @@ public record BoardResponseDto(
         List<BoardImgResponseDto> imageDtoList,
         String content,
 
-        Long weatherTagId,
-        Long temperatureTagId,
-        Long seasonTagId,
+
+        Long seasonTagId,  // 계절
+        Long temperatureTagId,  // 기온
+        Long weatherTagId,  // 날씨
 
         List<BoardPlaceResponseDto> placeDtoList,
         List<Long> styleIdList,
-        // List<Long> brandId,
+        List<BoardBrandResponseDto> brandDtoList,
 
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
 ){}

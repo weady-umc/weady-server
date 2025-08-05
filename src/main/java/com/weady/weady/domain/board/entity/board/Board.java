@@ -7,7 +7,11 @@ import com.weady.weady.domain.user.entity.User;
 import com.weady.weady.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -72,10 +76,21 @@ public class Board extends BaseEntity {
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BoardStyle> boardStyleList = new ArrayList<>();
 
+    // 옷 정보
+    @Builder.Default
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BoardBrand> boardBrandList = new ArrayList<>();
+
+
     // 좋아요
     @Builder.Default
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BoardGood> boardGoodList = new ArrayList<>();
+
+    @LastModifiedDate
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
 
     public void updateBoard(Boolean isPublic, String content, SeasonTag seasonTag,
                             TemperatureTag temperatureTag, WeatherTag weatherTag, Integer imgCount) {
@@ -109,6 +124,13 @@ public class Board extends BaseEntity {
 
         this.boardImgList.clear();
         this.boardImgList.addAll(boardImgList);
+    }
+
+    public void updateBoardBrandList(List<BoardBrand> boardBrandList){
+        boardBrandList.forEach(boardBrand -> {boardBrand.setBoard(this);});
+
+        this.boardBrandList.clear();
+        this.boardBrandList.addAll(boardBrandList);
     }
 
     public void increaseGoodCount() {
