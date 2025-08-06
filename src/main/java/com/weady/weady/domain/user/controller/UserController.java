@@ -12,8 +12,12 @@ import com.weady.weady.common.util.ResponseEntityUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -49,6 +53,15 @@ public class UserController {
             @RequestParam int year,
             @RequestParam int month) {
         GetMyPageResponse response = myPageService.getMyPage(year, month);
+
+        return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(response));
+    }
+
+    @GetMapping("/my-page/board")
+    public ResponseEntity<ApiResponse<GetBoardInMyPageResponse>> getBoardInMyPage(
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date,
+            @RequestParam boolean isPublic) {
+        GetBoardInMyPageResponse response = myPageService.getBoardInMyPage(date, isPublic);
 
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(response));
     }

@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface BoardImgRepository extends JpaRepository<BoardImg, Long> {
@@ -15,4 +16,11 @@ public interface BoardImgRepository extends JpaRepository<BoardImg, Long> {
           AND i.imgOrder = 1
     """)
     Optional<String> findThumbnailUrlByBoardId(@Param("boardId") Long boardId);
+
+    @Query("""
+        SELECT i FROM BoardImg i
+        WHERE i.board.id = :boardId
+        ORDER BY i.imgOrder ASC
+    """)
+    List<BoardImg> findAllByBoardIdOrderByImgOrderAsc(@Param("boardId") Long boardId);
 }
