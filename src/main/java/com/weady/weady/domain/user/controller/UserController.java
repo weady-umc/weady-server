@@ -3,10 +3,7 @@ package com.weady.weady.domain.user.controller;
 import com.weady.weady.domain.user.dto.request.OnboardRequest;
 import com.weady.weady.domain.user.dto.request.UpdateNowLocationRequest;
 import com.weady.weady.domain.user.dto.request.UpdateUserProfileRequest;
-import com.weady.weady.domain.user.dto.response.GetMyPageResponse;
-import com.weady.weady.domain.user.dto.response.OnboardResponse;
-import com.weady.weady.domain.user.dto.response.UpdateNowLocationResponse;
-import com.weady.weady.domain.user.dto.response.UpdateUserProfileResponse;
+import com.weady.weady.domain.user.dto.response.*;
 import com.weady.weady.domain.user.service.MyPageService;
 import com.weady.weady.domain.user.service.UserService;
 import com.weady.weady.common.apiResponse.ApiResponse;
@@ -14,9 +11,12 @@ import com.weady.weady.common.apiResponse.ApiSuccessResponse;
 import com.weady.weady.common.util.ResponseEntityUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -45,6 +45,15 @@ public class UserController {
             @RequestParam int year,
             @RequestParam int month) {
         GetMyPageResponse response = myPageService.getMyPage(year, month);
+
+        return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(response));
+    }
+
+    @GetMapping("/my-page/board")
+    public ResponseEntity<ApiResponse<GetBoardInMyPageResponse>> getBoardInMyPage(
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date,
+            @RequestParam boolean isPublic) {
+        GetBoardInMyPageResponse response = myPageService.getBoardInMyPage(date, isPublic);
 
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(response));
     }
