@@ -137,10 +137,15 @@ public class WeatherService {
      */
     public LocationTagResponseDto getLocationTag() {
 
-        Location location = getLocationForWeatherQuery();
+        User user = getAuthenticatedUser();
+
+        Location nowLocation = user.getNowLocation();
+        if (nowLocation == null)
+            throw new BusinessException(LocationErrorCode.NOW_LOCATION_NOT_FOUND);
+
         LocalDate today = LocalDate.now();
 
-        DailySummary dailySummary = dailySummaryRepository.findByLocationIdAndReportDateWithTags(location.getId(), today)
+        DailySummary dailySummary = dailySummaryRepository.findByLocationIdAndReportDateWithTags(nowLocation.getId(), today)
                 .orElseThrow(() -> new BusinessException(DailySummaryErrorCode.DAILY_SUMMARY_NOT_FOUND));
 
         return WeatherMapper.toLocationTagResponse(dailySummary);
