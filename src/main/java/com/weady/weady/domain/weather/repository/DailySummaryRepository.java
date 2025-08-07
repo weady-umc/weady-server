@@ -7,11 +7,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface DailySummaryRepository extends JpaRepository<DailySummary, Long> {
   
     Optional<DailySummary> findByLocationId(Long locationId);
+
   
     @Query("""
         select ds

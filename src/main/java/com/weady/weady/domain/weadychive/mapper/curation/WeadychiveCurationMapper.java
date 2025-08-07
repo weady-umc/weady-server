@@ -3,6 +3,7 @@ package com.weady.weady.domain.weadychive.mapper.curation;
 
 import com.weady.weady.domain.curation.entity.Curation;
 
+import com.weady.weady.domain.curation.entity.CurationImg;
 import com.weady.weady.domain.user.entity.User;
 import com.weady.weady.domain.weadychive.dto.curation.Response.CurationDto;
 import com.weady.weady.domain.weadychive.dto.curation.Response.ScrappedCurationByUserResponseDto;
@@ -22,7 +23,10 @@ public class WeadychiveCurationMapper {
                 .map(curation -> CurationDto.builder()
                         .curationId(curation.getId())
                         .curationTitle(curation.getTitle())
-                        .backgroundImgUrl(curation.getBackgroundImgUrl())
+                        .firstImgUrl(curation.getImgs().stream() //해당 큐레이션의 첫번째 사진 url
+                                .map(CurationImg::getImgUrl)
+                                .findFirst()
+                                .orElseThrow())
                         .build())
                 .toList();
 
@@ -48,7 +52,7 @@ public class WeadychiveCurationMapper {
         return CurationDto.builder()
                 .curationId(curationId)
                 .curationTitle(curationTitle)
-                .backgroundImgUrl(ImgUrl)
+                .firstImgUrl(ImgUrl)
                 .build();
     }
 

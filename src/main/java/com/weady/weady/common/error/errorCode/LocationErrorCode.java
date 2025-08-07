@@ -9,6 +9,7 @@ public enum LocationErrorCode implements ErrorCode {
 
     LOCATION_NOT_FOUND(404, "해당 지역을 찾을 수 없습니다."),
     FAVORITE_NOT_FOUND(404, "해당 즐겨찾기 지역을 찾을 수 없습니다."),
+    BCODE_NOT_FOUND(404,"해당 지역의 BCode를 찾을 수 없습니다"),
     FAVORITE_ALREADY_EXISTS(409, "이미 존재하는 즐겨찾기 지역입니다.");
 
     private final int code;

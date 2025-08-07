@@ -40,6 +40,7 @@ public class Curation extends BaseEntity {
 
     @Builder.Default
     @OneToMany(mappedBy = "curation")
+    @OrderBy("imgOrder ASC") //imgOrder 순서대로 저장
     private List<CurationImg> imgs = new ArrayList<>();
 
 

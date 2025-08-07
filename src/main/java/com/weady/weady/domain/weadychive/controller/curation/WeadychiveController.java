@@ -30,7 +30,7 @@ public class WeadychiveController {
     @io.swagger.v3.oas.annotations.responses.ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
     })
-    public ResponseEntity<ApiResponse<ScrappedCurationByUserResponseDto>> getExpensesByTrip() {
+    public ResponseEntity<ApiResponse<ScrappedCurationByUserResponseDto>> getScrappedCuration() {
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(weadychiveCurationService.getScrappedCuration()));
     }
 
