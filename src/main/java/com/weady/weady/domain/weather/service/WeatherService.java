@@ -146,7 +146,7 @@ public class WeatherService {
 
         LocalDate today = LocalDate.now();
 
-        DailySummary dailySummary = dailySummaryRepository.findByLocationIdAndReportDateWithTags(location.getId(), today)
+        DailySummary dailySummary = dailySummaryRepository.findByLocationIdAndReportDateWithTags(nowLocation.getId(), today)
                 .orElseThrow(() -> new BusinessException(DailySummaryErrorCode.DAILY_SUMMARY_NOT_FOUND));
 
         return WeatherMapper.toLocationTagResponse(dailySummary);
