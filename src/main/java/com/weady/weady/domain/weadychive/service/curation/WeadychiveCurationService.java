@@ -2,6 +2,7 @@ package com.weady.weady.domain.weadychive.service.curation;
 
 
 import com.weady.weady.domain.curation.entity.Curation;
+import com.weady.weady.domain.curation.entity.CurationImg;
 import com.weady.weady.domain.curation.repository.curation.CurationRepository;
 import com.weady.weady.domain.user.entity.User;
 import com.weady.weady.domain.user.repository.UserRepository;
@@ -90,6 +91,11 @@ public class WeadychiveCurationService {
         WeadychiveCuration weadychiveCuration =  WeadychiveCurationMapper.toEntity(user , curation);
 
         weadychiveCurationRepository.save(weadychiveCuration);
+
+        String firstImgUrl = curation.getImgs().stream() //나중에 레포 메소드로 리팩토링 해보기
+                .map(CurationImg::getImgUrl)
+                .findFirst()
+                .orElseThrow();
 
         return WeadychiveCurationMapper.toCurationResponseDto(curationId, curation.getTitle(), curation.getBackgroundImgUrl());
     }
