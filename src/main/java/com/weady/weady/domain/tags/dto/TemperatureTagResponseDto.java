@@ -4,5 +4,7 @@ import lombok.Builder;
 
 @Builder
 public record TemperatureTagResponseDto(Long id,
-                                        String name) {
+                                        String name,
+                                        Integer minTemperature,
+                                        Integer maxTemperature) {
 }

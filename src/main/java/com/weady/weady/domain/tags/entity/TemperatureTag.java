@@ -15,6 +15,6 @@ public class TemperatureTag {
 
     @Column(length = 50)
     private String name;
-    private Double minTemperature;
-    private Double maxTemperature;
+    private Integer minTemperature;
+    private Integer maxTemperature;
 }
