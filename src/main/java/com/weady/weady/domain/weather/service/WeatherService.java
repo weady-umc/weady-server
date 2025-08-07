@@ -132,7 +132,6 @@ public class WeatherService {
                 .collect(Collectors.toList());
     }
 
-
     /**
      * 해당 위치의 daily_summary 계절, 기온, 날씨 태그 ID를 가져오는 로직입니다
      * @return LocationTagResponseDto
@@ -147,11 +146,12 @@ public class WeatherService {
 
         LocalDate today = LocalDate.now();
 
-        DailySummary dailySummary = dailySummaryRepository.findByLocationIdAndReportDateWithTags(nowLocation.getId(), today)
+        DailySummary dailySummary = dailySummaryRepository.findByLocationIdAndReportDateWithTags(location.getId(), today)
                 .orElseThrow(() -> new BusinessException(DailySummaryErrorCode.DAILY_SUMMARY_NOT_FOUND));
 
         return WeatherMapper.toLocationTagResponse(dailySummary);
     }
+
 
 
 

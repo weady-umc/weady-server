@@ -28,7 +28,7 @@ public class SwaggerConfig {
         return new OpenAPI()
                 .info(apiInfo())
                 .addSecurityItem(securityRequirement)
-                .components(components);
+                .components(components)
                 .addServersItem(new Server().url("https://weadyapi.pro"));  // ✅ 이거 추가!
     }
 
