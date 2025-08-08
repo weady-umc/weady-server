@@ -42,12 +42,16 @@ public class CurationCategoryMapper {
 
     public static CurationByLocationResponseDto toCurationByLocationResponseDto(Long locationId,
                                                                         String locationName,
+                                                                        String season,
+                                                                        String weather,
                                                                         List<Curation> curations){
 
 
         return CurationByLocationResponseDto.builder()
                 .locationId(locationId)
                 .locationName(locationName)
+                .season(season)
+                .weather(weather)
                 .curations(toCurationDto(curations))
                 .build();
 

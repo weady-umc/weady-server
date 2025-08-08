@@ -78,9 +78,7 @@ public class BoardService {
     public BoardResponseDto getPostById(Long boardId) {
 
         Board board = getBoardById(boardId);
-        User user = userRepository.findById(SecurityUtil.getCurrentUserId())
-                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
-
+        User user = getAuthenticatedUser();
 
         boolean goodStatus = boardGoodRepository.existsByBoardAndUser(board, user);
 
@@ -95,9 +93,7 @@ public class BoardService {
     @Transactional
     public BoardResponseDto createPost(List<MultipartFile> images, BoardCreateRequestDto postData) {
 
-        // 게시글 작성자 정보 조회
-        User user = userRepository.findById(SecurityUtil.getCurrentUserId())
-                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
+        User user = getAuthenticatedUser();
 
         // 날씨 태그 조회
         SeasonTag seasonTag = seasonRepository.findById(postData.seasonTagId())
@@ -122,6 +118,7 @@ public class BoardService {
         board.updateBoardPlaceList(BoardMapper.toBoardPlaceList(postData.boardPlaceRequestDtoList()));
         board.updateBoardStyleList(BoardMapper.toBoardStyleList(categories));
         board.updateBoardImgList(BoardMapper.toBoardImgList(imageUrls, board));
+        board.updateBoardBrandList(BoardMapper.toBoardBrandList(postData.boardBrandRequestDtoList()));
 
         boardRepository.save(board);
 
@@ -140,9 +137,9 @@ public class BoardService {
         Board board = getBoardById(boardId);
         User boardUser = board.getUser(); // 작성자
 
-        Long userId = SecurityUtil.getCurrentUserId(); // 현재 로그인 한 사용자
+        User user = getAuthenticatedUser();
 
-        if (!userId.equals(boardUser.getId())){
+        if (!user.equals(boardUser)) {
             throw new BusinessException(BoardErrorCode.UNAUTHORIZED_UPDATE);
         }
 
@@ -168,6 +165,7 @@ public class BoardService {
         board.updateBoardPlaceList(BoardMapper.toBoardPlaceList(requestDto.boardPlaceRequestDtoList()));
         board.updateBoardStyleList(BoardMapper.toBoardStyleList(categories));
         board.updateBoardImgList(BoardMapper.toBoardImgList(imageUrls, board));
+        board.updateBoardBrandList(BoardMapper.toBoardBrandList(requestDto.boardBrandRequestDtoList()));
 
         boolean goodStatus = boardGoodRepository.existsByBoardAndUser(board, boardUser);
 
@@ -183,10 +181,11 @@ public class BoardService {
     public void deletePost(Long boardId) {
 
         Board board = getBoardById(boardId);
-        User user = userRepository.findById(SecurityUtil.getCurrentUserId())
-                .orElseThrow(()-> new BusinessException(UserErrorCode.USER_NOT_FOUND));
 
-        if (board.getUser().equals(user)) {
+        User boardUser = board.getUser();
+        User user = getAuthenticatedUser();
+
+        if (boardUser.equals(user)) {
             boardRepository.delete(board);
             return;
         }
@@ -204,8 +203,7 @@ public class BoardService {
     public BoardGoodResponseDto addGood(Long boardId) {
 
         // 좋아요 누르는 유저 정보
-        User user = userRepository.findById(SecurityUtil.getCurrentUserId())
-                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
+        User user = getAuthenticatedUser();
 
         Board board = getBoardById(boardId);
 
@@ -233,8 +231,7 @@ public class BoardService {
     public BoardGoodResponseDto cancelGood(Long boardId){
 
         // 좋아요 누르는 유저 정보
-        User user = userRepository.findById(SecurityUtil.getCurrentUserId())
-                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
+        User user = getAuthenticatedUser();
 
         Board board = getBoardById(boardId);
 
@@ -259,8 +256,7 @@ public class BoardService {
     public void reportPost(Long boardId, ReportRequestDto requestDto) {
 
         // 신고하는 유저 정보
-        User user = userRepository.findById(SecurityUtil.getCurrentUserId())
-                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
+        User user = getAuthenticatedUser();
 
         Board board = getBoardById(boardId);
 
@@ -270,7 +266,7 @@ public class BoardService {
             throw new BusinessException(BoardErrorCode.ALREADY_REPORTED);
         }
 
-        Report report = BoardMapper.toReport(board, user, requestDto.reportType(), requestDto.content());
+        Report report = BoardMapper.toReport(board, user, reportType, requestDto.content());
         reportRepository.save(report);
 
         // 게시물 신고 시, 신고자에게는 해당 게시물 숨김 처리
@@ -286,8 +282,7 @@ public class BoardService {
     @Transactional
     public void hidePost(Long boardId) {
 
-        User user = userRepository.findById(SecurityUtil.getCurrentUserId())
-                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
+        User user = getAuthenticatedUser();
 
         Board board = getBoardById(boardId);
 
@@ -307,8 +302,7 @@ public class BoardService {
     @Transactional
     public void unhidePost(Long boardId){
 
-        User user = userRepository.findById(SecurityUtil.getCurrentUserId())
-                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
+        User user = getAuthenticatedUser();
 
         Board board = getBoardById(boardId);
 
@@ -319,9 +313,16 @@ public class BoardService {
     }
 
 
-    public Board getBoardById(Long boardId) {
+    private Board getBoardById(Long boardId) {
         return boardRepository.findById(boardId)
                 .orElseThrow(() -> new BusinessException(BoardErrorCode.BOARD_NOT_FOUND));
     }
+
+    private User getAuthenticatedUser() {
+        return userRepository.findById(SecurityUtil.getCurrentUserId())
+                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
+
+    }
+
 }
 

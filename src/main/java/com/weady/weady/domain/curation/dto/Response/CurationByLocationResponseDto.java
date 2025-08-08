@@ -8,6 +8,8 @@ import java.util.List;
 @Builder
 public record CurationByLocationResponseDto(Long locationId,
                                             String locationName,
+                                            String season,
+                                            String weather,
                                             List<CurationDto> curations
 
 
