@@ -11,13 +11,17 @@ import java.util.Optional;
 public interface LocationRepository extends JpaRepository<Location, Long> {
     Optional<Location> findLocationBybCode(String bCode);
 
+
     @Query("SELECT l.bCode FROM Location l WHERE l.id = :id")
     Optional<String> findBCodeById(@Param("id") Long id);
+
 
     @Query("SELECT l.id FROM Location l WHERE l.bCode LIKE CONCAT(:prefix, '%') AND FUNCTION('RIGHT', l.bCode, 5) = '00000'")
     List<Long> findIdsByBcodePrefix(@Param("prefix") String prefix);
 
+
     @Query("SELECT l.id FROM Location l WHERE l.bCode = :bCode")
     Long findIdByBCode(@Param("bCode") String bCode);
+
 
 }

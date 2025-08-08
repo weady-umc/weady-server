@@ -97,7 +97,9 @@ public class WeadychiveCurationService {
                 .findFirst()
                 .orElseThrow();
 
+
         return WeadychiveCurationMapper.toCurationResponseDto(curationId, curation.getTitle(), firstImgUrl);
+
     }
 
     /**

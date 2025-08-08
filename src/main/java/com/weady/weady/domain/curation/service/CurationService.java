@@ -52,6 +52,7 @@ public class CurationService {
                 .orElseThrow(()-> new BusinessException(LocationErrorCode.BCODE_NOT_FOUND));
         String last5 = bcode.substring(5); // 뒤 5자리
         String first5 = bcode.substring(0, 5); //앞 5자리
+        feature/92-curation-by-currentLocation
         String first2 = bcode.substring(0,2); //앞 두자리 -> 시
 
 
@@ -62,6 +63,7 @@ public class CurationService {
          */
 
         if(last5.equals("00000") && first5.endsWith("00")){ //시까지 온 경우
+
             Location city = locationRepository.findById(locationId)
                     .orElseThrow(()->new BusinessException(LocationErrorCode.LOCATION_NOT_FOUND));
             String cityName = city.getAddress1(); //이 locationId가 어느 시? 인지를 확인
@@ -136,7 +138,9 @@ public class CurationService {
 
         }else{ //동까지 온 경우
             String transformedBCode = first5 + "00000";
+
             Long locationId1 = locationRepository.findIdByBCode(transformedBCode);
+
 
             //locationId1으로 CurationCategory에서 해당하는 카테고리들 가져와야
             CurationCategory curationCategory = curationCategoryRepository.findByLocationId(locationId1)
