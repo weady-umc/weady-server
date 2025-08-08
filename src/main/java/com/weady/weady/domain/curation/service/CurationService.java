@@ -52,7 +52,6 @@ public class CurationService {
                 .orElseThrow(()-> new BusinessException(LocationErrorCode.BCODE_NOT_FOUND));
         String last5 = bcode.substring(5); // 뒤 5자리
         String first5 = bcode.substring(0, 5); //앞 5자리
-        feature/92-curation-by-currentLocation
         String first2 = bcode.substring(0,2); //앞 두자리 -> 시
 
 
