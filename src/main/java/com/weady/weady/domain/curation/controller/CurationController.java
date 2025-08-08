@@ -55,4 +55,15 @@ public class CurationController {
     public ResponseEntity<ApiResponse<CurationByLocationResponseDto>> getCurationByCurationCategoryId(@PathVariable("curationCategoryId") Long curationCategoryId){
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(curationService.getCurationByCurationCategoryId(curationCategoryId)));
     }
+
+    @GetMapping("/location/{locationId}")
+    @Operation(summary = "지역별 큐레이션 조회 API")
+    @io.swagger.v3.oas.annotations.responses.ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
+    })
+    public ResponseEntity<ApiResponse<CurationByLocationResponseDto>> getCurationByLocationId(@PathVariable("locationId") Long locationId){
+        return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(curationService.getCurationByLocation(locationId)));
+    }
+
+
 }
