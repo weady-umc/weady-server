@@ -107,6 +107,7 @@ public class WeatherService {
     }
 
 
+
     @Transactional
     public List<GetWeatherMidDetailResponse> getMidWeatherInfo() {
 
@@ -130,6 +131,7 @@ public class WeatherService {
                 .map(WeatherMapper::toMidWeatherResponse)
                 .collect(Collectors.toList());
     }
+
 
     /**
      * 해당 위치의 daily_summary 계절, 기온, 날씨 태그 ID를 가져오는 로직입니다
