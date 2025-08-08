@@ -8,7 +8,7 @@ import java.util.List;
 // 보드 홈 화면 조회용
 @Builder
 public record BoardHomeResponseDto(
-        Long boardID,
+        Long boardId,
         Long userId,
         String imgUrl, //대표 사진 url
 

@@ -22,6 +22,7 @@ public class BoardImg extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn
+    @Setter
     private Board board;
 
 }

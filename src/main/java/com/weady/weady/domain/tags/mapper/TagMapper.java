@@ -35,6 +35,8 @@ public class TagMapper {
         return TemperatureTagResponseDto.builder()
                 .id(entity.getId())
                 .name(entity.getName())
+                .maxTemperature(entity.getMaxTemperature())
+                .minTemperature(entity.getMinTemperature())
                 .build();
     }
 }

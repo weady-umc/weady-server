@@ -20,11 +20,11 @@ public class WeatherController {
 
     private final WeatherService weatherService;
 
-    @GetMapping("/short/{locationId}")
+    @GetMapping("/short")
     @Operation(summary = "단기예보 날씨 정보 조회 API")
-    public ResponseEntity<ApiResponse<GetLocationWeatherShortDetailResponse>> getLocationWeatherShortDetail(@PathVariable Long locationId) {
+    public ResponseEntity<ApiResponse<GetLocationWeatherShortDetailResponse>> getLocationWeatherShortDetail() {
 
-        GetLocationWeatherShortDetailResponse responseData = weatherService.getShortWeatherInfo(locationId);
+        GetLocationWeatherShortDetailResponse responseData = weatherService.getShortWeatherInfo();
         ApiResponse<GetLocationWeatherShortDetailResponse> responseWrapper = ApiSuccessResponse.of(responseData, "단기 예보 조회에 성공했습니다.");
 
         return ResponseEntityUtil.buildDefaultResponseEntity(responseWrapper);
@@ -44,11 +44,11 @@ public class WeatherController {
         return ResponseEntityUtil.buildDefaultResponseEntity(responseWrapper);
     }
 
-    @GetMapping("/mid-term/{locationId}")
+    @GetMapping("/mid-term")
     @Operation(summary = "중기예보 날씨 정보 조회 API")
-    public ResponseEntity<ApiResponse<List<GetWeatherMidDetailResponse>>> getWeatherMidDetail(@PathVariable Long locationId) {
+    public ResponseEntity<ApiResponse<List<GetWeatherMidDetailResponse>>> getWeatherMidDetail() {
 
-        List<GetWeatherMidDetailResponse> responseData = weatherService.getMidWeatherInfo(locationId);
+        List<GetWeatherMidDetailResponse> responseData = weatherService.getMidWeatherInfo();
         ApiResponse<List<GetWeatherMidDetailResponse>> responseWrapper = ApiSuccessResponse.of(responseData,"중기 예보 조회에 성공했습니다.");
 
         return ResponseEntityUtil.buildDefaultResponseEntity(responseWrapper);

@@ -17,13 +17,12 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import java.util.Map;
 import java.util.Objects;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class KakaoLoginHandler implements SocialLoginHandler {
 
     private final ClientRegistrationRepository clientRegistrationRepository;
-
     private static final Provider PROVIDER_TYPE = Provider.KAKAO;
 
     @Override
@@ -32,43 +31,14 @@ public class KakaoLoginHandler implements SocialLoginHandler {
     }
 
     @Override
-    public OAuthAttributes getUserProfile(String authorizationCode) {
+    public OAuthAttributes getUserProfileByAccessToken(String accessToken) {
         ClientRegistration provider = clientRegistrationRepository.findByRegistrationId(PROVIDER_TYPE.name().toLowerCase());
-        String accessToken = getAccessToken(provider, authorizationCode);
-        Map<String, Object> userAttributes = getUserAttributes(provider, accessToken);
-        return parseUserAttributes(userAttributes);
-    }
 
-    private String getAccessToken(ClientRegistration provider, String authorizationCode) {
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("grant_type", "authorization_code");
-        params.add("client_id", provider.getClientId());
-        params.add("client_secret", provider.getClientSecret());
-        params.add("redirect_uri", provider.getRedirectUri());
-        params.add("code", authorizationCode);
-
-        // WebClient 호출 부분을 try-catch로 감쌉니다.
-        try {
-            Map<String, Object> response = WebClient.create()
-                    .post().uri(provider.getProviderDetails().getTokenUri())
-                    .bodyValue(params)
-                    .retrieve().bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {}).block();
-            return (String) response.get("access_token");
-        } catch (WebClientResponseException e) {
-            // 에러 발생 시 응답 본문을 로그로 출력
-            log.error("Error response from Kakao: {}", e.getResponseBodyAsString(), e);
-            throw e; // 기존 예외를 다시 던져서 흐름 유지
-        }
-    }
-
-    private Map<String, Object> getUserAttributes(ClientRegistration provider, String accessToken) {
-        return WebClient.create()
+        Map<String, Object> attributes = WebClient.create()
                 .get().uri(provider.getProviderDetails().getUserInfoEndpoint().getUri())
                 .headers(header -> header.setBearerAuth(accessToken))
                 .retrieve().bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {}).block();
-    }
 
-    private OAuthAttributes parseUserAttributes(Map<String, Object> attributes) {
         Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
 
         return OAuthAttributes.builder()

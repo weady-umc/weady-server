@@ -1,11 +1,16 @@
 package com.weady.weady.domain.weather.service;
 
 import com.weady.weady.common.error.errorCode.LocationErrorCode;
+import com.weady.weady.common.error.errorCode.UserErrorCode;
 import com.weady.weady.common.error.errorCode.WeatherErrorCode;
 import com.weady.weady.common.error.exception.BusinessException;
 import com.weady.weady.common.external.kakao.KakaoRegionService;
+import com.weady.weady.common.util.SecurityUtil;
 import com.weady.weady.domain.location.entity.Location;
 import com.weady.weady.domain.location.repository.LocationRepository;
+import com.weady.weady.domain.user.entity.User;
+import com.weady.weady.domain.user.entity.UserFavoriteLocation;
+import com.weady.weady.domain.user.repository.UserRepository;
 import com.weady.weady.domain.weather.dto.response.GetLocationWeatherShortDetailResponse;
 import com.weady.weady.domain.weather.dto.response.GetWeatherMidDetailResponse;
 import com.weady.weady.domain.weather.entity.DailySummary;
@@ -33,9 +38,38 @@ public class WeatherService {
     private final WeatherMidDetailRepository weatherMidDetailRepository;
     private final LocationRepository locationRepository;
     private final KakaoRegionService kakaoRegionService;
+    private final UserRepository userRepository;
 
     @Transactional
-    public GetLocationWeatherShortDetailResponse getShortWeatherInfo(Long locationId) {
+    public GetLocationWeatherShortDetailResponse getShortWeatherInfo() {
+
+        //getLocationForWeatherQuery를 통해 쿼리에 필요한 Location 엔티티 가져옴
+        Location locationToQuery = getLocationForWeatherQuery();
+
+        return getWeatherInfoByLocation(locationToQuery.getId());
+
+    }
+
+    @Transactional
+    public GetLocationWeatherShortDetailResponse getWeatherPreview(String b_code, double longitude, double latitude) {
+        String bCode = b_code;
+
+        //b_code가 비어있는지 확인(null, "", " " 모두 체크)
+        if (!StringUtils.hasText(bCode)) {
+            // b_code가 없다면, KakaoRegionService를 호출하여 좌표로 b_code를 얻어옴
+            bCode = kakaoRegionService.getBCodeByCoordinates(longitude, latitude);
+        }
+
+        //b_code를 통해 Location 엔티티를 조회합니다.
+        Location location = locationRepository.findLocationBybCode(bCode)
+                .orElseThrow(() -> new BusinessException(LocationErrorCode.LOCATION_NOT_FOUND));
+
+        // 단기예보 조회와 이후 로직이 동일하기에 getWeatherInfoByLocation호출
+        return getWeatherInfoByLocation(location.getId());
+    }
+
+    private GetLocationWeatherShortDetailResponse getWeatherInfoByLocation(Long locationId) {
+
         //쿼리에 필요한 파라미터를 준비
         LocalDate today = LocalDate.now();
 
@@ -68,31 +102,14 @@ public class WeatherService {
         return WeatherMapper.toShortWeatherResponse(location, summary, filteredForecasts);
     }
 
-    @Transactional
-    public GetLocationWeatherShortDetailResponse getWeatherPreview(String b_code, double longitude, double latitude) {
-        String finalBCode = b_code;
-
-        //b_code가 비어있는지 확인(null, "", " " 모두 체크)
-        if (!StringUtils.hasText(finalBCode)) {
-            // b_code가 없다면, KakaoRegionService를 호출하여 좌표로 b_code를 얻어옴
-            finalBCode = kakaoRegionService.getBCodeByCoordinates(longitude, latitude);
-        }
-
-        //b_code를 통해 Location 엔티티를 조회합니다.
-        Location location = locationRepository.findLocationBybCode(finalBCode)
-                .orElseThrow(() -> new BusinessException(LocationErrorCode.LOCATION_NOT_FOUND));
-
-        // 단기예보 조회와 이후 로직이 동일하기에 getShortWeatherInfo호출
-        return getShortWeatherInfo(location.getId());
-    }
-
 
     @Transactional
-    public List<GetWeatherMidDetailResponse> getMidWeatherInfo(Long locationId){
-        //Location 엔티티 조회 후 중기예보 지역코드 가져옴
-        Location location = locationRepository.findById(locationId)
-                .orElseThrow(() -> new BusinessException(LocationErrorCode.LOCATION_NOT_FOUND));
-        String midTermRegCode = location.getMidTermRegCode();
+    public List<GetWeatherMidDetailResponse> getMidWeatherInfo() {
+
+        //getLocationForWeatherQuery를 통해 쿼리에 필요한 Location 엔티티 가져옴
+        Location locationToQuery = getLocationForWeatherQuery();
+
+        String midTermRegCode = locationToQuery.getMidTermRegCode();
 
         //늘 날짜와 7일 후 날짜를 'YYYYMMDD' 포맷의 정수로 준비
         LocalDate today = LocalDate.now();
@@ -108,6 +125,32 @@ public class WeatherService {
         return forecastEntities.stream()
                 .map(WeatherMapper::toMidWeatherResponse)
                 .collect(Collectors.toList());
+    }
+
+    private User getAuthenticatedUser() {
+        Long userId = SecurityUtil.getCurrentUserId();
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
+    }
+
+    private Location getLocationForWeatherQuery() {
+
+        //User 엔티티 조회
+        User user = getAuthenticatedUser();
+
+        //기본위치 엔티티 조회
+        UserFavoriteLocation defaultLocation = user.getDefaultLocation();
+
+        //사용자 기본위치가 없다면 현재위치로 처리
+        if (defaultLocation != null)
+            return defaultLocation.getLocation();
+        else {
+            Location nowLocation = user.getNowLocation();
+            if (nowLocation == null)
+                throw new BusinessException(LocationErrorCode.NOW_LOCATION_NOT_FOUND);
+            return nowLocation;
+        }
+
     }
 
 }
