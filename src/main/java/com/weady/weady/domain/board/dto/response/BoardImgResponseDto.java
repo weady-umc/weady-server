@@ -4,6 +4,7 @@ import lombok.Builder;
 
 @Builder
 public record BoardImgResponseDto(
-        String imgUrl,
-        Integer imgOrder
+
+        Integer imgOrder,
+        String imgUrl
 ){}

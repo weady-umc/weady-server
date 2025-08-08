@@ -9,14 +9,12 @@ public record BoardCreateRequestDto ( // 이미지 파일 제외 postData 에 �
                                       Boolean isPublic,
                                       String content,
 
+                                      Long seasonTagId,
                                       Long weatherTagId,
                                       Long temperatureTagId,
-                                      Long seasonTagId,
 
                                       List<BoardPlaceRequestDto> boardPlaceRequestDtoList,
-                                      List<Long> styleIds
-                                      //List<Long> brandId
-
-) {
-}
+                                      List<Long> styleIds,
+                                      List<BoardBrandRequestDto> boardBrandRequestDtoList
+) {}
 
