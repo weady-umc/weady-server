@@ -310,42 +310,6 @@ public class WeatherUpdateService {
         });
     }
 
-    private void saveWeatherForecasts(Map<String, LocationWeatherShortDetail> newForecastsMap,
-                                      List<Location> locations,
-                                      BaseDateTime baseDateTime) {
-        List<Long> locationIds = locations.stream().map(Location::getId).collect(Collectors.toList());
-        int observationDate = Integer.parseInt(baseDateTime.baseDate);
-
-        List<LocationWeatherShortDetail> existingRecords = weatherRepository.findExistingRecords(locationIds, observationDate);
-        Map<String, LocationWeatherShortDetail> existingRecordsMap = existingRecords.stream()
-                .collect(Collectors.toMap(
-                        r -> r.getLocation().getId() + "-" + r.getDate() + "-" + r.getTime(),
-                        r -> r
-                ));
-
-        List<LocationWeatherShortDetail> toInsert = new ArrayList<>();
-        List<LocationWeatherShortDetail> toUpdate = new ArrayList<>();
-
-        newForecastsMap.forEach((key, newRecord) -> {
-            if (existingRecordsMap.containsKey(key)) {
-                LocationWeatherShortDetail existingRecord = existingRecordsMap.get(key);
-                updateEntity(existingRecord, newRecord);
-                toUpdate.add(existingRecord);
-            } else {
-                toInsert.add(newRecord);
-            }
-        });
-
-        if (!toInsert.isEmpty()) {
-            weatherRepository.saveAll(toInsert);
-            log.info("{} 건의 새로운 단기예보 데이터 추가", toInsert.size());
-        }
-        if (!toUpdate.isEmpty()) {
-            weatherRepository.saveAll(toUpdate);
-            log.info("{} 건의 단기예보 데이터 업데이트", toUpdate.size());
-        }
-    }
-
     private void updateEntity(LocationWeatherShortDetail oldEntity, LocationWeatherShortDetail newEntity) {
         oldEntity.setTmp(newEntity.getTmp());
         oldEntity.setWsd(newEntity.getWsd());
