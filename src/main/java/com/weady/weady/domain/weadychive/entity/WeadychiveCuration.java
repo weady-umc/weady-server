@@ -11,6 +11,10 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
+//@Table(
+//        name = "weadychive_curation",
+//        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "curation_id"})
+//)
 public class WeadychiveCuration extends BaseEntity {
 
     @Id
