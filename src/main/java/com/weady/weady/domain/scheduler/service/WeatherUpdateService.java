@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.weady.weady.common.constant.WeatherApiProperties;
+import com.weady.weady.common.error.errorCode.KMAErrorCode;
+import com.weady.weady.common.error.exception.BusinessException;
 import com.weady.weady.domain.location.entity.Location;
 import com.weady.weady.domain.location.repository.LocationRepository;
 import com.weady.weady.domain.weather.entity.LocationWeatherShortDetail;
@@ -40,7 +42,6 @@ import java.util.stream.Collectors;
 @Service
 public class WeatherUpdateService {
 
-    // --- 슬로틀/재시도 ---
     private static final long REQ_INTERVAL_MS = 600L; // 직렬 호출 간 텀
     private static final int MAX_RETRY = 4;            // 레이트리밋/네트워크 재시도 횟수
     private static final int CONCURRENCY = 3;          // NEW: 동시에 처리할 그리드 수(2~4 추천)
@@ -56,8 +57,6 @@ public class WeatherUpdateService {
     private final AtomicBoolean running = new AtomicBoolean(false);
 
     private final TransactionTemplate txTemplate;
-
-    // NEW: 전역 레이트리밋(모든 스레드 공용)
     private final Object rateLock = new Object();
     private volatile long lastRequestAtMs = 0L;
 
@@ -73,7 +72,6 @@ public class WeatherUpdateService {
         this.txTemplate = new TransactionTemplate(txManager);
     }
 
-    // NEW
     private void throttleGlobal() {
         synchronized (rateLock) {
             while (true) {
@@ -100,7 +98,6 @@ public class WeatherUpdateService {
             LocalDateTime nowKst = LocalDateTime.now(KST);
             BaseDateTime baseDateTimeForSave = calculateBaseDateTimeKst(nowKst);
 
-            // 오래된 데이터 정리(KST 기준)
             int currentDate = Integer.parseInt(nowKst.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
             int currentTime = Integer.parseInt(nowKst.format(DateTimeFormatter.ofPattern("HHmm")));
             txTemplate.executeWithoutResult(status ->
@@ -118,26 +115,24 @@ public class WeatherUpdateService {
             Map<Grid, List<Location>> byGrid = locations.stream()
                     .collect(Collectors.groupingBy(l -> new Grid(l.getNx(), l.getNy())));
 
-            int totalGrids = byGrid.size();                                // NEW
-            log.info("고유 그리드 수: {}", totalGrids);                     // NEW
-            var pool = Executors.newFixedThreadPool(CONCURRENCY);          // NEW
-            var processed = new AtomicInteger(0);                          // NEW
-            List<CompletableFuture<Void>> tasks = new ArrayList<>();       // NEW
+            int totalGrids = byGrid.size();
+            log.info("고유 그리드 수: {}", totalGrids);
+            var pool = Executors.newFixedThreadPool(CONCURRENCY);
+            var processed = new AtomicInteger(0);
+            List<CompletableFuture<Void>> tasks = new ArrayList<>();
 
             for (Map.Entry<Grid, List<Location>> entry : byGrid.entrySet()) {
                 tasks.add(CompletableFuture.runAsync(() -> {
                     List<Location> group = entry.getValue();
                     Location repr = group.get(0);
 
-                    // 전역 슬로틀: 모든 스레드가 간격을 공용으로 지킴
-                    throttleGlobal();                                      // NEW
+                    throttleGlobal();
 
-                    BaseDateTime baseDateTime = baseDateTimeForSave;
-                    URI uri = buildApiUri(repr, baseDateTime);
+                    URI uri = buildApiUri(repr, baseDateTimeForSave);
                     log.debug("KMA URI(grid {}): {}", entry.getKey(), uri);
 
                     Map<String, LocationWeatherShortDetail> reprResult =
-                            fetchWeatherWithWebClient(uri, repr, baseDateTime).join();
+                            fetchWeatherWithWebClient(uri, repr, baseDateTimeForSave).join();
 
                     if (reprResult.isEmpty()) {
                         int c = processed.incrementAndGet();
@@ -145,7 +140,6 @@ public class WeatherUpdateService {
                         return;
                     }
 
-                    // 대표 loc 결과를 그룹의 나머지 loc들로 복제
                     Map<String, LocationWeatherShortDetail> groupMap = new HashMap<>(reprResult);
                     if (group.size() > 1) {
                         for (int i = 1; i < group.size(); i++) {
@@ -170,16 +164,13 @@ public class WeatherUpdateService {
                             }
                         }
                     }
-
-                    // NEW: 그리드 단위로 즉시 저장(트랜잭션 한 번)
-                    saveWeatherForecastsForGroup(groupMap, group, baseDateTime);
+                    saveWeatherForecastsForGroup(groupMap, group, baseDateTimeForSave);
 
                     int c = processed.incrementAndGet();
                     if (c % 50 == 0) log.info("그리드 진행 {}/{}", c, totalGrids);
                 }, pool));
             }
 
-            // NEW: 모든 그리드 완료 대기
             CompletableFuture.allOf(tasks.toArray(new CompletableFuture[0])).join();
             pool.shutdown();
 
@@ -201,12 +192,11 @@ public class WeatherUpdateService {
                 .header("Accept", "application/json")
                 .header("Accept-Charset", "utf-8")
                 .retrieve()
-                // 5xx + 429은 재시도 대상으로 예외화
                 .onStatus(s -> s.is5xxServerError() || s.value() == 429, resp -> {
                     log.warn("KMA {} 응답. status={} locId={}", resp.statusCode().is5xxServerError() ? "5xx" : "429",
                             resp.statusCode(), location.getId());
                     if (resp.statusCode().value() == 429) {
-                        return Mono.error(new RateLimitException("429", "HTTP 429 Too Many Requests"));
+                        return Mono.error(new BusinessException(KMAErrorCode.RATE_LIMIT_EXCEEDED));
                     }
                     return resp.createException().flatMap(Mono::error);
                 })
@@ -214,20 +204,20 @@ public class WeatherUpdateService {
                 // XML/HTML 에러 응답 검사 및 코드 파싱
                 .flatMap(body -> {
                     String trimmed = body == null ? "" : body.trim();
-                    if (!trimmed.startsWith("<")) return Mono.just(body); // JSON일 확률 높음
+                    if (!trimmed.startsWith("<")) return Mono.just(body);
 
                     String code = extractXmlTag(trimmed, "resultCode");
                     String msg  = extractXmlTag(trimmed, "resultMsg");
                     log.warn("locId={} XML/HTML 응답: code={}, msg={}, snippet={}",
                             location.getId(), code, msg, snippet(trimmed));
-                    if ("22".equals(code)) { // 요청제한(레이트리밋)
-                        return Mono.error(new RateLimitException(code, msg));
+                    if ("22".equals(code)) {
+                        return Mono.error(new BusinessException(KMAErrorCode.RATE_LIMIT_EXCEEDED));
                     } else if ("30".equals(code) || "31".equals(code) || "32".equals(code)) {
                         return Mono.error(new ServiceKeyException(code, msg));
                     }
-                    return Mono.error(new KmaXmlException(code, msg));
+                    return Mono.error(new BusinessException(KMAErrorCode.KMA_XML_ERROR, msg + " (code=" + code + ")"));
                 })
-                // JSON의 resultCode 검사(정상이면 "00")
+
                 .flatMap(body -> {
                     try {
                         JsonNode root = objectMapper.readTree(body);
@@ -250,9 +240,7 @@ public class WeatherUpdateService {
                                 .jitter(0.3)
                                 .filter(th ->
                                         (th instanceof WebClientResponseException w && w.getStatusCode().is5xxServerError())
-                                                || th instanceof RateLimitException
-                                                || th instanceof java.io.IOException
-                                                || !(th instanceof ServiceKeyException) // 키 문제는 재시도 X
+                                                || !(th instanceof ServiceKeyException)
                                 )
                 )
                 .onErrorResume(e -> {
@@ -322,7 +310,6 @@ public class WeatherUpdateService {
         });
     }
 
-    // (전체 저장 메서드는 기존 그대로 유지할게요)
     private void saveWeatherForecasts(Map<String, LocationWeatherShortDetail> newForecastsMap,
                                       List<Location> locations,
                                       BaseDateTime baseDateTime) {
@@ -391,7 +378,7 @@ public class WeatherUpdateService {
                 baseDateTime.baseDate + baseDateTime.baseTime,
                 DateTimeFormatter.ofPattern("yyyyMMddHHmm")
         );
-        LocalDateTime endForecastTime = startForecastTime.plusHours(26); // 필요 시 조정
+        LocalDateTime endForecastTime = startForecastTime.plusHours(26);
 
         items.forEach(item -> {
             String fcstDate = item.path("fcstDate").asText();
@@ -444,7 +431,7 @@ public class WeatherUpdateService {
         if (v == null) return 0f;
         v = v.trim();
         if (v.equals("강수없음")) return 0f;
-        if (v.contains("1mm 미만")) return 0.5f; // 필요시 0.1f로 조정
+        if (v.contains("1mm 미만")) return 0.5f;
         String only = v.replaceAll("[^\\d.]", "");
         if (only.isEmpty()) return 0f;
         try { return Float.parseFloat(only); } catch (Exception e) { return 0f; }
@@ -474,7 +461,6 @@ public class WeatherUpdateService {
         LocalDateTime baseDateTime = nowKst;
         int targetHour = baseHours[0];
 
-        // 발표 + 데이터 반영까지 약간의 래그를 고려해 10분 기준 유지
         if (hour < 2 || (hour == 2 && minute < 10)) {
             baseDateTime = nowKst.minusDays(1);
             targetHour = 23;
@@ -491,8 +477,6 @@ public class WeatherUpdateService {
         String baseTime = String.format("%02d00", targetHour);
         return new BaseDateTime(baseDate, baseTime);
     }
-
-    // --------- 유틸/타입 ---------
 
     private static String extractXmlTag(String xml, String tag) {
         Pattern p = Pattern.compile("<" + tag + ">(.*?)</" + tag + ">", Pattern.DOTALL);
@@ -516,41 +500,8 @@ public class WeatherUpdateService {
 
     private record Grid(int nx, int ny) {}
 
-    private static class RateLimitException extends RuntimeException {
-        final String code; final String msg;
-        RateLimitException(String code, String msg) { super(code + ":" + msg); this.code = code; this.msg = msg; }
-    }
     private static class ServiceKeyException extends RuntimeException {
         final String code; final String msg;
         ServiceKeyException(String code, String msg) { super(code + ":" + msg); this.code = code; this.msg = msg; }
-    }
-    private static class KmaXmlException extends RuntimeException {
-        final String code; final String msg;
-        KmaXmlException(String code, String msg) { super(code + ":" + msg); this.code = code; this.msg = msg; }
-    }
-
-    @PostConstruct
-    public void logKeyInfo() {
-        String raw = apiProperties.getShortTermKey();
-        log.info("KMA key len={}, fp={}", raw == null ? -1 : raw.length(), fingerprint(raw));
-        if (raw != null && (raw.contains("%2F") || raw.contains("%2B") || raw.contains("%3D"))) {
-            log.warn("프로퍼티에 URL-인코딩된 키(%)가 들어있습니다. RAW 키로 교체하세요.");
-        }
-        if (raw != null && !raw.equals(raw.trim())) {
-            log.warn("키 앞/뒤 공백 또는 줄바꿈이 있습니다. 설정에서 제거하세요.");
-        }
-    }
-
-    private static String fingerprint(String s) {
-        if (s == null) return "NA";
-        try {
-            var md = java.security.MessageDigest.getInstance("SHA-256");
-            byte[] h = md.digest(s.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-            var sb = new StringBuilder();
-            for (int i = 0; i < 6; i++) sb.append(String.format("%02x", h[i]));
-            return sb.toString();
-        } catch (Exception e) {
-            return "NA";
-        }
     }
 }
