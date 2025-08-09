@@ -13,12 +13,8 @@ public class WeatherScheduler {
 
     private final WeatherUpdateService weatherUpdateService;
 
-    /**
-     * 단기예보 스케쥴러
-     * 매일 02:10, 05:10, 08:10, 11:10, 14:10, 17:10, 20:10, 23:10 실행
-     * 기상청 API가 보통 10분~15분 뒤에 데이터를 제공하므로 10분에 실행
-     */
-    @Scheduled(cron = "0 10 2,5,8,11,14,17,20,23 * * *")
+    // 매일 02:15, 05:15, 08:15, 11:15, 14:15, 17:15, 20:15, 23:15
+    @Scheduled(cron = "0 17 2,5,8,11,14,17,20,23 * * *", zone = "Asia/Seoul")
     public void updateShortTermWeather() {
         log.info("[WeatherScheduler] 단기예보 업데이트 시작");
         try {

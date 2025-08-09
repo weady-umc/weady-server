@@ -34,7 +34,7 @@ public class Location extends BaseEntity {
     private String midTermRegCode;
 
 
-    @OneToOne(mappedBy = "location")
-    private CurationCategory curationCategory;
+//    @OneToOne(mappedBy = "location")
+//    private CurationCategory curationCategory;
 
 }

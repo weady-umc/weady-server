@@ -45,10 +45,15 @@ dependencies {
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
 	// WebClient 사용을 위한 WebFlux 의존성
 	implementation 'org.springframework:spring-webflux'
+	implementation 'io.projectreactor.netty:reactor-netty-http'
+	runtimeOnly "io.netty:netty-resolver-dns-native-macos:4.1.110.Final:osx-aarch_64"
+
 
 	//S3
 	implementation 'com.amazonaws:aws-java-sdk-s3:1.12.734'
 	implementation 'net.coobird:thumbnailator:0.4.19' // 이미지 리사이징, 썸네일 처리
+
+
 }
 
 tasks.named('test') {

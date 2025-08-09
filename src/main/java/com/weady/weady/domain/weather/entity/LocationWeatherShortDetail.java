@@ -10,6 +10,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
+@Setter
 public class LocationWeatherShortDetail extends BaseEntity {
 
     @Id
