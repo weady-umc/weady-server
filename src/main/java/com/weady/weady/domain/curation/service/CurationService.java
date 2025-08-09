@@ -2,6 +2,9 @@ package com.weady.weady.domain.curation.service;
 
 
 import com.weady.weady.common.error.errorCode.LocationErrorCode;
+import com.weady.weady.common.error.errorCode.TagsErrorCode;
+import com.weady.weady.common.external.s3.S3Uploader;
+import com.weady.weady.domain.curation.dto.Request.CurationRequestDto;
 import com.weady.weady.domain.curation.dto.Response.CurationByCurationIdResponseDto;
 import com.weady.weady.domain.curation.dto.Response.CurationByLocationResponseDto;
 import com.weady.weady.domain.curation.dto.Response.CurationCategoryResponseDto;
@@ -10,12 +13,15 @@ import com.weady.weady.domain.curation.entity.CurationCategory;
 import com.weady.weady.domain.curation.entity.CurationImg;
 import com.weady.weady.domain.curation.mapper.CurationCategoryMapper;
 import com.weady.weady.domain.curation.mapper.CurationMapper;
+import com.weady.weady.domain.curation.repository.curation.CurationImgRepository;
 import com.weady.weady.domain.curation.repository.curation.CurationRepository;
 import com.weady.weady.domain.curation.repository.curationCategory.CurationCategoryRepository;
 import com.weady.weady.domain.location.entity.Location;
 import com.weady.weady.domain.location.repository.LocationRepository;
 import com.weady.weady.domain.tags.entity.SeasonTag;
 import com.weady.weady.domain.tags.entity.WeatherTag;
+import com.weady.weady.domain.tags.repository.season.SeasonRepository;
+import com.weady.weady.domain.tags.repository.weather.WeatherRepository;
 import com.weady.weady.domain.weather.entity.DailySummary;
 import com.weady.weady.domain.weather.repository.DailySummaryRepository;
 import com.weady.weady.common.error.errorCode.CurationErrorCode;
@@ -24,6 +30,7 @@ import com.weady.weady.common.error.exception.BusinessException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,6 +46,10 @@ public class CurationService {
     private final CurationRepository curationRepository; //curation 상세 조회 용도
     private final DailySummaryRepository dailySummaryRepository; //curation_category_id를 통한 큐레이션 찾기 용도
     private final LocationRepository locationRepository;
+    private final S3Uploader s3Uploader;
+    private final SeasonRepository seasonRepository;
+    private final WeatherRepository weatherRepository;
+    private final CurationImgRepository curationImgRepository;
 
     /**
      * 지역별 날씨에 맞는 큐레이션 제공
@@ -238,6 +249,59 @@ public class CurationService {
                 ).collect(Collectors.toList());
 
         return CurationCategoryMapper.toCurationByLocationResponseDto(locationId2, locationName, seasonTagText , weatherTagText, curations);
+    }
+
+
+    /**
+     * curation 업로드하기
+     * @return
+     * @thorws
+     */
+    public void saveCuration(MultipartFile backgroundImage,
+                             List<MultipartFile> contentImages,
+                             CurationRequestDto dto){
+
+        CurationCategory curationCategory = curationCategoryRepository.findById(dto.curationCategoryId())
+                .orElseThrow(()->new BusinessException(CurationErrorCode.CURATION_CATEGORY_NOT_FOUND));
+
+        SeasonTag seasonTag = seasonRepository.findById(dto.seasonTagId())
+                .orElseThrow(()-> new BusinessException(TagsErrorCode.SEASON_TAG_NOT_FOUND));
+
+        WeatherTag weatherTag = weatherRepository.findById(dto.weatherTagId())
+                .orElseThrow(()-> new BusinessException(TagsErrorCode.WEATHER_TAG_NOT_FOUND));
+
+        //썸네일 s3 변환
+        String backgroundImgUrl = s3Uploader.upload(backgroundImage, "curation");
+
+        // Curation 저장
+        Curation curation = Curation.builder()
+                .title(dto.title())
+                .backgroundImgUrl(backgroundImgUrl)
+                .curationCategory(curationCategory)
+                .seasonTag(seasonTag)
+                .weatherTag(weatherTag)
+                .build();
+
+        curationRepository.save(curation);
+
+        // curation 세부 Images 저장
+        List<CurationImg> imgList = new ArrayList<>();
+        for (int i = 0; i < contentImages.size(); i++) {
+            MultipartFile imgFile = contentImages.get(i);
+            String url = s3Uploader.upload(imgFile, "curationImg");
+            String address = dto.imgAddresses().get(i);
+
+            CurationImg img = CurationImg.builder()
+                    .imgUrl(url)
+                    .imgOrder(i + 1)
+                    .imgAddress(address)
+                    .curation(curation)
+                    .build();
+
+            imgList.add(img);
+        }
+
+        curationImgRepository.saveAll(imgList);
     }
 
 

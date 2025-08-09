@@ -17,5 +17,6 @@ public interface WeadychiveCurationRepository extends JpaRepository<WeadychiveCu
 
     void deleteByUserIdAndCurationId(Long userId, Long curationId);
 
+    boolean existsByUserIdAndCurationId(Long userId, Long curationId);
 
 }
