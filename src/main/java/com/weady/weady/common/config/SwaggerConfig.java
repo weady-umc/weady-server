@@ -30,7 +30,6 @@ public class SwaggerConfig {
                 .addSecurityItem(securityRequirement)
                 .components(components)
                 .addServersItem(new Server().url("https://weadyapi.pro"));  // ✅ 이거 추가!
-
     }
 
     private Info apiInfo() {
