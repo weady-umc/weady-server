@@ -9,7 +9,9 @@ import com.weady.weady.domain.location.repository.LocationRepository;
 import com.weady.weady.domain.weather.entity.LocationWeatherShortDetail;
 import com.weady.weady.domain.weather.entity.SkyCode;
 import com.weady.weady.domain.weather.repository.WeatherShortDetailRepository;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -17,17 +19,19 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.web.util.UriUtils;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;                  // NEW
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;      // NEW
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -37,8 +41,9 @@ import java.util.stream.Collectors;
 public class WeatherUpdateService {
 
     // --- 슬로틀/재시도 ---
-    private static final long REQ_INTERVAL_MS = 1200L; // 직렬 호출 간 텀
+    private static final long REQ_INTERVAL_MS = 600L; // 직렬 호출 간 텀
     private static final int MAX_RETRY = 4;            // 레이트리밋/네트워크 재시도 횟수
+    private static final int CONCURRENCY = 3;          // NEW: 동시에 처리할 그리드 수(2~4 추천)
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     private final LocationRepository locationRepository;
@@ -52,16 +57,36 @@ public class WeatherUpdateService {
 
     private final TransactionTemplate txTemplate;
 
+    // NEW: 전역 레이트리밋(모든 스레드 공용)
+    private final Object rateLock = new Object();
+    private volatile long lastRequestAtMs = 0L;
+
     public WeatherUpdateService(LocationRepository locationRepository,
                                 WeatherShortDetailRepository weatherRepository,
                                 WeatherApiProperties apiProperties,
-                                WebClient webClient,
+                                @Qualifier("kmaWebClient") WebClient webClient,
                                 PlatformTransactionManager txManager) {
         this.locationRepository = locationRepository;
         this.weatherRepository = weatherRepository;
         this.apiProperties = apiProperties;
         this.webClient = webClient;
         this.txTemplate = new TransactionTemplate(txManager);
+    }
+
+    // NEW
+    private void throttleGlobal() {
+        synchronized (rateLock) {
+            while (true) {
+                long now = System.currentTimeMillis();
+                long wait = lastRequestAtMs + REQ_INTERVAL_MS - now;
+                if (wait <= 0) {
+                    lastRequestAtMs = now;
+                    rateLock.notifyAll();
+                    return;
+                }
+                try { rateLock.wait(wait); } catch (InterruptedException ignored) {}
+            }
+        }
     }
 
     @Async("weatherTaskExecutor")
@@ -93,67 +118,74 @@ public class WeatherUpdateService {
             Map<Grid, List<Location>> byGrid = locations.stream()
                     .collect(Collectors.groupingBy(l -> new Grid(l.getNx(), l.getNy())));
 
-            Map<String, LocationWeatherShortDetail> allForecastsMap = new HashMap<>();
+            int totalGrids = byGrid.size();                                // NEW
+            log.info("고유 그리드 수: {}", totalGrids);                     // NEW
+            var pool = Executors.newFixedThreadPool(CONCURRENCY);          // NEW
+            var processed = new AtomicInteger(0);                          // NEW
+            List<CompletableFuture<Void>> tasks = new ArrayList<>();       // NEW
 
-            int idx = 0;
             for (Map.Entry<Grid, List<Location>> entry : byGrid.entrySet()) {
-                Grid grid = entry.getKey();
-                List<Location> group = entry.getValue();
-                Location repr = group.get(0); // 대표 loc
+                tasks.add(CompletableFuture.runAsync(() -> {
+                    List<Location> group = entry.getValue();
+                    Location repr = group.get(0);
 
-                BaseDateTime baseDateTime = baseDateTimeForSave; // 동일 베이스로 저장
-                String url = buildApiUrl(repr, baseDateTime);
-                log.debug("KMA URL(grid {}): {}", grid, url);
+                    // 전역 슬로틀: 모든 스레드가 간격을 공용으로 지킴
+                    throttleGlobal();                                      // NEW
 
-                // 직렬 호출
-                Map<String, LocationWeatherShortDetail> reprResult =
-                        fetchWeatherWithWebClient(url, repr, baseDateTime).join();
+                    BaseDateTime baseDateTime = baseDateTimeForSave;
+                    URI uri = buildApiUri(repr, baseDateTime);
+                    log.debug("KMA URI(grid {}): {}", entry.getKey(), uri);
 
-                // 대표 loc 결과를 그룹의 나머지 loc들로 복제
-                if (!reprResult.isEmpty() && group.size() > 1) {
-                    for (int i = 1; i < group.size(); i++) {
-                        Location other = group.get(i);
-                        for (LocationWeatherShortDetail v : reprResult.values()) {
-                            LocationWeatherShortDetail clone = LocationWeatherShortDetail.builder()
-                                    .location(other)
-                                    .observationDate(v.getObservationDate())
-                                    .observationTime(v.getObservationTime())
-                                    .date(v.getDate())
-                                    .time(v.getTime())
-                                    .tmp(v.getTmp())
-                                    .wsd(v.getWsd())
-                                    .skyCode(v.getSkyCode())
-                                    .pop(v.getPop())
-                                    .pcp(v.getPcp())
-                                    .reh(v.getReh())
-                                    .vec(v.getVec())
-                                    .build();
-                            String mapKey = other.getId() + "-" + v.getDate() + "-" + v.getTime();
-                            allForecastsMap.put(mapKey, clone);
+                    Map<String, LocationWeatherShortDetail> reprResult =
+                            fetchWeatherWithWebClient(uri, repr, baseDateTime).join();
+
+                    if (reprResult.isEmpty()) {
+                        int c = processed.incrementAndGet();
+                        if (c % 50 == 0) log.info("그리드 진행 {}/{}", c, totalGrids);
+                        return;
+                    }
+
+                    // 대표 loc 결과를 그룹의 나머지 loc들로 복제
+                    Map<String, LocationWeatherShortDetail> groupMap = new HashMap<>(reprResult);
+                    if (group.size() > 1) {
+                        for (int i = 1; i < group.size(); i++) {
+                            Location other = group.get(i);
+                            for (LocationWeatherShortDetail v : reprResult.values()) {
+                                LocationWeatherShortDetail clone = LocationWeatherShortDetail.builder()
+                                        .location(other)
+                                        .observationDate(v.getObservationDate())
+                                        .observationTime(v.getObservationTime())
+                                        .date(v.getDate())
+                                        .time(v.getTime())
+                                        .tmp(v.getTmp())
+                                        .wsd(v.getWsd())
+                                        .skyCode(v.getSkyCode())
+                                        .pop(v.getPop())
+                                        .pcp(v.getPcp())
+                                        .reh(v.getReh())
+                                        .vec(v.getVec())
+                                        .build();
+                                String mapKey = other.getId() + "-" + v.getDate() + "-" + v.getTime();
+                                groupMap.put(mapKey, clone);
+                            }
                         }
                     }
-                }
 
-                // 대표 loc 결과도 포함
-                allForecastsMap.putAll(reprResult);
+                    // NEW: 그리드 단위로 즉시 저장(트랜잭션 한 번)
+                    saveWeatherForecastsForGroup(groupMap, group, baseDateTime);
 
-                // 슬로틀
-                try { Thread.sleep(REQ_INTERVAL_MS); } catch (InterruptedException ignored) {}
-
-                if (++idx % 50 == 0) {
-                    log.info("그리드 {}개 처리/총 {}개 (누적 레코드 {}건)", idx, byGrid.size(), allForecastsMap.size());
-                }
+                    int c = processed.incrementAndGet();
+                    if (c % 50 == 0) log.info("그리드 진행 {}/{}", c, totalGrids);
+                }, pool));
             }
 
-            if (allForecastsMap.isEmpty()) {
-                log.warn("API로부터 유효한 날씨 데이터를 가져오지 못했습니다.");
-                return;
-            }
+            // NEW: 모든 그리드 완료 대기
+            CompletableFuture.allOf(tasks.toArray(new CompletableFuture[0])).join();
+            pool.shutdown();
 
-            saveWeatherForecasts(allForecastsMap, locations, baseDateTimeForSave);
             long endTime = System.currentTimeMillis();
             log.info("총 {}개 location(그리드 {}개) 단기예보 업데이트 완료. 소요 {}ms",
-                    locations.size(), byGrid.size(), (endTime - startTime));
+                    locations.size(), totalGrids, (endTime - startTime));
 
         } finally {
             running.set(false);
@@ -161,15 +193,13 @@ public class WeatherUpdateService {
     }
 
     private CompletableFuture<Map<String, LocationWeatherShortDetail>> fetchWeatherWithWebClient(
-            String url, Location location, BaseDateTime baseDateTime) {
+            URI uri, Location location, BaseDateTime baseDateTime) {
 
         Mono<String> responseMono = webClient.get()
-                .uri(url)
-                // ❗️WAF 회피: bot UA 대신 브라우저 UA 사용
-                .header("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome Safari")
+                .uri(uri)
+                .header("User-Agent", "weady-weather-bot/1.0")
                 .header("Accept", "application/json")
-                .header("Accept-Charset", StandardCharsets.UTF_8.name())
-                .header("Accept-Language", "ko-KR,ko;q=0.9,en;q=0.8")
+                .header("Accept-Charset", "utf-8")
                 .retrieve()
                 // 5xx + 429은 재시도 대상으로 예외화
                 .onStatus(s -> s.is5xxServerError() || s.value() == 429, resp -> {
@@ -251,6 +281,48 @@ public class WeatherUpdateService {
                 .toFuture();
     }
 
+    // NEW: 그리드(같은 nx,ny 묶음)만 저장
+    private void saveWeatherForecastsForGroup(Map<String, LocationWeatherShortDetail> newForecastsMap,
+                                              List<Location> group,
+                                              BaseDateTime baseDateTime) {
+        List<Long> locationIds = group.stream().map(Location::getId).toList();
+        int observationDate = Integer.parseInt(baseDateTime.baseDate);
+
+        txTemplate.executeWithoutResult(status -> {
+            List<LocationWeatherShortDetail> existingRecords =
+                    weatherRepository.findExistingRecords(locationIds, observationDate);
+
+            Map<String, LocationWeatherShortDetail> existingRecordsMap = existingRecords.stream()
+                    .collect(Collectors.toMap(
+                            r -> r.getLocation().getId() + "-" + r.getDate() + "-" + r.getTime(),
+                            r -> r
+                    ));
+
+            List<LocationWeatherShortDetail> toInsert = new ArrayList<>();
+            List<LocationWeatherShortDetail> toUpdate = new ArrayList<>();
+
+            newForecastsMap.forEach((key, newRecord) -> {
+                LocationWeatherShortDetail existingRecord = existingRecordsMap.get(key);
+                if (existingRecord != null) {
+                    updateEntity(existingRecord, newRecord);
+                    toUpdate.add(existingRecord);
+                } else {
+                    toInsert.add(newRecord);
+                }
+            });
+
+            if (!toInsert.isEmpty()) {
+                weatherRepository.saveAll(toInsert);
+                log.debug("그룹 INSERT {}건", toInsert.size());
+            }
+            if (!toUpdate.isEmpty()) {
+                weatherRepository.saveAll(toUpdate);
+                log.debug("그룹 UPDATE {}건", toUpdate.size());
+            }
+        });
+    }
+
+    // (전체 저장 메서드는 기존 그대로 유지할게요)
     private void saveWeatherForecasts(Map<String, LocationWeatherShortDetail> newForecastsMap,
                                       List<Location> locations,
                                       BaseDateTime baseDateTime) {
@@ -378,12 +450,11 @@ public class WeatherUpdateService {
         try { return Float.parseFloat(only); } catch (Exception e) { return 0f; }
     }
 
-    private String buildApiUrl(Location location, BaseDateTime baseDateTime) {
-        String rawKey = apiProperties.getShortTermKey();
-        String encodedKey = URLEncoder.encode(rawKey, StandardCharsets.UTF_8);
+    private URI buildApiUri(Location location, BaseDateTime baseDateTime) {
+        String encodedKey = URLEncoder.encode(apiProperties.getShortTermKey(), StandardCharsets.UTF_8);
 
-        return UriComponentsBuilder.fromHttpUrl(apiProperties.getBaseUrl())
-                .queryParam("serviceKey", encodedKey)  // 이미 인코딩된 값 전달
+        return UriComponentsBuilder.fromUriString(apiProperties.getBaseUrl())
+                .queryParam("serviceKey", encodedKey)
                 .queryParam("pageNo", 1)
                 .queryParam("numOfRows", 1000)
                 .queryParam("dataType", "JSON")
@@ -391,9 +462,10 @@ public class WeatherUpdateService {
                 .queryParam("base_time", baseDateTime.baseTime)
                 .queryParam("nx", location.getNx())
                 .queryParam("ny", location.getNy())
-                .build(true)                             // ✅ alreadyEncoded = true
-                .toUriString();
+                .build(true)
+                .toUri();
     }
+
     private BaseDateTime calculateBaseDateTimeKst(LocalDateTime nowKst) {
         int hour = nowKst.getHour();
         int minute = nowKst.getMinute();
@@ -455,5 +527,30 @@ public class WeatherUpdateService {
     private static class KmaXmlException extends RuntimeException {
         final String code; final String msg;
         KmaXmlException(String code, String msg) { super(code + ":" + msg); this.code = code; this.msg = msg; }
+    }
+
+    @PostConstruct
+    public void logKeyInfo() {
+        String raw = apiProperties.getShortTermKey();
+        log.info("KMA key len={}, fp={}", raw == null ? -1 : raw.length(), fingerprint(raw));
+        if (raw != null && (raw.contains("%2F") || raw.contains("%2B") || raw.contains("%3D"))) {
+            log.warn("프로퍼티에 URL-인코딩된 키(%)가 들어있습니다. RAW 키로 교체하세요.");
+        }
+        if (raw != null && !raw.equals(raw.trim())) {
+            log.warn("키 앞/뒤 공백 또는 줄바꿈이 있습니다. 설정에서 제거하세요.");
+        }
+    }
+
+    private static String fingerprint(String s) {
+        if (s == null) return "NA";
+        try {
+            var md = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] h = md.digest(s.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            var sb = new StringBuilder();
+            for (int i = 0; i < 6; i++) sb.append(String.format("%02x", h[i]));
+            return sb.toString();
+        } catch (Exception e) {
+            return "NA";
+        }
     }
 }

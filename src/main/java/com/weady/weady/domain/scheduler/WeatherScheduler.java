@@ -14,7 +14,7 @@ public class WeatherScheduler {
     private final WeatherUpdateService weatherUpdateService;
 
     // 매일 02:15, 05:15, 08:15, 11:15, 14:15, 17:15, 20:15, 23:15
-    @Scheduled(cron = "0 17 2,5,8,11,14,17,20,23 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 23 15,2,5,8,11,14,17,20,23 * * *", zone = "Asia/Seoul")
     public void updateShortTermWeather() {
         log.info("[WeatherScheduler] 단기예보 업데이트 시작");
         try {
