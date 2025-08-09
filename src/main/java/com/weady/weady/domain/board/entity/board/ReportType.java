@@ -9,7 +9,7 @@ public enum ReportType {
     Disinformation ("잘못된 정보"),
     Hate_Activity ("혐오 활동"),
     Offensive_Content ("모욕적인 내용"),
-    Illegal_Photo ("붋법 촬영물"),
+    Illegal_Photo ("불법 촬영물"),
     Other ("기타");
 
     private final String description;

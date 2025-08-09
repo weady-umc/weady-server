@@ -1,5 +1,6 @@
 package com.weady.weady.domain.board.mapper;
 
+import com.weady.weady.domain.board.dto.request.BoardBrandRequestDto;
 import com.weady.weady.domain.board.dto.request.BoardCreateRequestDto;
 import com.weady.weady.domain.board.dto.request.BoardPlaceRequestDto;
 import com.weady.weady.domain.board.dto.response.*;
@@ -57,6 +58,15 @@ public class BoardMapper {
                 .collect(Collectors.toList());
     }
 
+    public static List<BoardBrand> toBoardBrandList(List<BoardBrandRequestDto> requestDtos) {
+        return requestDtos.stream()
+                .map(dto -> BoardBrand.builder()
+                        .brand(dto.brand())
+                        .product(dto.product())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
     public static BoardGood toBoardGood(Board board, User user) {
         return BoardGood.builder()
                 .board(board)
@@ -93,21 +103,26 @@ public class BoardMapper {
 
         return BoardResponseDto.builder()
                 .boardId(board.getId())
-                .isPublic(board.getIsPublic())
-                .goodStatus(goodStatus)
-                .content(board.getContent())
-                .weatherTagId(board.getWeatherTag().getId())
-                .temperatureTagId(board.getTemperatureTag().getId())
-                .seasonTagId(board.getSeasonTag().getId())
                 .userId(user.getId())
                 .userName(user.getName())
                 .userProfileImageUrl(user.getProfileImageUrl())
-                .goodCount(board.getGoodCount())
-                .placeDtoList(toBoardPlaceResponseListDto(board.getBoardPlaceList()))
-                .imgCount(board.getImgCount())
-                .imageDtoList(toBoardImgResponseListDto(board.getBoardImgList()))
-                .styleIdList(styleIdList)
+
+                .isPublic(board.getIsPublic()) // 게시 여부
+                .goodStatus(goodStatus) // 현재 로그인 한 사용자가 해당 게시물에 좋아요를 눌렀는지 여부
+                .goodCount(board.getGoodCount())    // 좋아요 개수
+                .content(board.getContent()) // 내용
+
+                .weatherTagId(board.getWeatherTag().getId())
+                .temperatureTagId(board.getTemperatureTag().getId())
+                .seasonTagId(board.getSeasonTag().getId())
+
+                .placeDtoList(toBoardPlaceResponseListDto(board.getBoardPlaceList())) //장소
+                .imgCount(board.getImgCount())  // 이미지 개수
+                .imageDtoList(toBoardImgResponseListDto(board.getBoardImgList())) // 이미지
+                .styleIdList(styleIdList)  // 스타일 태그
+                .brandDtoList(toBoardBrandResponseListDto(board.getBoardBrandList())) // 옷 정보
                 .createdAt(board.getCreatedAt())
+                .updatedAt(board.getUpdatedAt())
                 .build();
     }
 
@@ -127,6 +142,15 @@ public class BoardMapper {
                 .map(image -> BoardImgResponseDto.builder()
                         .imgOrder(image.getImgOrder())
                         .imgUrl(image.getImgUrl())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    public static List<BoardBrandResponseDto> toBoardBrandResponseListDto(List<BoardBrand> brands){
+        return brands.stream()
+                .map(brand -> BoardBrandResponseDto.builder()
+                        .brand(brand.getBrand())
+                        .product(brand.getProduct())
                         .build())
                 .collect(Collectors.toList());
     }

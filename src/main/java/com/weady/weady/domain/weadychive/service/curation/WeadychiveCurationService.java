@@ -19,6 +19,7 @@ import com.weady.weady.common.error.exception.BusinessException;
 import com.weady.weady.common.util.SecurityUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -88,16 +89,31 @@ public class WeadychiveCurationService {
         Curation curation = curationRepository.findById(curationId)
                 .orElseThrow(()->new BusinessException(CurationErrorCode.CURATION_NOT_FOUND));
 
+        //이미 스크랩 되어 있는건지 확인
+        if (weadychiveCurationRepository.existsByUserIdAndCurationId(currentUserId, curationId)) {
+            throw new BusinessException(CurationErrorCode.CURATION_ALREADY_SCRAPPED);
+        }
+
+
         WeadychiveCuration weadychiveCuration =  WeadychiveCurationMapper.toEntity(user , curation);
 
         weadychiveCurationRepository.save(weadychiveCuration);
+
+//        try {
+//            weadychiveCurationRepository.save(weadychiveCuration);
+//        } catch (DataIntegrityViolationException e) {
+//            // 2차: 경합 대비(DB 유니크 제약에 걸릴 경우)
+//            throw new BusinessException(CurationErrorCode.CURATION_ALREADY_SCRAPPED);
+//        }
 
         String firstImgUrl = curation.getImgs().stream() //나중에 레포 메소드로 리팩토링 해보기
                 .map(CurationImg::getImgUrl)
                 .findFirst()
                 .orElseThrow();
 
-        return WeadychiveCurationMapper.toCurationResponseDto(curationId, curation.getTitle(), curation.getBackgroundImgUrl());
+
+        return WeadychiveCurationMapper.toCurationResponseDto(curationId, curation.getTitle(), firstImgUrl);
+
     }
 
     /**

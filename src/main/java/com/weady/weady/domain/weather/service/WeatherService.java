@@ -1,5 +1,6 @@
 package com.weady.weady.domain.weather.service;
 
+import com.weady.weady.common.error.errorCode.DailySummaryErrorCode;
 import com.weady.weady.common.error.errorCode.LocationErrorCode;
 import com.weady.weady.common.error.errorCode.UserErrorCode;
 import com.weady.weady.common.error.errorCode.WeatherErrorCode;
@@ -13,10 +14,12 @@ import com.weady.weady.domain.user.entity.UserFavoriteLocation;
 import com.weady.weady.domain.user.repository.UserRepository;
 import com.weady.weady.domain.weather.dto.response.GetLocationWeatherShortDetailResponse;
 import com.weady.weady.domain.weather.dto.response.GetWeatherMidDetailResponse;
+import com.weady.weady.domain.weather.dto.response.LocationTagResponseDto;
 import com.weady.weady.domain.weather.entity.DailySummary;
 import com.weady.weady.domain.weather.entity.LocationWeatherShortDetail;
 import com.weady.weady.domain.weather.entity.WeatherMidDetail;
 import com.weady.weady.domain.weather.mapper.WeatherMapper;
+import com.weady.weady.domain.weather.repository.DailySummaryRepository;
 import com.weady.weady.domain.weather.repository.WeatherMidDetailRepository;
 import com.weady.weady.domain.weather.repository.WeatherShortDetailRepository;
 import jakarta.transaction.Transactional;
@@ -36,6 +39,7 @@ public class WeatherService {
 
     private final WeatherShortDetailRepository weatherRepository;
     private final WeatherMidDetailRepository weatherMidDetailRepository;
+    private final DailySummaryRepository dailySummaryRepository;
     private final LocationRepository locationRepository;
     private final KakaoRegionService kakaoRegionService;
     private final UserRepository userRepository;
@@ -103,6 +107,7 @@ public class WeatherService {
     }
 
 
+
     @Transactional
     public List<GetWeatherMidDetailResponse> getMidWeatherInfo() {
 
@@ -126,6 +131,30 @@ public class WeatherService {
                 .map(WeatherMapper::toMidWeatherResponse)
                 .collect(Collectors.toList());
     }
+
+
+    /**
+     * 해당 위치의 daily_summary 계절, 기온, 날씨 태그 ID를 가져오는 로직입니다
+     * @return LocationTagResponseDto
+     */
+    public LocationTagResponseDto getLocationTag() {
+
+        User user = getAuthenticatedUser();
+
+        Location nowLocation = user.getNowLocation();
+        if (nowLocation == null)
+            throw new BusinessException(LocationErrorCode.NOW_LOCATION_NOT_FOUND);
+
+        LocalDate today = LocalDate.now();
+
+        DailySummary dailySummary = dailySummaryRepository.findByLocationIdAndReportDateWithTags(nowLocation.getId(), today)
+                .orElseThrow(() -> new BusinessException(DailySummaryErrorCode.DAILY_SUMMARY_NOT_FOUND));
+
+        return WeatherMapper.toLocationTagResponse(dailySummary);
+    }
+
+
+
 
     private User getAuthenticatedUser() {
         Long userId = SecurityUtil.getCurrentUserId();

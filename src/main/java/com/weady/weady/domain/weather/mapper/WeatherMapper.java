@@ -3,6 +3,7 @@ package com.weady.weady.domain.weather.mapper;
 import com.weady.weady.domain.location.entity.Location;
 import com.weady.weady.domain.weather.dto.response.GetLocationWeatherShortDetailResponse;
 import com.weady.weady.domain.weather.dto.response.GetWeatherMidDetailResponse;
+import com.weady.weady.domain.weather.dto.response.LocationTagResponseDto;
 import com.weady.weady.domain.weather.entity.DailySummary;
 import com.weady.weady.domain.weather.entity.LocationWeatherShortDetail;
 import com.weady.weady.domain.weather.entity.WeatherMidDetail;
@@ -71,6 +72,15 @@ public class WeatherMapper {
                 .pmSkyStatus(weatherMid.getPmSkyCode())
                 .minTemp(weatherMid.getTmn())
                 .maxTemp(weatherMid.getTmx())
+                .build();
+    }
+
+    public static LocationTagResponseDto toLocationTagResponse(DailySummary dailySummary) {
+
+        return LocationTagResponseDto.builder()
+                .seasonTagId(dailySummary.getSeasonTag().getId())
+                .temperatureTagId(dailySummary.getTemperatureTag().getId())
+                .weatherTagId(dailySummary.getWeatherTag().getId())
                 .build();
     }
 
