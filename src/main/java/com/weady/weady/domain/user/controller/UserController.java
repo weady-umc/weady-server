@@ -10,6 +10,7 @@ import com.weady.weady.common.apiResponse.ApiResponse;
 import com.weady.weady.common.apiResponse.ApiSuccessResponse;
 import com.weady.weady.common.util.ResponseEntityUtil;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -21,6 +22,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "User", description = "유저 관련 API")
 @RequestMapping("/api/v1/users")
 public class UserController {
     private final UserService userService;
@@ -43,11 +45,13 @@ public class UserController {
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(userService.getUserDefaultLocation()));
     }
 
+    @Operation(summary = "프로필 편집 API", description = "마이페이지에서 프로필(닉네임, 이미지)을 수정합니다.")
     @PatchMapping("/profile")
     public ResponseEntity<ApiResponse<UpdateUserProfileResponse>> updateUserProfile(@RequestBody @Valid UpdateUserProfileRequest request) {
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(userService.updateUserProfile(request)));
     }
 
+    @Operation(summary = "마이페이지 조회 API", description = "마이페이지(닉네임, 프로필 이미지, 캘린더)를 조회합니다.")
     @GetMapping("/my-page")
     public ResponseEntity<ApiResponse<GetMyPageResponse>> getMyPage(
             @RequestParam int year,
@@ -57,6 +61,7 @@ public class UserController {
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(response));
     }
 
+    @Operation(summary = "마이페이지에서 특정 날짜의 게시물 조회 API", description = "마이페이지 화면 속 캘린더에서 특정 날짜의 게시물을 조회합니다.")
     @GetMapping("/my-page/board")
     public ResponseEntity<ApiResponse<GetBoardInMyPageResponse>> getBoardInMyPage(
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date,
