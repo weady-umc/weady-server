@@ -45,6 +45,8 @@ public class WeatherUpdateService {
     private static final long REQ_INTERVAL_MS = 600L; // 직렬 호출 간 텀
     private static final int MAX_RETRY = 4;            // 레이트리밋/네트워크 재시도 횟수
     private static final int CONCURRENCY = 3;          // NEW: 동시에 처리할 그리드 수(2~4 추천)
+    private static final int FORECAST_WINDOW_HOURS = 36; // 저장할 예보 범위(시간)
+
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     private final LocationRepository locationRepository;
@@ -338,17 +340,18 @@ public class WeatherUpdateService {
             return new HashMap<>();
         }
 
-        LocalDateTime startForecastTime = LocalDateTime.parse(
-                baseDateTime.baseDate + baseDateTime.baseTime,
-                DateTimeFormatter.ofPattern("yyyyMMddHHmm")
-        );
-        LocalDateTime endForecastTime = startForecastTime.plusHours(26);
+        LocalDateTime startForecastTime = LocalDateTime.parse(baseDateTime.baseDate + baseDateTime.baseTime, DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
+        LocalDateTime endForecastTime = startForecastTime.plusHours(FORECAST_WINDOW_HOURS);
 
         items.forEach(item -> {
             String fcstDate = item.path("fcstDate").asText();
             String fcstTime = item.path("fcstTime").asText();
             LocalDateTime forecastDateTime = LocalDateTime.parse(fcstDate + fcstTime, DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
-            if (forecastDateTime.isAfter(endForecastTime)) return;
+
+            // 시작 이전/끝 이후 데이터는 제외
+            if (forecastDateTime.isBefore(startForecastTime) || forecastDateTime.isAfter(endForecastTime)) {
+                return;
+            }
 
             String key = fcstDate + "-" + fcstTime;
             WeatherValues values = weatherValuesMap.computeIfAbsent(key, k -> new WeatherValues());
