@@ -1,6 +1,6 @@
 package com.weady.weady.domain.scheduler;
 
-import com.weady.weady.domain.scheduler.service.WeatherUpdateService;
+import com.weady.weady.domain.scheduler.service.ShortTermWeatherUpdateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -11,14 +11,14 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class WeatherScheduler {
 
-    private final WeatherUpdateService weatherUpdateService;
+    private final ShortTermWeatherUpdateService shortTermWeatherUpdateService;
 
     // 매일 02:15, 05:15, 08:15, 11:15, 14:15, 17:15, 20:15, 23:15
     @Scheduled(cron = "0 15 5,11,17,23 * * *", zone = "Asia/Seoul")
     public void updateShortTermWeather() {
         log.info("[WeatherScheduler] 단기예보 업데이트 시작");
         try {
-            weatherUpdateService.updateShortTermWeather();
+            shortTermWeatherUpdateService.updateShortTermWeather();
         } catch (Exception e) {
             log.error("[WeatherScheduler] 단기예보 업데이트 중 예외 발생", e);
         }

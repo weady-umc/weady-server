@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
+@Setter
 public class LocationWeatherSnapshot extends BaseEntity {
 
     @Id
@@ -32,11 +33,11 @@ public class LocationWeatherSnapshot extends BaseEntity {
 
     private Float feelTmp; //체감온도
 
-    private Float sky; //하늘
+    private Integer sky; //하늘
 
     private Float wsd; //풍속
 
-    private Float pty; //강수형태 (눈,비, ...)
+    private Integer pty; //강수형태 (눈,비, ...)
 
     private Float pop; //강수확률
 }

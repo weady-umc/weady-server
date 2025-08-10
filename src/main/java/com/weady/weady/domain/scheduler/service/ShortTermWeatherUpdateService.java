@@ -11,7 +11,6 @@ import com.weady.weady.domain.location.repository.LocationRepository;
 import com.weady.weady.domain.weather.entity.LocationWeatherShortDetail;
 import com.weady.weady.domain.weather.entity.SkyCode;
 import com.weady.weady.domain.weather.repository.WeatherShortDetailRepository;
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Async;
@@ -40,7 +39,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class WeatherUpdateService {
+public class ShortTermWeatherUpdateService {
 
     private static final long REQ_INTERVAL_MS = 600L; // 직렬 호출 간 텀
     private static final int MAX_RETRY = 4;            // 레이트리밋/네트워크 재시도 횟수
@@ -58,20 +57,20 @@ public class WeatherUpdateService {
     // 동시 실행 차단
     private final AtomicBoolean running = new AtomicBoolean(false);
 
-    private final TransactionTemplate txTemplate;
+    private final TransactionTemplate tx;
     private final Object rateLock = new Object();
     private volatile long lastRequestAtMs = 0L;
 
-    public WeatherUpdateService(LocationRepository locationRepository,
-                                WeatherShortDetailRepository weatherRepository,
-                                WeatherApiProperties apiProperties,
-                                @Qualifier("kmaWebClient") WebClient webClient,
-                                PlatformTransactionManager txManager) {
+    public ShortTermWeatherUpdateService(LocationRepository locationRepository,
+                                         WeatherShortDetailRepository weatherRepository,
+                                         WeatherApiProperties apiProperties,
+                                         @Qualifier("kmaWebClient") WebClient webClient,
+                                         PlatformTransactionManager txManager) {
         this.locationRepository = locationRepository;
         this.weatherRepository = weatherRepository;
         this.apiProperties = apiProperties;
         this.webClient = webClient;
-        this.txTemplate = new TransactionTemplate(txManager);
+        this.tx = new TransactionTemplate(txManager);
     }
 
     private void throttleGlobal() {
@@ -102,7 +101,7 @@ public class WeatherUpdateService {
 
             int currentDate = Integer.parseInt(nowKst.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
             int currentTime = Integer.parseInt(nowKst.format(DateTimeFormatter.ofPattern("HHmm")));
-            txTemplate.executeWithoutResult(status ->
+            tx.executeWithoutResult(status ->
                     weatherRepository.deleteOldRecords(currentDate, currentTime)
             );
             log.info("오래된 단기예보 데이터 삭제 완료");
@@ -278,7 +277,7 @@ public class WeatherUpdateService {
         List<Long> locationIds = group.stream().map(Location::getId).toList();
         int observationDate = Integer.parseInt(baseDateTime.baseDate);
 
-        txTemplate.executeWithoutResult(status -> {
+        tx.executeWithoutResult(status -> {
             List<LocationWeatherShortDetail> existingRecords =
                     weatherRepository.findExistingRecords(locationIds, observationDate);
 
