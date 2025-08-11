@@ -234,4 +234,5 @@ public class SnapshotService {
     private static double cToF(double c) { return c * 9.0/5.0 + 32.0; }
     private static double fToC(double f) { return (f - 32.0) * 5.0/9.0; }
     private static Float round1(float v) { return Math.round(v * 10f) / 10f; }
+
 }
