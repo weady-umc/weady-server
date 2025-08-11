@@ -5,6 +5,6 @@ import lombok.Builder;
 @Builder
 public record TemperatureTagResponseDto(Long id,
                                         String name,
-                                        Integer minTemperature,
-                                        Integer maxTemperature) {
+                                        Float minTemperature,
+                                        Float maxTemperature) {
 }

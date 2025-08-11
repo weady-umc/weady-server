@@ -39,4 +39,8 @@ public interface WeatherShortDetailRepository extends JpaRepository<LocationWeat
             "AND lwsd.observationDate = :observationDate")
     List<LocationWeatherShortDetail> findExistingRecords(@Param("locationIds") List<Long> locationIds, @Param("observationDate") int observationDate);
 
+    @Query("SELECT w FROM LocationWeatherShortDetail w " +
+            "WHERE w.location.id IN :locationIds AND w.date = :date")
+    List<LocationWeatherShortDetail> findByLocationIdsAndDate(@Param("locationIds") List<Long> locationIds,
+                                                              @Param("date") int date);
 }
