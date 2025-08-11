@@ -25,12 +25,17 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
             + ") "
             + "ORDER BY b.createdAt DESC, b.id DESC")
     Slice<Board> getFilteredAndSortedResults(
-            @Param("weatherTagId") Long weatherTagId,
-            @Param("temperatureTagId") Long temperatureTagId,
             @Param("seasonTagId") Long seasonTagId,
+            @Param("temperatureTagId") Long temperatureTagId,
+            @Param("weatherTagId") Long weatherTagId,
             @Param("userId") Long userId,
             Pageable pageable);
 
+    @Query("SELECT b "
+            + "FROM Board b "
+            + "LEFT JOIN FETCH b.boardStyleList "
+            + "WHERE b.id = :id")
+    Optional<Board> findByIdWithStyles(@Param("boardId") Long boardId);
 
     @Query("""
         SELECT b

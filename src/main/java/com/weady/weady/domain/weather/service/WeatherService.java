@@ -132,7 +132,6 @@ public class WeatherService {
                 .collect(Collectors.toList());
     }
 
-
     /**
      * 해당 위치의 daily_summary 계절, 기온, 날씨 태그 ID를 가져오는 로직입니다
      * @return LocationTagResponseDto
@@ -152,7 +151,6 @@ public class WeatherService {
 
         return WeatherMapper.toLocationTagResponse(dailySummary);
     }
-
 
 
 

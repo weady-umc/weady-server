@@ -12,9 +12,9 @@ public record BoardHomeResponseDto(
         Long userId,
         String imgUrl, //대표 사진 url
 
-        Long weatherTagId,
-        Long temperatureTagId,
         Long seasonTagId,
+        Long temperatureTagId,
+        Long weatherTagId,
 
         LocalDateTime createdAt
 ){}
