@@ -154,8 +154,6 @@ public class WeatherService {
 
 
 
-
-
     private User getAuthenticatedUser() {
         Long userId = SecurityUtil.getCurrentUserId();
         return userRepository.findById(userId)

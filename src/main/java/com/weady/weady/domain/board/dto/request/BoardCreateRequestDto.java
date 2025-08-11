@@ -10,8 +10,9 @@ public record BoardCreateRequestDto ( // 이미지 파일 제외 postData 에 �
                                       String content,
 
                                       Long seasonTagId,
-                                      Long weatherTagId,
                                       Long temperatureTagId,
+                                      Long weatherTagId,
+
 
                                       List<BoardPlaceRequestDto> boardPlaceRequestDtoList,
                                       List<Long> styleIds,
