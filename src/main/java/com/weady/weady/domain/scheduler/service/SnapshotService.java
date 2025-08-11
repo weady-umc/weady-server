@@ -34,7 +34,7 @@ public class SnapshotService {
 
     // Tx 구성
     private final PlatformTransactionManager txManager;
-    private TransactionTemplate tx;
+    private final TransactionTemplate tx;
 
     // 매일 23:40에 실행: 지난 스냅샷 삭제 + 내일(00~23시) 스냅샷 업서트
     public void buildNextDaySnapshots() {
