@@ -31,6 +31,11 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
             @Param("userId") Long userId,
             Pageable pageable);
 
+    @Query("SELECT b "
+            + "FROM Board b "
+            + "LEFT JOIN FETCH b.boardStyleList "
+            + "WHERE b.id = :id")
+    Optional<Board> findByIdWithStyles(@Param("boardId") Long boardId);
 
     @Query("""
         SELECT b

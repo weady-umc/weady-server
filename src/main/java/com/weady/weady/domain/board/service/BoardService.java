@@ -314,7 +314,7 @@ public class BoardService {
 
 
     private Board getBoardById(Long boardId) {
-        return boardRepository.findById(boardId)
+        return boardRepository.findByIdWithStyles(boardId)
                 .orElseThrow(() -> new BusinessException(BoardErrorCode.BOARD_NOT_FOUND));
     }
 
