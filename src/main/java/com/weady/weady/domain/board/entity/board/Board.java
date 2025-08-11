@@ -1,5 +1,6 @@
 package com.weady.weady.domain.board.entity.board;
 
+import com.weady.weady.domain.board.entity.comment.BoardComment;
 import com.weady.weady.domain.tags.entity.SeasonTag;
 import com.weady.weady.domain.tags.entity.TemperatureTag;
 import com.weady.weady.domain.tags.entity.WeatherTag;
@@ -80,6 +81,11 @@ public class Board extends BaseEntity {
     @Builder.Default
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BoardBrand> boardBrandList = new ArrayList<>();
+
+    //댓글
+    @Builder.Default
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BoardComment> boardCommentList = new ArrayList<>();
 
 
     // 좋아요
