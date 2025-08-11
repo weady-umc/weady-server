@@ -42,4 +42,6 @@ public class LocationWeatherSnapshot extends BaseEntity {
     private Integer pty; //강수형태 (눈,비, ...)
 
     private Float pop; //강수확률
+
+    private Float pcp; //강수량
 }

@@ -15,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -65,12 +64,12 @@ public class ShortTermWeatherUpdateService {
                                          WeatherShortDetailRepository weatherRepository,
                                          WeatherApiProperties apiProperties,
                                          @Qualifier("kmaWebClient") WebClient webClient,
-                                         PlatformTransactionManager txManager) {
+                                         TransactionTemplate tx) {
         this.locationRepository = locationRepository;
         this.weatherRepository = weatherRepository;
         this.apiProperties = apiProperties;
         this.webClient = webClient;
-        this.tx = new TransactionTemplate(txManager);
+        this.tx = tx;
     }
 
     private void throttleGlobal() {
