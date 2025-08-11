@@ -18,7 +18,7 @@ public class DailySummaryScheduler {
 
     @Scheduled(cron = "0 45 23 * * *", zone = "Asia/Seoul")
     public void run() {
-        LocalDate tomorrow = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        LocalDate tomorrow = LocalDate.now(ZoneId.of("Asia/Seoul")).plusDays(1);
         log.info("[DailySummaryScheduler] {} 요약 생성 시작", tomorrow);
         try {
             service.buildDailySummary(tomorrow);
