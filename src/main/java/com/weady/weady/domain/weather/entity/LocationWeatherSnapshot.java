@@ -31,6 +31,8 @@ public class LocationWeatherSnapshot extends BaseEntity {
 
     private Integer time; // 1300
 
+    private Float tmp; //기온
+
     private Float feelTmp; //체감온도
 
     private Integer sky; //하늘
