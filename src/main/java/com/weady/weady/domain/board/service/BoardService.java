@@ -75,6 +75,7 @@ public class BoardService {
      * @return BoardResponseDto
      * @throws
      */
+    @Transactional(readOnly = true)
     public BoardResponseDto getPostById(Long boardId) {
 
         Board board = getBoardById(boardId);
