@@ -92,4 +92,10 @@ public class UserService {
 
         return UserMapper.toResponse(location);
     }
+
+    @Transactional(readOnly = true)
+    public boolean checkNicknameDuplication(String nickname) {
+        return userRepository.existsUserByName(nickname);
+    }
 }
+
