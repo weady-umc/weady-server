@@ -118,13 +118,11 @@ public class WeatherService {
 
         //늘 날짜와 7일 후 날짜를 'YYYYMMDD' 포맷의 정수로 준비
         LocalDate today = LocalDate.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-        Integer startDate = Integer.parseInt(today.format(formatter));
-        Integer endDate = Integer.parseInt(today.plusDays(7).format(formatter));
+        LocalDate endDate = today.plusDays(7);
 
         //해당 지역의 1주일치 중기 예보 데이터를 조회
         List<WeatherMidDetail> forecastEntities = weatherMidDetailRepository
-                .findByMidTermRegCodeAndDateBetweenOrderByDateAsc(midTermRegCode, startDate, endDate);
+                .findByMidTermRegCodeAndDateBetweenOrderByDateAsc(midTermRegCode, today, endDate);
 
         //조회된 엔티티 리스트를 Stream을 사용하여 응답 DTO 리스트로 변환
         return forecastEntities.stream()

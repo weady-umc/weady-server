@@ -9,7 +9,7 @@ import java.util.Optional;
 
 
 public interface WeatherMidDetailRepository extends JpaRepository<WeatherMidDetail, Long> {
-    List<WeatherMidDetail> findByMidTermRegCodeAndDateBetweenOrderByDateAsc(String midTermRegCode, Integer startDate, Integer endDate);
+    List<WeatherMidDetail> findByMidTermRegCodeAndDateBetweenOrderByDateAsc(String midTermRegCode, LocalDate date, LocalDate date2);
 
     Optional<WeatherMidDetail> findByMidTermRegCodeAndDate(String midTermRegCode, LocalDate date);
 

@@ -23,5 +23,9 @@ public interface LocationWeatherSnapshotRepository extends JpaRepository<Locatio
     List<LocationWeatherSnapshot> findByLocationIdsAndDate(@Param("locationIds") List<Long> locationIds,
                                                            @Param("date") int date);
 
-
+    @Modifying
+    @Query(value = "DELETE FROM location_weather_snapshot WHERE date < :cutoff LIMIT :limit",
+            nativeQuery = true)
+    int deleteOlderThanLimit(@Param("cutoff") int cutoff,            // [NEW]
+                             @Param("limit")  int limit);            // [NEW]
 }

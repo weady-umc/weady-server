@@ -14,7 +14,7 @@ public class MidWeatherScheduler {
     private final MidWeatherSchedulerService service;
 
     @Async("weatherTaskExecutor")
-    @Scheduled(cron = "0 10 6,18 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 15,13 0,6,18 * * *", zone = "Asia/Seoul")
     public void run() {
         log.info("[MidWeatherScheduler] 중기예보 업데이트 시작");
         try {
