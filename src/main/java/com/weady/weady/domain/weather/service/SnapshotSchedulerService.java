@@ -27,30 +27,50 @@ public class SnapshotSchedulerService {
 
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
     private static final int CHUNK_SIZE = 800;                          // (기존 유지)
-    private static final int SAVE_BATCH_SIZE = 1000;                    // [NEW] saveAll 소배치 크기
+    private static final int SAVE_BATCH_SIZE = 1000;
     private static final int HOURS_PER_DAY = 24;
-    private static final int DELETE_BATCH_LIMIT = 20000;                // [NEW] LIMIT 배치 삭제 크기
+    private static final int DELETE_BATCH_LIMIT = 20000;
 
     private final LocationRepository locationRepository;
     private final WeatherShortDetailRepository detailRepository;
     private final LocationWeatherSnapshotRepository snapshotRepository;
-    private final TransactionTemplate tx;                               // (기존 유지) txManager 필드 제거됨  // [CHANGED]
+    private final TransactionTemplate tx;
 
     @PersistenceContext
-    private EntityManager em;                                           // [NEW] flush()/clear() 위해 주입
+    private EntityManager em;
+
+
 
     /** 매일 23:25: 지난 스냅샷 정리 + 내일(00~23) 스냅샷 업서트 */
+    /** 기존: 내일자 전용 */
     public void buildNextDaySnapshots() {
         long start = System.currentTimeMillis();
         LocalDate todayKst = LocalDate.now(KST);
         int today = Integer.parseInt(todayKst.format(DateTimeFormatter.BASIC_ISO_DATE));
-        int tomorrow = Integer.parseInt(todayKst.plusDays(1).format(DateTimeFormatter.BASIC_ISO_DATE));
+        int target = Integer.parseInt(todayKst.plusDays(1).format(DateTimeFormatter.BASIC_ISO_DATE));
 
-        // int deleted = tx.execute(status -> snapshotRepository.deleteOlderThan(today));
-        // log.info("스냅샷 정리: {}건 삭제(date < {})", deleted, today);
-        int totalDeleted = purgeOldSnapshotsInBatches(today);           // [CHANGED] LIMIT 배치 삭제로 교체
-        log.info("스냅샷 정리(배치): {}건 삭제(date < {})", totalDeleted, today);  // [CHANGED]
+        int totalDeleted = purgeOldSnapshotsInBatches(today);
+        log.info("스냅샷 정리(배치): {}건 삭제(date < {})", totalDeleted, today);
 
+        buildSnapshotsForDateInternal(target);
+        log.info("스냅샷 완료(내일자). 소요 {}ms", (System.currentTimeMillis() - start));
+    }
+
+    public void buildSnapshotsForDate(LocalDate date) {
+        long start = System.currentTimeMillis();
+        LocalDate todayKst = LocalDate.now(KST);
+        int today = Integer.parseInt(todayKst.format(DateTimeFormatter.BASIC_ISO_DATE));
+        int target = Integer.parseInt(date.format(DateTimeFormatter.BASIC_ISO_DATE));
+
+        int totalDeleted = purgeOldSnapshotsInBatches(today);
+        log.info("스냅샷 정리(배치): {}건 삭제(date < {})", totalDeleted, today);
+
+        buildSnapshotsForDateInternal(target);
+        log.info("스냅샷 완료(target={}): 소요 {}ms", target, (System.currentTimeMillis() - start));
+    }
+
+    /** target(yyyyMMdd) 기준으로 스냅샷 업서트하는 공통 구현 */
+    private void buildSnapshotsForDateInternal(int targetYmd) {
         List<Long> allLocationIds = locationRepository.findAll().stream()
                 .map(Location::getId)
                 .toList();
@@ -68,11 +88,11 @@ public class SnapshotSchedulerService {
             List<Long> chunk = allLocationIds.subList(i, Math.min(i + CHUNK_SIZE, total));
 
             long t0 = System.currentTimeMillis();
-            List<LocationWeatherSnapshot> existing = snapshotRepository.findByLocationIdsAndDate(chunk, tomorrow);
+            List<LocationWeatherSnapshot> existing = snapshotRepository.findByLocationIdsAndDate(chunk, targetYmd); // [CHANGED] tomorrow → targetYmd
             Map<String, LocationWeatherSnapshot> existingMap = existing.stream()
                     .collect(Collectors.toMap(s -> key(s.getLocation().getId(), s.getDate(), s.getTime()), s -> s));
 
-            List<LocationWeatherShortDetail> details = detailRepository.findByLocationIdsAndDate(chunk, tomorrow);
+            List<LocationWeatherShortDetail> details = detailRepository.findByLocationIdsAndDate(chunk, targetYmd); // [CHANGED] tomorrow → targetYmd
             long t1 = System.currentTimeMillis();
 
             List<LocationWeatherSnapshot> toInsert = new ArrayList<>(details.size());
@@ -118,11 +138,9 @@ public class SnapshotSchedulerService {
             }
             long t2 = System.currentTimeMillis();
 
-            // 기존: saveAll(toInsert), saveAll(toUpdate)를 큰 덩어리로 저장
-            // → 변경: 소배치로 쪼개서 flush/clear 수행
             int ins = 0, upd = 0;
             if (!toInsert.isEmpty() || !toUpdate.isEmpty()) {
-                int[] res = persistBatches(toInsert, toUpdate);         // [CHANGED] 소배치 저장
+                int[] res = persistBatches(toInsert, toUpdate);              // [NEW] 기존 최적화 재사용
                 ins = res[0];
                 upd = res[1];
             }
@@ -133,16 +151,13 @@ public class SnapshotSchedulerService {
             processed += chunk.size();
 
             if (processed % 1000 == 0 || processed == total) {
-                log.info("스냅샷 진행 {}/{}  select={}ms, build={}ms, save={}ms  (이번: insert {}, update {} / 누적: insert {}, update {})",
-                        processed, total, (t1 - t0), (t2 - t1), (t3 - t2),
+                log.info("스냅샷(target={}) 진행 {}/{}  select={}ms, build={}ms, save={}ms  (이번: insert {}, update {} / 누적: insert {}, update {})",
+                        targetYmd, processed, total, (t1 - t0), (t2 - t1), (t3 - t2),
                         ins, upd, totalInserts, totalUpdates);
             }
         }
-
-        long end = System.currentTimeMillis();
-        log.info("스냅샷 완료. 대상 Location {}개, INSERT {}, UPDATE {}, 소요 {}ms",
-                total, totalInserts, totalUpdates, (end - start));
     }
+
 
     // [NEW] LIMIT로 잘라 배치 삭제 (대량 데이터에서도 OOM/락 부담 완화)
     private int purgeOldSnapshotsInBatches(int cutoffDate) {
