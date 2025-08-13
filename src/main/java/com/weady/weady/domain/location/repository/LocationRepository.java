@@ -23,5 +23,8 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
     @Query("SELECT l.id FROM Location l WHERE l.bCode = :bCode")
     Long findIdByBCode(@Param("bCode") String bCode);
 
+    @Query("select distinct l.midTermRegCode from Location l where l.midTermRegCode is not null")
+    List<String> findDistinctMidTermRegCodes();
+
 
 }

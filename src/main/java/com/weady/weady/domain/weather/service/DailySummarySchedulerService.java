@@ -1,4 +1,4 @@
-package com.weady.weady.domain.scheduler.service;
+package com.weady.weady.domain.weather.service;
 
 import com.weady.weady.domain.location.entity.Location;
 import com.weady.weady.domain.location.repository.LocationRepository;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class DailySummaryService {
+public class DailySummarySchedulerService {
 
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 

@@ -1,4 +1,4 @@
-package com.weady.weady.domain.scheduler.service;
+package com.weady.weady.domain.weather.service;
 
 import com.weady.weady.domain.location.entity.Location;
 import com.weady.weady.domain.location.repository.LocationRepository;
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SnapshotService {
+public class SnapshotSchedulerService {
 
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
     private static final int CHUNK_SIZE = 800;

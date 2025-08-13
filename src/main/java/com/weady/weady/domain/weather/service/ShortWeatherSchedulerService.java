@@ -1,4 +1,4 @@
-package com.weady.weady.domain.scheduler.service;
+package com.weady.weady.domain.weather.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class ShortTermWeatherUpdateService {
+public class ShortWeatherSchedulerService {
 
     private static final long REQ_INTERVAL_MS = 600L; // 직렬 호출 간 텀
     private static final int MAX_RETRY = 4;            // 레이트리밋/네트워크 재시도 횟수
@@ -60,11 +60,11 @@ public class ShortTermWeatherUpdateService {
     private final Object rateLock = new Object();
     private volatile long lastRequestAtMs = 0L;
 
-    public ShortTermWeatherUpdateService(LocationRepository locationRepository,
-                                         WeatherShortDetailRepository weatherRepository,
-                                         WeatherApiProperties apiProperties,
-                                         @Qualifier("kmaWebClient") WebClient webClient,
-                                         TransactionTemplate tx) {
+    public ShortWeatherSchedulerService(LocationRepository locationRepository,
+                                        WeatherShortDetailRepository weatherRepository,
+                                        WeatherApiProperties apiProperties,
+                                        @Qualifier("kmaWebClient") WebClient webClient,
+                                        TransactionTemplate tx) {
         this.locationRepository = locationRepository;
         this.weatherRepository = weatherRepository;
         this.apiProperties = apiProperties;

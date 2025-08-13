@@ -1,6 +1,6 @@
-package com.weady.weady.domain.scheduler;
+package com.weady.weady.domain.weather.scheduler;
 
-import com.weady.weady.domain.scheduler.service.DailySummaryService;
+import com.weady.weady.domain.weather.service.DailySummarySchedulerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -14,7 +14,7 @@ import java.time.ZoneId;
 @Slf4j
 public class DailySummaryScheduler {
 
-    private final DailySummaryService service;
+    private final DailySummarySchedulerService service;
 
     @Scheduled(cron = "0 50 23 * * *", zone = "Asia/Seoul")
     public void run() {
