@@ -184,7 +184,7 @@ public class CurationService {
 
 
     /**
-     * 큐레이션 상세정보 조회
+     * 큐레이션 상세정보 조회 dsd
      * @return curationByCurationIdResponseDto
      * @thorws CurationErrorCode.CURATION_NOT_FOUND 큐레이션이 존재하지 않을경우 예외 발생
      */
