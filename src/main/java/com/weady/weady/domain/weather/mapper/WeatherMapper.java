@@ -64,7 +64,7 @@ public class WeatherMapper {
 
     public static GetWeatherMidDetailResponse toMidWeatherResponse(WeatherMidDetail weatherMid) {
 
-        LocalDate localDate = LocalDate.parse(String.valueOf(weatherMid.getDate()), DateTimeFormatter.ofPattern("yyyyMMdd"));
+        LocalDate localDate = LocalDate.parse(String.valueOf(weatherMid.getDate()));
 
         return GetWeatherMidDetailResponse.builder()
                 .dayOfWeek(localDate.getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREAN))

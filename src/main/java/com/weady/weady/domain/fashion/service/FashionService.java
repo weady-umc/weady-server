@@ -9,6 +9,7 @@ import com.weady.weady.domain.fashion.repository.FashionRepository;
 import com.weady.weady.domain.location.entity.Location;
 import com.weady.weady.domain.location.repository.LocationRepository;
 import com.weady.weady.domain.user.entity.User;
+import com.weady.weady.domain.user.repository.UserFavoriteLocationRepository;
 import com.weady.weady.domain.user.repository.UserRepository;
 import com.weady.weady.domain.weather.entity.DailySummary;
 import com.weady.weady.domain.weather.entity.LocationWeatherSnapshot;
@@ -21,6 +22,7 @@ import com.weady.weady.common.error.exception.BusinessException;
 import com.weady.weady.common.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -38,6 +40,7 @@ public class FashionService {
     private final UserRepository userRepository;
     private final LocationRepository locationRepository;
     private final DailySummaryRepository dailySummaryRepository;
+    private final UserFavoriteLocationRepository userFavoriteLocationRepository;
 
     /**
      * 홈 화면에서 옷차림 요약 정보를 조회
@@ -52,7 +55,7 @@ public class FashionService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
 
-        Long locationId = getUserDefaultLocationId(user);
+        Long locationId = getUserDefaultLocationId(userId);
 
         LocalDateTime today = LocalDateTime.now();
         int date = Integer.parseInt(today.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
@@ -67,7 +70,7 @@ public class FashionService {
         Fashion fashion = fashionRepository
                 .findByTemperatureRange(feelTemp)
                 .orElseThrow(() -> new BusinessException(FashionErrorCode.FASHION_NOT_FOUND));
-        
+
         return FashionMapper.toSummaryResponse(locationId, fashion);
     }
 
@@ -85,7 +88,7 @@ public class FashionService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
 
-        Long locationId = getUserDefaultLocationId(user);
+        Long locationId = getUserDefaultLocationId(userId);
 
         LocalDateTime today = LocalDateTime.now();
         int date = Integer.parseInt(today.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
@@ -142,12 +145,9 @@ public class FashionService {
                 .orElseThrow(() -> new BusinessException(FashionErrorCode.FASHION_NOT_FOUND));
     }
 
-    private Long getUserDefaultLocationId(User user){
-        if (user.getDefaultLocation() != null && user.getDefaultLocation().getLocation() != null) {
-            return user.getDefaultLocation().getLocation().getId();
-        }
-        return Optional.ofNullable(user.getNowLocation())
-                .map(Location::getId)
+    @Transactional(readOnly = true)
+    public Long getUserDefaultLocationId(Long userId){
+        return userFavoriteLocationRepository.findDefaultOrNowLocationId(userId)
                 .orElseThrow(() -> new BusinessException(UserErrorCode.USER_DEFAULT_LOCATION_NOT_FOUNT));
     }
 }

@@ -137,8 +137,8 @@ public class UserService {
     @Transactional(readOnly = true)
     public boolean checkNicknameDuplication(String nickname) {
         return userRepository.existsUserByName(nickname);
-
     }
+
 
     private void runAfterCommit(Runnable task) {
         if (TransactionSynchronizationManager.isActualTransactionActive()) {
