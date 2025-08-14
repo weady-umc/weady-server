@@ -10,6 +10,7 @@ import com.weady.weady.domain.board.dto.response.CommentResponseDto;
 import com.weady.weady.domain.board.dto.response.CommentWithChildResponseDto;
 import com.weady.weady.domain.board.entity.board.Board;
 import com.weady.weady.domain.board.entity.comment.BoardComment;
+import com.weady.weady.domain.board.mapper.BoardMapper;
 import com.weady.weady.domain.board.mapper.CommentMapper;
 import com.weady.weady.domain.board.repository.BoardRepository;
 import com.weady.weady.domain.board.repository.CommentRepository;
@@ -93,6 +94,8 @@ public class CommentService {
 
         // 데이터 저장
         commentRepository.save(newBoardComment);
+
+        board.increaseCommentCount();
 
         return CommentMapper.toCommentResponseDto(newBoardComment);
 

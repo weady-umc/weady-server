@@ -83,7 +83,9 @@ public class BoardService {
 
         boolean goodStatus = boardGoodRepository.existsByBoardAndUser(board, user);
 
-        return BoardMapper.toBoardResponseDto(board, user, goodStatus);
+        User boardUser = board.getUser();
+
+        return BoardMapper.toBoardResponseDto(board, boardUser, goodStatus);
     }
 
     /**
