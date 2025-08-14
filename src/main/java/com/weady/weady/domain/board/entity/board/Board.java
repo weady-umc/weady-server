@@ -103,12 +103,13 @@ public class Board extends BaseEntity {
 
 
     public void updateBoard(Boolean isPublic, String content, SeasonTag seasonTag,
-                            TemperatureTag temperatureTag, WeatherTag weatherTag) {
+                            TemperatureTag temperatureTag, WeatherTag weatherTag, Integer imgCount) {
         this.isPublic = isPublic;
         this.content = content;
         this.seasonTag = seasonTag;
         this.temperatureTag = temperatureTag;
         this.weatherTag = weatherTag;
+        this.imgCount = imgCount;
     }
 
 
@@ -144,6 +145,7 @@ public class Board extends BaseEntity {
 
     /// 좋아요 개수 증감 메서드 ///
     public void increaseGoodCount() {
+
         this.goodCount = this.goodCount + 1;
     }
 
@@ -156,8 +158,8 @@ public class Board extends BaseEntity {
         this.commentCount = this.commentCount + 1;
     }
 
-    public void decreaseCommentCount(Integer children) {
-        this.commentCount = this.commentCount - (1+children); // 부모 댓글 + 자식 댓글 개수 만큼 삭제
+    public void decreaseCommentCount() {
+        this.commentCount = this.commentCount - 1;
     }
 
 
