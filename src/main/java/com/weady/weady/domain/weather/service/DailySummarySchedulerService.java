@@ -60,7 +60,7 @@ public class DailySummarySchedulerService {
         buildDailySummary(target);
     }
 
-    /** NEW: 오늘(로컬 KST) 스냅샷을 기준으로 오늘자 DailySummary 생성(수동 복구용) */
+    // 오늘(로컬 KST) 스냅샷을 기준으로 오늘자 DailySummary 생성(수동 복구용)
     public void buildForToday() {
         buildDailySummary(LocalDate.now(KST));
     }
