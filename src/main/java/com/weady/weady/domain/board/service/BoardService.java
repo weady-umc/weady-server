@@ -135,7 +135,7 @@ public class BoardService {
      * @throws
      */
     @Transactional
-    public BoardResponseDto updatePost(List<MultipartFile> images, BoardCreateRequestDto requestDto, Long boardId) {
+    public BoardResponseDto updatePost(BoardCreateRequestDto requestDto, Long boardId) {
 
         Board board = getBoardById(boardId);
         User boardUser = board.getUser(); // 작성자
@@ -158,16 +158,10 @@ public class BoardService {
 
         List<ClothesStyleCategory> categories = styleCategoryRepository.findAllById(requestDto.styleIds());
 
-        // 이미지 업로드
-        List<String> imageUrls = images.stream()
-                .map(image -> s3Uploader.upload(image, "board"))
-                .collect(Collectors.toList());
-
         // 변경 사항 업데이트
-        board.updateBoard(requestDto.isPublic(), requestDto.content(), seasonTag, temperatureTag, weatherTag, images.size());
+        board.updateBoard(requestDto.isPublic(), requestDto.content(), seasonTag, temperatureTag, weatherTag);
         board.updateBoardPlaceList(BoardMapper.toBoardPlaceList(requestDto.boardPlaceRequestDtoList()));
         board.updateBoardStyleList(BoardMapper.toBoardStyleList(categories));
-        board.updateBoardImgList(BoardMapper.toBoardImgList(imageUrls, board));
         board.updateBoardBrandList(BoardMapper.toBoardBrandList(requestDto.boardBrandRequestDtoList()));
 
         boolean goodStatus = boardGoodRepository.existsByBoardAndUser(board, boardUser);

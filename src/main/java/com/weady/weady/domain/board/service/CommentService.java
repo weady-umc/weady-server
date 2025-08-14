@@ -119,12 +119,12 @@ public class CommentService {
 
         if (Objects.equals(commentAuthorId, currentUserId) || Objects.equals(postAuthorId, currentUserId)) {
             //자식 댓글 먼저 삭제 후 부모 댓글 삭제
-            commentRepository.deleteAllByParentComment(boardComment);
+            int children = commentRepository.deleteAllByParentComment(boardComment);
             commentRepository.delete(boardComment);
+            Board board = boardComment.getBoard();
+            board.decreaseCommentCount(children);
             return;
         }
         throw new BusinessException(BoardErrorCode.UNAUTHORIZED_DELETE);
     }
-
-
 }
