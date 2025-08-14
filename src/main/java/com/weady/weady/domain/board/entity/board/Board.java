@@ -103,13 +103,12 @@ public class Board extends BaseEntity {
 
 
     public void updateBoard(Boolean isPublic, String content, SeasonTag seasonTag,
-                            TemperatureTag temperatureTag, WeatherTag weatherTag, Integer imgCount) {
+                            TemperatureTag temperatureTag, WeatherTag weatherTag) {
         this.isPublic = isPublic;
         this.content = content;
         this.seasonTag = seasonTag;
         this.temperatureTag = temperatureTag;
         this.weatherTag = weatherTag;
-        this.imgCount = imgCount;
     }
 
 
@@ -158,8 +157,8 @@ public class Board extends BaseEntity {
         this.commentCount = this.commentCount + 1;
     }
 
-    public void decreaseCommentCount() {
-        this.commentCount = this.commentCount - 1;
+    public void decreaseCommentCount(Integer children) {
+        this.commentCount = this.commentCount - (1+children); // 부모 댓글 + 자식 댓글 개수 만큼 삭제
     }
 
 
