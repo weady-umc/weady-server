@@ -17,6 +17,7 @@ public class CurationMapper {
                 .map(img -> ImgDto.builder()
                         .imgUrl(img.getImgUrl())
                         .imgOrder(img.getImgOrder())
+                        .imgAddress(img.getImgAddress())
                         .build())
                 .collect(Collectors.toList());
 
