@@ -16,7 +16,6 @@ import com.weady.weady.domain.user.dto.response.OnboardResponse;
 import com.weady.weady.domain.user.dto.response.UpdateNowLocationResponse;
 import com.weady.weady.domain.user.dto.response.UpdateUserProfileResponse;
 import com.weady.weady.domain.user.entity.User;
-import com.weady.weady.domain.user.entity.UserFavoriteLocation;
 import com.weady.weady.domain.user.entity.UserTermsAgreement;
 import com.weady.weady.domain.user.mapper.UserMapper;
 import com.weady.weady.domain.user.mapper.UserTermsMapper;
@@ -33,7 +32,6 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -139,8 +137,9 @@ public class UserService {
     @Transactional(readOnly = true)
     public boolean checkNicknameDuplication(String nickname) {
         return userRepository.existsUserByName(nickname);
-      
-    // 트랜잭션 커밋 이후 작업 실행
+
+    }
+
     private void runAfterCommit(Runnable task) {
         if (TransactionSynchronizationManager.isActualTransactionActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
