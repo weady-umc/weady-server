@@ -27,9 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
 
-import static com.weady.weady.domain.fashion.mapper.FashionMapper.toClothing;
 import static com.weady.weady.domain.fashion.mapper.FashionMapper.toTag;
 
 @Service

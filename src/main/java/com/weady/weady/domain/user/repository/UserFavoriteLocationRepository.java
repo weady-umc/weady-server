@@ -50,12 +50,12 @@ where uf.user.id = :userId
     );
 
     @Query("""
-      select coalesce(dl.location.id, nl.id)
-      from User u
-      left join u.defaultLocation dl
-      left join dl.location
-      left join u.nowLocation nl
-      where u.id = :userId
-    """)
-    Optional<Long> findDefaultOrNowLocationId(Long userId);
+  select distinct coalesce(dl.id, l2.id)
+  from User u
+  left join u.defaultLocation dl
+  left join u.nowLocation l2
+  where u.id = :userId
+""")
+    Optional<Long> findDefaultOrNowLocationId(@Param("userId") Long userId);
+
 }
