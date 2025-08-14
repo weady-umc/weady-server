@@ -32,6 +32,13 @@ public class UserController {
     private final UserService userService;
     private final MyPageService myPageService;
 
+    @Operation(summary = "닉네임 중복체크 API", description = "사용자가 입력한 닉네임이 중복되는지 확인합니다.")
+    @GetMapping("/nickname/check")
+    public ResponseEntity<ApiResponse<Boolean>> checkNicknameDuplication(@RequestParam String nickname) {
+        Boolean isDuplicated = userService.checkNicknameDuplication(nickname);
+        return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(isDuplicated));
+    }
+
     @Operation(summary = "유저 온보딩(가입) API", description = "사용자의 이름, 성별, 스타일 카테고리, 약관 동의 여부를 등록합니다.")
     @PostMapping("/onboarding")
     public ResponseEntity<ApiResponse<OnboardResponse>> onboard(@RequestBody @Valid OnboardRequest request) {

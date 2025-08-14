@@ -39,4 +39,18 @@ public enum SkyCode {
         };
 
     }
+
+    public static SkyCode fromKmaText(String text) {
+        if (text == null) return CLEAR;
+        String t = text.trim();
+        // 비/눈 같이 섞이면 눈 우선
+        if (t.contains("눈")) return SNOW;
+        if (t.contains("비") || t.contains("소나기") || t.contains("빗방울")) return RAIN;
+        if (t.contains("흐")) return CLOUDY;          // "흐림"
+        if (t.contains("구름")) return PARTLY_CLOUDY;  // "구름많음"
+        if (t.contains("맑")) return CLEAR;            // "맑음"
+        return CLEAR;
+    }
+
+
 }

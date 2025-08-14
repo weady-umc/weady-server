@@ -2,7 +2,7 @@ package com.weady.weady.scheduler;
 
 import com.weady.weady.domain.location.entity.Location;
 import com.weady.weady.domain.location.repository.LocationRepository;
-import com.weady.weady.domain.scheduler.service.DailySummaryService;
+import com.weady.weady.domain.weather.service.DailySummarySchedulerService;
 import com.weady.weady.domain.tags.entity.SeasonTag;
 import com.weady.weady.domain.tags.entity.TemperatureTag;
 import com.weady.weady.domain.tags.entity.WeatherTag;
@@ -27,9 +27,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @Transactional
-class DailySummaryServiceTest {
+class DailySummarySchedulerServiceTest {
 
-    @Autowired DailySummaryService dailySummaryService;
+    @Autowired
+    DailySummarySchedulerService dailySummarySchedulerService;
     @Autowired LocationRepository locationRepo;
     @Autowired LocationWeatherSnapshotRepository snapRepo;
     @Autowired DailySummaryRepository summaryRepo;
@@ -73,7 +74,7 @@ class DailySummaryServiceTest {
         }
         snapRepo.saveAll(snaps);
 
-        dailySummaryService.buildDailySummary(tomorrow);
+        dailySummarySchedulerService.buildDailySummary(tomorrow);
 
         var list = summaryRepo.findByLocationIdAndReportDate(loc.getId(), tomorrow).stream().toList();
         assertThat(list).hasSize(1);

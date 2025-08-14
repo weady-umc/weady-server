@@ -136,6 +136,10 @@ public class UserService {
         return UserMapper.toResponse(location);
     }
 
+    @Transactional(readOnly = true)
+    public boolean checkNicknameDuplication(String nickname) {
+        return userRepository.existsUserByName(nickname);
+      
     // 트랜잭션 커밋 이후 작업 실행
     private void runAfterCommit(Runnable task) {
         if (TransactionSynchronizationManager.isActualTransactionActive()) {
@@ -147,3 +151,4 @@ public class UserService {
         }
     }
 }
+

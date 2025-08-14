@@ -39,6 +39,10 @@ public class Board extends BaseEntity {
     @Builder.Default
     private Integer goodCount = 0;
 
+    @Setter
+    @Builder.Default
+    private Integer commentCount = 0;
+
 
     //날씨 태그
     @ManyToOne(fetch = FetchType.LAZY)
@@ -99,13 +103,12 @@ public class Board extends BaseEntity {
 
 
     public void updateBoard(Boolean isPublic, String content, SeasonTag seasonTag,
-                            TemperatureTag temperatureTag, WeatherTag weatherTag, Integer imgCount) {
+                            TemperatureTag temperatureTag, WeatherTag weatherTag) {
         this.isPublic = isPublic;
         this.content = content;
         this.seasonTag = seasonTag;
         this.temperatureTag = temperatureTag;
         this.weatherTag = weatherTag;
-        this.imgCount = imgCount;
     }
 
 
@@ -139,12 +142,23 @@ public class Board extends BaseEntity {
         this.boardBrandList.addAll(boardBrandList);
     }
 
+    /// 좋아요 개수 증감 메서드 ///
     public void increaseGoodCount() {
-
         this.goodCount = this.goodCount + 1;
     }
 
     public void decreaseGoodCount() {
         this.goodCount = this.goodCount - 1;
     }
+
+    ///  댓글 개수 증감 메서드 ///
+    public void increaseCommentCount() {
+        this.commentCount = this.commentCount + 1;
+    }
+
+    public void decreaseCommentCount(Integer children) {
+        this.commentCount = this.commentCount - (1+children); // 부모 댓글 + 자식 댓글 개수 만큼 삭제
+    }
+
+
 }
