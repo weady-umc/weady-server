@@ -4,5 +4,6 @@ import lombok.Builder;
 
 @Builder
 public record ImgDto(String imgUrl,
-                     int imgOrder
+                     int imgOrder,
+                     String imgAddress
 ){}
