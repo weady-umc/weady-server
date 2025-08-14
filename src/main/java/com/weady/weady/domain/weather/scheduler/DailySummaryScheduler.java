@@ -19,8 +19,8 @@ public class DailySummaryScheduler {
     public void run() {
         log.info("[DailySummaryScheduler] buildForSchedulerWindow 시작");
         try {
-//            service.buildForSchedulerWindow();
-            service.buildForToday(); // 복구용 오늘날짜로 테스트
+            service.buildForSchedulerWindow();
+//            service.buildForToday(); // 복구용 오늘날짜로 테스트
         } catch (Exception e) {
             log.error("[DailySummaryScheduler] 예외", e);
         }
