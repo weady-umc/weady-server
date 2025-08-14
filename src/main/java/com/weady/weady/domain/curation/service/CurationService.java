@@ -32,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -90,7 +91,9 @@ public class CurationService {
 
             Long standardLocationId = standardLocation.getId(); //중구의 locationId
 
-            DailySummary dailySummary = dailySummaryRepository.findByLocationId(standardLocationId)
+            LocalDate today = LocalDate.now();
+
+            DailySummary dailySummary = dailySummaryRepository.findByLocationIdAndReportDate(standardLocationId, today)
                     .orElseThrow(()-> new BusinessException(DailySummaryErrorCode.DAILY_SUMMARY_NOT_FOUND));
 
             //가져온 dailySummary에서 season, weather tag 가져오기
@@ -123,7 +126,9 @@ public class CurationService {
             CurationCategory curationCategory = curationCategoryRepository.findByLocationId(locationId)
                     .orElseThrow(()-> new BusinessException(CurationErrorCode.CURATION_CATEGORY_NOT_FOUND));
 
-            DailySummary dailySummary = dailySummaryRepository.findByLocationId(locationId)
+            LocalDate today = LocalDate.now();
+
+            DailySummary dailySummary = dailySummaryRepository.findByLocationIdAndReportDate(locationId,today)
                     .orElseThrow(()-> new BusinessException(DailySummaryErrorCode.DAILY_SUMMARY_NOT_FOUND));
 
             //가져온 dailySummary에서 season, weather tag 가져오기
@@ -156,7 +161,9 @@ public class CurationService {
             CurationCategory curationCategory = curationCategoryRepository.findByLocationId(locationId1)
                     .orElseThrow(()-> new BusinessException(CurationErrorCode.CURATION_CATEGORY_NOT_FOUND));
 
-            DailySummary dailySummary = dailySummaryRepository.findByLocationId(locationId)
+            LocalDate today = LocalDate.now();
+
+            DailySummary dailySummary = dailySummaryRepository.findByLocationIdAndReportDate(locationId,today)
                     .orElseThrow(()-> new BusinessException(DailySummaryErrorCode.DAILY_SUMMARY_NOT_FOUND));
 
             //가져온 dailySummary에서 season, weather tag 가져오기
@@ -225,9 +232,10 @@ public class CurationService {
         //curationCategoryId로 해당하는 location_id 찾기
         Long locationId2 = curationCategory.getLocation().getId();
 
+        LocalDate today = LocalDate.now();
 
         //location_id로 dailySummary 가져오기
-        DailySummary dailySummary = dailySummaryRepository.findByLocationId(locationId2)
+        DailySummary dailySummary = dailySummaryRepository.findByLocationIdAndReportDate(locationId2,today)
                 .orElseThrow(() -> new BusinessException(DailySummaryErrorCode.DAILY_SUMMARY_NOT_FOUND));
 
 
