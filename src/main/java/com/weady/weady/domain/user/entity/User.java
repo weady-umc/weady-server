@@ -29,7 +29,7 @@ public class User extends BaseEntity {
     private Location nowLocation;
 
     @Setter
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "default_location_id")
     private UserFavoriteLocation defaultLocation;
 
