@@ -10,12 +10,16 @@ import com.weady.weady.common.apiResponse.ApiResponse;
 import com.weady.weady.common.apiResponse.ApiSuccessResponse;
 import com.weady.weady.common.util.ResponseEntityUtil;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -53,9 +57,23 @@ public class UserController {
     }
 
     @Operation(summary = "프로필 편집 API", description = "마이페이지에서 프로필(닉네임, 이미지)을 수정합니다.")
-    @PatchMapping("/profile")
-    public ResponseEntity<ApiResponse<UpdateUserProfileResponse>> updateUserProfile(@RequestBody @Valid UpdateUserProfileRequest request) {
-        return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(userService.updateUserProfile(request)));
+    @PatchMapping(value = "/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<UpdateUserProfileResponse>> updateUserProfile(
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
+            @Parameter(
+                    description = "이미지 파일을 제외한 프로필 수정 JSON",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+            @RequestPart(value = "profileData") @Valid UpdateUserProfileRequest profileData) {
+
+        UpdateUserProfileResponse response = userService.updateUserProfile(profileData, profileImage);
+        return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(response, "프로필 수정 성공!"));
+    }
+
+    @Operation(summary = "프로필 이미지 기본값 적용 API", description = "현재 사용자의 프로필 이미지를 기본값으로 되돌립니다.")
+    @DeleteMapping("/profile/image")
+    public ResponseEntity<ApiResponse<UpdateUserProfileResponse>> resetProfileImage() {
+        UpdateUserProfileResponse response = userService.resetProfileImage();
+        return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(response, "프로필 이미지가 기본값으로 적용되었습니다."));
     }
 
     @Operation(summary = "마이페이지 조회 API", description = "마이페이지(닉네임, 프로필 이미지, 캘린더)를 조회합니다.")

@@ -73,17 +73,12 @@ public class BoardController {
     }
 
 
-    @PatchMapping(value = "/{boardId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PatchMapping(value = "/{boardId}")
     @Operation(summary = "4. 게시물 수정 API")
     public ResponseEntity<ApiResponse<BoardResponseDto>> updatePost(
             @PathVariable(name = "boardId") Long boardId,
-            @RequestPart(value = "images") List<MultipartFile> images,
-
-            @Parameter(
-                    description = "이미지 파일 제외 requestDto",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
-            @RequestPart (value = "postData") BoardCreateRequestDto postData){
-        BoardResponseDto responseDto = boardService.updatePost(images, postData, boardId);
+            @RequestBody BoardCreateRequestDto requestDto) {
+        BoardResponseDto responseDto = boardService.updatePost(requestDto, boardId);
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(responseDto, "게시글 수정 성공!"));
     }
 

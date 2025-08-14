@@ -2,6 +2,8 @@ package com.weady.weady.domain.user.service;
 
 import com.weady.weady.common.error.errorCode.LocationErrorCode;
 import com.weady.weady.common.external.kakao.KakaoRegionService;
+import com.weady.weady.common.external.s3.S3Remover;
+import com.weady.weady.common.external.s3.S3Uploader;
 import com.weady.weady.domain.location.entity.Location;
 import com.weady.weady.domain.location.repository.LocationRepository;
 import com.weady.weady.domain.tags.entity.ClothesStyleCategory;
@@ -26,6 +28,9 @@ import com.weady.weady.domain.user.repository.UserTermsAgreementRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +43,8 @@ public class UserService {
     private final ClothesStyleCategoryRepository clothesStyleCategoryRepository;
     private final LocationRepository locationRepository;
     private final UserTermsAgreementRepository userTermsAgreementRepository;
+    private final S3Uploader s3Uploader;
+    private final S3Remover s3Remover;
 
     @Transactional
     public OnboardResponse onboard(OnboardRequest request){
@@ -72,12 +79,48 @@ public class UserService {
     }
 
     @Transactional
-    public UpdateUserProfileResponse updateUserProfile(UpdateUserProfileRequest request){
+    public UpdateUserProfileResponse updateUserProfile(UpdateUserProfileRequest request, MultipartFile profileImage){
         User user = userRepository.findById(SecurityUtil.getCurrentUserId())
                 .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
 
-        user.changeName(request.name());
-        user.changeProfileImageUrl(request.profileImageUrl());
+        String newName = request.name().trim();
+
+        // 닉네임이 바뀔 때, 나를 제외하고 중복 검사 ->
+        if (!newName.equals(user.getName())) {
+            if (userRepository.existsByNameAndIdNot(newName, user.getId())) {
+                throw new BusinessException(UserErrorCode.DUPLICATE_NAME);
+            }
+            user.changeName(request.name());
+        }
+
+        if (profileImage != null && !profileImage.isEmpty()) {
+            String oldUrl = user.getProfileImageUrl();
+            String newUrl = s3Uploader.upload(profileImage, "profile");
+            user.changeProfileImageUrl(newUrl);
+
+            runAfterCommit(() -> {
+                if (oldUrl != null && !oldUrl.isBlank() && !oldUrl.equals(newUrl)) {
+                    s3Remover.remove(oldUrl);
+                }
+            });
+        }
+
+        return UserMapper.toUpdateUserProfileResponse(user);
+    }
+
+    @Transactional
+    public UpdateUserProfileResponse resetProfileImage() {
+        User user = userRepository.findById(SecurityUtil.getCurrentUserId())
+                .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
+
+        String oldUrl = user.getProfileImageUrl();
+        user.changeProfileImageUrl(null);
+
+        runAfterCommit(() -> {
+            if (oldUrl != null && !oldUrl.isBlank()) {
+                s3Remover.remove(oldUrl);
+            }
+        });
 
         return UserMapper.toUpdateUserProfileResponse(user);
     }
@@ -96,6 +139,16 @@ public class UserService {
     @Transactional(readOnly = true)
     public boolean checkNicknameDuplication(String nickname) {
         return userRepository.existsUserByName(nickname);
+      
+    // 트랜잭션 커밋 이후 작업 실행
+    private void runAfterCommit(Runnable task) {
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override public void afterCommit() { task.run(); }
+            });
+        } else {
+            task.run();
+        }
     }
 }
 

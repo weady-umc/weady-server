@@ -96,20 +96,21 @@ public class BoardMapper {
     /// 응답 dto ///
 
     // 게시물 조회 dto
-    public static BoardResponseDto toBoardResponseDto(Board board, User user, boolean goodStatus) {
+    public static BoardResponseDto toBoardResponseDto(Board board, User boardUser, boolean goodStatus) {
         List<Long> styleIdList = board.getBoardStyleList().stream()
                 .map(style -> style.getClothesStyleCategory().getId())
                 .collect(Collectors.toList());
 
         return BoardResponseDto.builder()
                 .boardId(board.getId())
-                .userId(user.getId())
-                .userName(user.getName())
-                .userProfileImageUrl(user.getProfileImageUrl())
+                .userId(boardUser.getId())
+                .userName(boardUser.getName())
+                .userProfileImageUrl(boardUser.getProfileImageUrl())
 
                 .isPublic(board.getIsPublic()) // 게시 여부
                 .goodStatus(goodStatus) // 현재 로그인 한 사용자가 해당 게시물에 좋아요를 눌렀는지 여부
                 .goodCount(board.getGoodCount())    // 좋아요 개수
+                .commentCount(board.getCommentCount())  // 댓글 개수
                 .content(board.getContent()) // 내용
 
                 .weatherTagId(board.getWeatherTag().getId())

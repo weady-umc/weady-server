@@ -16,6 +16,7 @@ public record BoardResponseDto(
         Boolean isPublic,
         Boolean goodStatus, //게시글을 조회하는 사용자가 좋아요를 눌렀으면 true
         Integer goodCount,
+        Integer commentCount,
         Integer imgCount,
         List<BoardImgResponseDto> imageDtoList,
         String content,
