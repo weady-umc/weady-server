@@ -10,6 +10,7 @@ import com.weady.weady.domain.board.dto.response.CommentResponseDto;
 import com.weady.weady.domain.board.dto.response.CommentWithChildResponseDto;
 import com.weady.weady.domain.board.entity.board.Board;
 import com.weady.weady.domain.board.entity.comment.BoardComment;
+import com.weady.weady.domain.board.mapper.BoardMapper;
 import com.weady.weady.domain.board.mapper.CommentMapper;
 import com.weady.weady.domain.board.repository.BoardRepository;
 import com.weady.weady.domain.board.repository.CommentRepository;
@@ -94,6 +95,8 @@ public class CommentService {
         // 데이터 저장
         commentRepository.save(newBoardComment);
 
+        board.increaseCommentCount();
+
         return CommentMapper.toCommentResponseDto(newBoardComment);
 
     }
@@ -116,12 +119,12 @@ public class CommentService {
 
         if (Objects.equals(commentAuthorId, currentUserId) || Objects.equals(postAuthorId, currentUserId)) {
             //자식 댓글 먼저 삭제 후 부모 댓글 삭제
-            commentRepository.deleteAllByParentComment(boardComment);
+            int children = commentRepository.deleteAllByParentComment(boardComment);
             commentRepository.delete(boardComment);
+            Board board = boardComment.getBoard();
+            board.decreaseCommentCount(children);
             return;
         }
         throw new BusinessException(BoardErrorCode.UNAUTHORIZED_DELETE);
     }
-
-
 }
