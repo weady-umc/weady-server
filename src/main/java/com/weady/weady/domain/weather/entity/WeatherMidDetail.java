@@ -4,6 +4,8 @@ import com.weady.weady.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
+
 @Entity
 @Getter
 @Builder
@@ -16,7 +18,7 @@ public class WeatherMidDetail extends BaseEntity {
 
     private String midTermRegCode; // 중기예보 지역 코드
 
-    private Integer date; // 언제 날씨 정보인지
+    private LocalDate date; // 언제 날씨 정보인지
 
     private Float pop; // 강수 확률
 
@@ -27,4 +29,12 @@ public class WeatherMidDetail extends BaseEntity {
 
     private Float tmx; // 최고 기온
     private Float tmn; // 최저 기온
+
+    public void apply(Float pop, SkyCode am, SkyCode pm, Float tmx, Float tmn) {
+        this.pop = pop;
+        this.amSkyCode = am;
+        this.pmSkyCode = pm;
+        this.tmx = tmx;
+        this.tmn = tmn;
+    }
 }

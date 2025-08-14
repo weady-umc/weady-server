@@ -1,11 +1,11 @@
 package com.weady.weady.common.config;
 
 import io.netty.channel.ChannelOption;
-import io.netty.handler.logging.LogLevel;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.resolver.DefaultAddressResolverGroup;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -25,20 +25,29 @@ import java.time.Duration;
 @Configuration
 public class WebClientConfig {
 
+    // 🔧 운영 기본은 false (필요할 때만 켜기)
+    @Value("${weady.kma.logging.wiretap:false}") private boolean wiretapEnabled;
+    @Value("${weady.kma.logging.basic:false}")   private boolean basicLogEnabled;
+
     @Bean(name = "kmaWebClient")
     public WebClient kmaWebClient() {
         HttpClient httpClient = HttpClient.create()
-                // macOS DNS/IPv6 삽질 방지 (IPv4 우선 경로)
                 .resolver(DefaultAddressResolverGroup.INSTANCE)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
                 .responseTimeout(Duration.ofSeconds(10))
                 .doOnConnected(conn -> conn
                         .addHandlerLast(new ReadTimeoutHandler(10))
                         .addHandlerLast(new WriteTimeoutHandler(10)))
-                // ✅ 요청/응답 라인+헤더 로깅 (TEXTUAL)
-                .wiretap("reactor.netty.http.client", LogLevel.DEBUG, AdvancedByteBufFormat.TEXTUAL);
+                .compress(true)   // 전송 압축
+                .keepAlive(true); // 커넥션 재사용
 
-        return WebClient.builder()
+        // 🔊 무거운 wiretap은 프로퍼티로만 ON
+        if (wiretapEnabled) {
+            httpClient = httpClient.wiretap("reactor.netty.http.client",
+                    io.netty.handler.logging.LogLevel.DEBUG, AdvancedByteBufFormat.TEXTUAL);
+        }
+
+        WebClient.Builder b = WebClient.builder()
                 .baseUrl("https://apis.data.go.kr")
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .defaultHeader(HttpHeaders.USER_AGENT, "Mozilla/5.0 (compatible; WeadyWeather/1.0)")
@@ -48,11 +57,13 @@ public class WebClientConfig {
                         ExchangeStrategies.builder()
                                 .codecs(c -> c.defaultCodecs().maxInMemorySize(2 * 1024 * 1024))
                                 .build()
-                )
-                // ✅ 요청/응답 간단 로그(최종 URL과 상태코드 확인용)
-                .filter(logRequest())
-                .filter(logResponse())
-                .build();
+                );
+
+        if (basicLogEnabled) {
+            b = b.filter(logRequest()).filter(logResponse());
+        }
+
+        return b.build();
     }
 
     private static ExchangeFilterFunction logRequest() {
@@ -61,7 +72,6 @@ public class WebClientConfig {
             return Mono.just(req);
         });
     }
-
     private static ExchangeFilterFunction logResponse() {
         return ExchangeFilterFunction.ofResponseProcessor(res -> {
             log.debug("HTTP <- {}", res.statusCode());

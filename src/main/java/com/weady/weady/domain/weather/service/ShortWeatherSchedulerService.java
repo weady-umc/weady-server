@@ -1,4 +1,4 @@
-package com.weady.weady.domain.scheduler.service;
+package com.weady.weady.domain.weather.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -13,6 +13,7 @@ import com.weady.weady.domain.weather.entity.SkyCode;
 import com.weady.weady.domain.weather.repository.WeatherShortDetailRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -29,21 +30,21 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;                  // NEW
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;      // NEW
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class ShortTermWeatherUpdateService {
+public class ShortWeatherSchedulerService {
 
-    private static final long REQ_INTERVAL_MS = 600L; // 직렬 호출 간 텀
-    private static final int MAX_RETRY = 4;            // 레이트리밋/네트워크 재시도 횟수
-    private static final int CONCURRENCY = 3;          // NEW: 동시에 처리할 그리드 수(2~4 추천)
-    private static final int FORECAST_WINDOW_HOURS = 29; // 저장할 예보 범위(시간)
+    // 🔧 프로퍼티로 조절 (기본값은 현재 세팅 유지)
+    @Value("${weady.kma.req-interval-ms:400}")    private long reqIntervalMs;
+    @Value("${weady.kma.concurrency:3}")          private int concurrency;
+    @Value("${weady.kma.forecast-window-hours:29}") private int forecastWindowHours;
 
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
@@ -53,18 +54,16 @@ public class ShortTermWeatherUpdateService {
     private final WebClient webClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    // 동시 실행 차단
     private final AtomicBoolean running = new AtomicBoolean(false);
-
     private final TransactionTemplate tx;
     private final Object rateLock = new Object();
     private volatile long lastRequestAtMs = 0L;
 
-    public ShortTermWeatherUpdateService(LocationRepository locationRepository,
-                                         WeatherShortDetailRepository weatherRepository,
-                                         WeatherApiProperties apiProperties,
-                                         @Qualifier("kmaWebClient") WebClient webClient,
-                                         TransactionTemplate tx) {
+    public ShortWeatherSchedulerService(LocationRepository locationRepository,
+                                        WeatherShortDetailRepository weatherRepository,
+                                        WeatherApiProperties apiProperties,
+                                        @Qualifier("kmaWebClient") WebClient webClient,
+                                        TransactionTemplate tx) {
         this.locationRepository = locationRepository;
         this.weatherRepository = weatherRepository;
         this.apiProperties = apiProperties;
@@ -76,7 +75,7 @@ public class ShortTermWeatherUpdateService {
         synchronized (rateLock) {
             while (true) {
                 long now = System.currentTimeMillis();
-                long wait = lastRequestAtMs + REQ_INTERVAL_MS - now;
+                long wait = lastRequestAtMs + reqIntervalMs - now; // ← 프로퍼티값 사용
                 if (wait <= 0) {
                     lastRequestAtMs = now;
                     rateLock.notifyAll();
@@ -100,9 +99,7 @@ public class ShortTermWeatherUpdateService {
 
             int currentDate = Integer.parseInt(nowKst.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
             int currentTime = Integer.parseInt(nowKst.format(DateTimeFormatter.ofPattern("HHmm")));
-            tx.executeWithoutResult(status ->
-                    weatherRepository.deleteOldRecords(currentDate, currentTime)
-            );
+            tx.executeWithoutResult(status -> weatherRepository.deleteOldRecords(currentDate, currentTime));
             log.info("오래된 단기예보 데이터 삭제 완료");
 
             List<Location> locations = locationRepository.findAll();
@@ -111,13 +108,14 @@ public class ShortTermWeatherUpdateService {
                 return;
             }
 
-            // (nx, ny) 기준으로 그룹핑 → 그룹당 1회만 호출
             Map<Grid, List<Location>> byGrid = locations.stream()
                     .collect(Collectors.groupingBy(l -> new Grid(l.getNx(), l.getNy())));
 
             int totalGrids = byGrid.size();
-            log.info("고유 그리드 수: {}", totalGrids);
-            var pool = Executors.newFixedThreadPool(CONCURRENCY);
+            log.info("고유 그리드 수: {}  (concurrency={}, reqIntervalMs={}ms, window={}h)",
+                    totalGrids, concurrency, reqIntervalMs, forecastWindowHours);
+
+            var pool = Executors.newFixedThreadPool(Math.max(1, concurrency));
             var processed = new AtomicInteger(0);
             List<CompletableFuture<Void>> tasks = new ArrayList<>();
 
@@ -128,15 +126,19 @@ public class ShortTermWeatherUpdateService {
 
                     throttleGlobal();
 
+                    long t1 = System.nanoTime();
                     URI uri = buildApiUri(repr, baseDateTimeForSave);
                     log.debug("KMA URI(grid {}): {}", entry.getKey(), uri);
 
                     Map<String, LocationWeatherShortDetail> reprResult =
                             fetchWeatherWithWebClient(uri, repr, baseDateTimeForSave).join();
+                    long t2 = System.nanoTime();
 
                     if (reprResult.isEmpty()) {
                         int c = processed.incrementAndGet();
                         if (c % 50 == 0) log.info("그리드 진행 {}/{}", c, totalGrids);
+                        log.debug("grid {} api={}ms db={}ms size=0",
+                                entry.getKey(), (t2 - t1)/1_000_000, 0);
                         return;
                     }
 
@@ -164,10 +166,15 @@ public class ShortTermWeatherUpdateService {
                             }
                         }
                     }
+
+                    long t3BeforeDb = System.nanoTime();
                     saveWeatherForecastsForGroup(groupMap, group, baseDateTimeForSave);
+                    long t4 = System.nanoTime();
 
                     int c = processed.incrementAndGet();
                     if (c % 50 == 0) log.info("그리드 진행 {}/{}", c, totalGrids);
+                    log.debug("grid {} api={}ms db={}ms size={}",
+                            entry.getKey(), (t2 - t1)/1_000_000, (t4 - t3BeforeDb)/1_000_000, groupMap.size());
                 }, pool));
             }
 
@@ -193,7 +200,8 @@ public class ShortTermWeatherUpdateService {
                 .header("Accept-Charset", "utf-8")
                 .retrieve()
                 .onStatus(s -> s.is5xxServerError() || s.value() == 429, resp -> {
-                    log.warn("KMA {} 응답. status={} locId={}", resp.statusCode().is5xxServerError() ? "5xx" : "429",
+                    log.warn("KMA {} 응답. status={} locId={}",
+                            resp.statusCode().is5xxServerError() ? "5xx" : "429",
                             resp.statusCode(), location.getId());
                     if (resp.statusCode().value() == 429) {
                         return Mono.error(new BusinessException(KMAErrorCode.RATE_LIMIT_EXCEEDED));
@@ -201,11 +209,9 @@ public class ShortTermWeatherUpdateService {
                     return resp.createException().flatMap(Mono::error);
                 })
                 .bodyToMono(String.class)
-                // XML/HTML 에러 응답 검사 및 코드 파싱
                 .flatMap(body -> {
                     String trimmed = body == null ? "" : body.trim();
                     if (!trimmed.startsWith("<")) return Mono.just(body);
-
                     String code = extractXmlTag(trimmed, "resultCode");
                     String msg  = extractXmlTag(trimmed, "resultMsg");
                     log.warn("locId={} XML/HTML 응답: code={}, msg={}, snippet={}",
@@ -217,7 +223,6 @@ public class ShortTermWeatherUpdateService {
                     }
                     return Mono.error(new BusinessException(KMAErrorCode.KMA_XML_ERROR, msg + " (code=" + code + ")"));
                 })
-
                 .flatMap(body -> {
                     try {
                         JsonNode root = objectMapper.readTree(body);
@@ -233,9 +238,8 @@ public class ShortTermWeatherUpdateService {
                         return Mono.empty();
                     }
                 })
-                // 백오프 재시도: 5xx/네트워크/레이트리밋만
                 .retryWhen(
-                        Retry.backoff(MAX_RETRY, Duration.ofSeconds(2))
+                        Retry.backoff(4, Duration.ofSeconds(2))
                                 .maxBackoff(Duration.ofSeconds(30))
                                 .jitter(0.3)
                                 .filter(th ->
@@ -269,7 +273,6 @@ public class ShortTermWeatherUpdateService {
                 .toFuture();
     }
 
-    // NEW: 그리드(같은 nx,ny 묶음)만 저장
     private void saveWeatherForecastsForGroup(Map<String, LocationWeatherShortDetail> newForecastsMap,
                                               List<Location> group,
                                               BaseDateTime baseDateTime) {
@@ -333,20 +336,21 @@ public class ShortTermWeatherUpdateService {
 
         if (items.isMissingNode() || !items.isArray()) {
             log.warn("Location ID {}: 유효하지 않은 API 응답 (items 없음). 응답: {}",
-                    location.getId(),
-                    snippet(jsonResponse));
+                    location.getId(), snippet(jsonResponse));
             return new HashMap<>();
         }
 
-        LocalDateTime startForecastTime = LocalDateTime.parse(baseDateTime.baseDate + baseDateTime.baseTime, DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
-        LocalDateTime endForecastTime = startForecastTime.plusHours(FORECAST_WINDOW_HOURS);
+        LocalDateTime startForecastTime = LocalDateTime.parse(
+                baseDateTime.baseDate + baseDateTime.baseTime,
+                DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
+        LocalDateTime endForecastTime = startForecastTime.plusHours(forecastWindowHours); // ← 프로퍼티값 사용
 
         items.forEach(item -> {
             String fcstDate = item.path("fcstDate").asText();
             String fcstTime = item.path("fcstTime").asText();
-            LocalDateTime forecastDateTime = LocalDateTime.parse(fcstDate + fcstTime, DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
+            LocalDateTime forecastDateTime = LocalDateTime.parse(
+                    fcstDate + fcstTime, DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
 
-            // 시작 이전/끝 이후 데이터는 제외
             if (forecastDateTime.isBefore(startForecastTime) || forecastDateTime.isAfter(endForecastTime)) {
                 return;
             }
@@ -391,7 +395,6 @@ public class ShortTermWeatherUpdateService {
     private Float parseFloatSafe(String v) {
         try { return Float.parseFloat(v); } catch (Exception e) { return null; }
     }
-
     private float parsePcp(String v) {
         if (v == null) return 0f;
         v = v.trim();
@@ -404,7 +407,6 @@ public class ShortTermWeatherUpdateService {
 
     private URI buildApiUri(Location location, BaseDateTime baseDateTime) {
         String encodedKey = URLEncoder.encode(apiProperties.getShortTermKey(), StandardCharsets.UTF_8);
-
         return UriComponentsBuilder.fromUriString(apiProperties.getBaseUrl())
                 .queryParam("serviceKey", encodedKey)
                 .queryParam("pageNo", 1)
@@ -448,7 +450,6 @@ public class ShortTermWeatherUpdateService {
         Matcher m = p.matcher(xml);
         return m.find() ? m.group(1).trim() : "";
     }
-
     private static String snippet(String s) {
         if (s == null) return "null";
         String x = s.replaceAll("\\s+", " ").trim();
@@ -456,15 +457,12 @@ public class ShortTermWeatherUpdateService {
     }
 
     private record BaseDateTime(String baseDate, String baseTime) {}
-
     private static class WeatherValues {
         Float tmp, wsd, pop, pcp, reh, vec;
         String ptyCode = "0";
         String skyCode;
     }
-
     private record Grid(int nx, int ny) {}
-
     private static class ServiceKeyException extends RuntimeException {
         final String code; final String msg;
         ServiceKeyException(String code, String msg) { super(code + ":" + msg); this.code = code; this.msg = msg; }

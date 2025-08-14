@@ -1,4 +1,4 @@
-package com.weady.weady.domain.scheduler.service;
+package com.weady.weady.domain.weather.service;
 
 import com.weady.weady.domain.location.entity.Location;
 import com.weady.weady.domain.location.repository.LocationRepository;
@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
@@ -28,7 +29,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class DailySummaryService {
+public class DailySummarySchedulerService {
 
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
@@ -48,7 +49,22 @@ public class DailySummaryService {
     private final SeasonRepository seasonTagRepo;
     private final TransactionTemplate tx;
 
-    /** 스냅샷이 만들어진 다음날(date)의 DailySummary 생성/업데이트 */
+
+    public void buildForSchedulerWindow() {
+        LocalTime cutoff = LocalTime.of(1, 0);
+        java.time.ZonedDateTime now = java.time.ZonedDateTime.now(KST);
+        LocalDate baseDay = now.toLocalTime().isBefore(cutoff)
+                ? now.toLocalDate().minusDays(1)
+                : now.toLocalDate();
+        LocalDate target = baseDay.plusDays(1);
+        buildDailySummary(target);
+    }
+
+    /** NEW: 오늘(로컬 KST) 스냅샷을 기준으로 오늘자 DailySummary 생성(수동 복구용) */
+    public void buildForToday() {
+        buildDailySummary(LocalDate.now(KST));
+    }
+
     public void buildDailySummary(LocalDate date) {
         long t0 = System.currentTimeMillis();
 
