@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface UserFavoriteLocationRepository extends JpaRepository<UserFavoriteLocation, Long> {
 
@@ -38,4 +39,14 @@ public interface UserFavoriteLocationRepository extends JpaRepository<UserFavori
             @Param("reportDate") LocalDate reportDate,
             @Param("currentTime") int currentTime
     );
+
+    @Query("""
+      select coalesce(dl.location.id, nl.id)
+      from User u
+      left join u.defaultLocation dl
+      left join dl.location
+      left join u.nowLocation nl
+      where u.id = :userId
+    """)
+    Optional<Long> findDefaultOrNowLocationId(Long userId);
 }
