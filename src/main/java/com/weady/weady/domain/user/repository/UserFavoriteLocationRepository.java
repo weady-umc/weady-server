@@ -20,29 +20,29 @@ public interface UserFavoriteLocationRepository extends JpaRepository<UserFavori
 
 
     @Query("""
-select uf, lwsd, ds
-from UserFavoriteLocation uf
-join uf.location l
-left join LocationWeatherShortDetail lwsd
-       on lwsd.location = l
-      and lwsd.time = :currentTime
-      and lwsd.id = (
-           select max(s.id)
-           from LocationWeatherShortDetail s
-           where s.location = l
-             and s.time = :currentTime
-      )
-left join DailySummary ds
-       on ds.location = l
-      and ds.reportDate = :reportDate
-      and ds.id = (
-           select max(d2.id)
-           from DailySummary d2
-           where d2.location = l
-             and d2.reportDate = :reportDate
-      )
-where uf.user.id = :userId
-""")
+    select uf, lwsd, ds
+    from UserFavoriteLocation uf
+    join uf.location l
+    left join LocationWeatherShortDetail lwsd
+           on lwsd.location = l
+          and lwsd.time = :currentTime
+          and lwsd.id = (
+               select max(s.id)
+               from LocationWeatherShortDetail s
+               where s.location = l
+                 and s.time = :currentTime
+          )
+    left join DailySummary ds
+           on ds.location = l
+          and ds.reportDate = :reportDate
+          and ds.id = (
+               select max(d2.id)
+               from DailySummary d2
+               where d2.location = l
+                 and d2.reportDate = :reportDate
+          )
+    where uf.user.id = :userId
+    """)
     List<Object[]> findFavoritesWithDetailsByUserId(
             @Param("userId") Long userId,
             @Param("reportDate") LocalDate reportDate,
@@ -50,12 +50,11 @@ where uf.user.id = :userId
     );
 
     @Query("""
-      select coalesce(dl.location.id, nl.id)
+      select distinct coalesce(dl.id, l2.id)
       from User u
       left join u.defaultLocation dl
-      left join dl.location
-      left join u.nowLocation nl
+      left join u.nowLocation l2
       where u.id = :userId
     """)
-    Optional<Long> findDefaultOrNowLocationId(Long userId);
+    Optional<Long> findDefaultOrNowLocationId(@Param("userId") Long userId);
 }
