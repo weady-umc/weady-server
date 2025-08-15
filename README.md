@@ -20,7 +20,7 @@
 ---
 
 ### 🧑‍💻 팀원 정보
-|              백엔드 / 팀장              |                 백엔드                  |                 백엔드                 |                 백엔드                 |                 백엔드                  |
+|              백엔드 / 리드              |                 백엔드                  |                 백엔드                 |                 백엔드                 |                 백엔드                  |
 |:----------------------------------:|:------------------------------------:|:-----------------------------------:|:-----------------------------------:|:------------------------------------:|
 | <img src="https://github.com/user-attachments/assets/d63d51f0-85fe-4a7d-ba68-26fa030c80bb" width="120" alt="박장우"/>  |  <img src="https://github.com/user-attachments/assets/5c5740fb-221f-4444-b065-96a5330f5714" width=120px alt="김동완"/>  | <img src="https://github.com/user-attachments/assets/ebecfb9e-3930-4f9f-a83a-5dfc82adeb1b" width=120px alt="이은채"/> | <img src="https://github.com/user-attachments/assets/cb084e73-3c52-4121-8542-35732e6e379d" width=120px alt="이제원"/> | <img src="https://github.com/user-attachments/assets/a5158de6-7534-43cd-a9fe-b9da5b0e6972" width=120px alt="박지현"/>  |
 | [박장우](https://github.com/pjw81226) | [김동완](https://github.com/ehddhks194) | [이은채](https://github.com/euuunchae) |   [이제원](https://github.com/nowOne2)       | [박지현](https://github.com/jlhyunii63) |
