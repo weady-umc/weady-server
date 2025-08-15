@@ -18,9 +18,9 @@ public class WeadychiveBoardMapper {
     }
 
 
-    public static ScrapBoardResponseDto toScrapBoardResponseDto(Boolean isScraped) {
+    public static ScrapBoardResponseDto toScrapBoardResponseDto(Boolean isScrapped) {
         return ScrapBoardResponseDto.builder()
-                .isScraped(isScraped)
+                .isScrapped(isScrapped)
                 .build();
     }
 

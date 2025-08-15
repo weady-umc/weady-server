@@ -38,8 +38,8 @@ public class BoardController {
     @Operation(summary = "1. 보드 홈 게시물 전체 조회 API", description = "전체 게시물을 조회하는 API입니다. 날씨, 계절 태그 ID로 게시글을 필터링 할 수 있습니다.")
     public ResponseEntity<ApiResponse<Slice<BoardHomeResponseDto>>> getFilteredAndSortedBoards(
             @RequestParam(name = "seasonTagId", required = false) Long seasonTagId,
-            @RequestParam(name = "weatherTagId", required = false) Long weatherTagId,
             @RequestParam(name = "temperatureTagId", required = false) Long temperatureTagId,
+            @RequestParam(name = "weatherTagId", required = false) Long weatherTagId,
             @RequestParam(name = "size", required = false, defaultValue = "10") Integer size
     ) {
         Slice<BoardHomeResponseDto> responseDtoList = boardService.getFilteredAndSortedBoards(seasonTagId, temperatureTagId, weatherTagId, size);
