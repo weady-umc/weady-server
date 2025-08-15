@@ -14,15 +14,21 @@ import java.util.Optional;
 
 public interface BoardRepository extends JpaRepository<Board, Long> {
 
+
     @Query("SELECT b "
             + "FROM Board b "
+            + "JOIN FETCH b.user "
+            + "JOIN FETCH b.seasonTag "
+            + "JOIN FETCH b.temperatureTag "
+            + "JOIN FETCH b.weatherTag "
             + "WHERE b.isPublic = true "
             + "AND (:weatherTagId IS NULL OR b.weatherTag.id = :weatherTagId) "
             + "AND (:temperatureTagId IS NULL OR b.temperatureTag.id = :temperatureTagId) "
             + "AND (:seasonTagId IS NULL OR b.seasonTag.id = :seasonTagId) "
-            + "AND b.id NOT IN ("
-            + "    SELECT bh.board.id FROM BoardHidden bh WHERE bh.user.id = :userId" // 숨긴 게시물 제외
-            + ") "
+            + "AND NOT EXISTS ("
+            + "    SELECT 1 FROM BoardHidden bh"
+            + "    WHERE bh.board = b AND bh.user.id = :userId"  // 숨긴 게시글 제외
+            + "  )"
             + "ORDER BY b.createdAt DESC, b.id DESC")
     Slice<Board> getFilteredAndSortedResults(
             @Param("seasonTagId") Long seasonTagId,
@@ -33,9 +39,12 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
 
     @Query("SELECT b "
             + "FROM Board b "
-            + "LEFT JOIN FETCH b.boardStyleList "
+            + "JOIN FETCH b.user "
+            + "JOIN FETCH b.seasonTag "
+            + "JOIN FETCH b.temperatureTag "
+            + "JOIN FETCH b.weatherTag "
             + "WHERE b.id = :boardId")
-    Optional<Board> findByIdWithStyles(@Param("boardId") Long boardId);
+    Optional<Board> findByBoardId(@Param("boardId") Long boardId);
 
     @Query("""
         SELECT b

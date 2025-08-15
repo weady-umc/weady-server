@@ -144,6 +144,7 @@ public class Board extends BaseEntity {
 
     /// 좋아요 개수 증감 메서드 ///
     public void increaseGoodCount() {
+
         this.goodCount = this.goodCount + 1;
     }
 
