@@ -21,10 +21,11 @@ public class MyPageMapper {
                 .build();
     }
 
-    public static GetMyPageResponse.CalendarResponse toCalendarResponse(LocalDate date, String thumbnailUrl) {
+    public static GetMyPageResponse.CalendarResponse toCalendarResponse(LocalDate date, String thumbnailUrl, Long weatherTagId) {
         return GetMyPageResponse.CalendarResponse.builder()
                 .date(date)
                 .thumbnailUrl(thumbnailUrl)
+                .weatherTagId(weatherTagId)
                 .build();
     }
 
@@ -36,10 +37,13 @@ public class MyPageMapper {
                         .build())
                 .toList();
 
+        Long weatherTagId = (board.getWeatherTag() != null) ? board.getWeatherTag().getId() : null;
+
         return GetBoardInMyPageResponse.builder()
                 .boardId(board.getId())
                 .createdAt(board.getCreatedAt())
                 .isPublic(board.getIsPublic())
+                .weatherTagId(weatherTagId)
                 .imageList(imageList)
                 .build();
     }
