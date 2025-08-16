@@ -10,6 +10,7 @@ import java.util.List;
 public record GetBoardInMyPageResponse(Long boardId,
                                        LocalDateTime createdAt,
                                        Boolean isPublic,
+                                       Long weatherTagId,
                                        List<BoardImgResponseDto> imageList
                                        ) {
 }
