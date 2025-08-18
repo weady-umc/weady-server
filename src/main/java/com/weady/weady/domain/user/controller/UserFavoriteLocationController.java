@@ -4,6 +4,7 @@ import com.weady.weady.domain.user.dto.request.setDefaultLocationRequest;
 import com.weady.weady.domain.user.dto.response.AddUserFavoriteLocationResponse;
 import com.weady.weady.domain.user.dto.request.AddUserFavoriteLocationRequest;
 import com.weady.weady.domain.user.dto.response.GetUserFavoriteLocationResponse;
+import com.weady.weady.domain.user.dto.response.GetUserNowLocationResponse;
 import com.weady.weady.domain.user.service.UserFavoriteLocationService;
 import com.weady.weady.common.apiResponse.ApiResponse;
 import com.weady.weady.common.apiResponse.ApiSuccessResponse;
@@ -57,6 +58,16 @@ public class UserFavoriteLocationController {
         return ResponseEntityUtil.buildDefaultResponseEntity(responseWrapper);
     }
 
+    @GetMapping("/nowLocations")
+    @Operation(summary = "현재위치 지역 조회 api")
+    public ResponseEntity<ApiResponse<GetUserNowLocationResponse>> getUserNowLocations(){
+
+        GetUserNowLocationResponse response = userFavoriteLocationService.getUserNowLocations();
+        ApiResponse<GetUserNowLocationResponse> responseWrapper =
+                ApiSuccessResponse.of(response, "현재위치 지역 조회에 성공했습니다.");
+        return ResponseEntityUtil.buildDefaultResponseEntity(responseWrapper);
+    }
+
     @PatchMapping("/default")
     @Operation(summary = "사용자 기본 위치 변경 API")
     public ResponseEntity<ApiResponse<Void>> setDefaultLocation(@RequestBody setDefaultLocationRequest request){
@@ -64,6 +75,16 @@ public class UserFavoriteLocationController {
         userFavoriteLocationService.setDefaultLocation(request.userFavoriteLocationId());
 
         ApiResponse<Void> responseWrapper = ApiSuccessResponse.of("기본 위치 변경에 성공했습니다.");
+        return ResponseEntityUtil.buildDefaultResponseEntity(responseWrapper);
+    }
+
+    @DeleteMapping("/favorites/default")
+    @Operation(summary = "사용자 기본 위치 설정 해제 API")
+    public ResponseEntity<ApiResponse<Void>> unsetDefaultLocation() {
+
+        userFavoriteLocationService.unsetDefaultLocation();
+
+        ApiResponse<Void> responseWrapper = ApiSuccessResponse.of("기본 위치 설정이 해제되었습니다.");
         return ResponseEntityUtil.buildDefaultResponseEntity(responseWrapper);
     }
 }

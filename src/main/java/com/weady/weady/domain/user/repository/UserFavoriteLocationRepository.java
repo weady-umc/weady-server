@@ -1,6 +1,7 @@
 package com.weady.weady.domain.user.repository;
 
 import com.weady.weady.domain.location.entity.Location;
+import com.weady.weady.domain.user.dto.response.GetUserNowLocationResponse;
 import com.weady.weady.domain.user.entity.User;
 import com.weady.weady.domain.user.entity.UserFavoriteLocation;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -45,6 +46,44 @@ public interface UserFavoriteLocationRepository extends JpaRepository<UserFavori
     """)
     List<Object[]> findFavoritesWithDetailsByUserId(
             @Param("userId") Long userId,
+            @Param("reportDate") LocalDate reportDate,
+            @Param("currentTime") int currentTime
+    );
+
+    @Query("""
+select new com.weady.weady.domain.user.dto.response.GetUserNowLocationResponse(
+       l.bCode,
+       l.address1,
+       l.address2,
+       l.address3,
+       l.address4,
+       lwsd.tmp,
+       ds.actualTmx,
+       ds.actualTmn
+)
+from Location l
+left join LocationWeatherShortDetail lwsd
+       on lwsd.location = l
+      and lwsd.time = :currentTime
+      and lwsd.id = (
+           select max(s.id)
+           from LocationWeatherShortDetail s
+           where s.location = l
+             and s.time = :currentTime
+      )
+left join DailySummary ds
+       on ds.location = l
+      and ds.reportDate = :reportDate
+      and ds.id = (
+           select max(d2.id)
+           from DailySummary d2
+           where d2.location = l
+             and d2.reportDate = :reportDate
+      )
+where l.id = :locationId
+""")
+    Optional<GetUserNowLocationResponse> findLocationWithDetailsById(
+            @Param("locationId") Long locationId,
             @Param("reportDate") LocalDate reportDate,
             @Param("currentTime") int currentTime
     );
