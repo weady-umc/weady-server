@@ -37,15 +37,24 @@ public class AppleJwtVerifier {
     private ConfigurableJWTProcessor<SecurityContext> processor() {
         if (processor == null) {
             try {
-                DefaultResourceRetriever retriever = new DefaultResourceRetriever(3000, 3000);
-                JWKSource<SecurityContext> jwkSource = new RemoteJWKSet<>(new URL(jwkSetUri), retriever);
+                DefaultResourceRetriever retriever = new DefaultResourceRetriever(
+                        3000,   // connect timeout ms
+                        3000,   // read timeout ms
+                        262_144 // entity size limit
+                );
+                URL jwkUrl = new URL(jwkSetUri);
+
+                @SuppressWarnings("deprecation")
+                JWKSource<SecurityContext> jwkSource = new RemoteJWKSet<>(jwkUrl, retriever);
+
                 JWSVerificationKeySelector<SecurityContext> selector =
-                        new JWSVerificationKeySelector<>(JWSAlgorithm.ES256, jwkSource);
+                        new JWSVerificationKeySelector<>(JWSAlgorithm.Family.RSA, jwkSource);
+
                 DefaultJWTProcessor<SecurityContext> p = new DefaultJWTProcessor<>();
                 p.setJWSKeySelector(selector);
                 processor = p;
-            } catch (MalformedURLException e) {
-                throw new IllegalStateException("Invalid Apple JWK Set URI", e);
+            } catch (Exception e) {
+                throw new IllegalStateException("Failed to init Apple JWKS processor", e);
             }
         }
         return processor;
