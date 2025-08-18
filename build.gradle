@@ -43,6 +43,7 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+	implementation 'com.nimbusds:nimbus-jose-jwt:10.4.1'
 	// WebClient 사용을 위한 WebFlux 의존성
 	implementation 'org.springframework:spring-webflux'
 	implementation 'io.projectreactor.netty:reactor-netty-http'
