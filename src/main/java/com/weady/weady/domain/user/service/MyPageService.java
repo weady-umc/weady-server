@@ -53,11 +53,12 @@ public class MyPageService {
 
         List<GetMyPageResponse.CalendarResponse> calendar = firstBoardByDate.entrySet().stream()
                 .map(entry -> {
-                    Long boardId = entry.getValue().getId();
+                    Board board = entry.getValue();
                     String thumbnail = boardImgRepository
-                            .findThumbnailUrlByBoardId(boardId)
+                            .findThumbnailUrlByBoardId(board.getId())
                             .orElse(null);
-                    return MyPageMapper.toCalendarResponse(entry.getKey(), thumbnail);
+                    Long weatherTagId = (board.getWeatherTag() != null) ? board.getWeatherTag().getId() : null;
+                    return MyPageMapper.toCalendarResponse(entry.getKey(), thumbnail, weatherTagId);
                 })
                 .toList();
 
