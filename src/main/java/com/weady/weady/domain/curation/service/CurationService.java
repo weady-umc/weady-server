@@ -266,6 +266,7 @@ public class CurationService {
      * @thorws
      */
     public void saveCuration(MultipartFile backgroundImage,
+                             MultipartFile bannerImage,
                              List<MultipartFile> contentImages,
                              CurationRequestDto dto){
 
@@ -280,11 +281,13 @@ public class CurationService {
 
         //썸네일 s3 변환
         String backgroundImgUrl = s3Uploader.upload(backgroundImage, "curation");
+        String bannerImgUrl = s3Uploader.upload(bannerImage, "curation");
 
         // Curation 저장
         Curation curation = Curation.builder()
                 .title(dto.title())
                 .backgroundImgUrl(backgroundImgUrl)
+                .bannerImgUrl(bannerImgUrl)
                 .curationCategory(curationCategory)
                 .seasonTag(seasonTag)
                 .weatherTag(weatherTag)
@@ -312,6 +315,18 @@ public class CurationService {
         curationImgRepository.saveAll(imgList);
     }
 
+    public String saveBannerImage(MultipartFile bannerImg, Long curationId) {
+        // curationId로 Curation 찾기
+        Curation curation = curationRepository.findById(curationId)
+                .orElseThrow(() -> new BusinessException(CurationErrorCode.CURATION_NOT_FOUND));
 
+        // 배너 이미지 S3에 업로드
+        String bannerImgUrl = s3Uploader.upload(bannerImg, "curationBanner");
+
+        // Curation의 배너 이미지 URL 업데이트
+        curation.setBannerImgUrl(bannerImgUrl);
+
+        return bannerImgUrl;
+    }
 
 }

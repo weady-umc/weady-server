@@ -46,3 +46,6 @@ src/main/resources/application-prod.yml
 src/main/resources/application.properties
 .DS_Store
 
+### swagger 수정 방지
+src/main/java/com/weady/weady/common/config/SwaggerConfig.java
+
