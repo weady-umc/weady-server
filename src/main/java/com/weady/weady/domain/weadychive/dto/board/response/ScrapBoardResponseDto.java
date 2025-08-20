@@ -6,4 +6,4 @@ import java.time.LocalDateTime;
 
 @Builder
 public record ScrapBoardResponseDto(
-        Boolean isScraped) {}
+        Boolean isScrapped) {}

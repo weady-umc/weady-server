@@ -40,5 +40,4 @@ public class AuthController {
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of(response, "토큰 재발급 성공"));
     }
 
-
 }

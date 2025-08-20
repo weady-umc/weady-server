@@ -1,9 +1,11 @@
 package com.weady.weady.domain.user.service;
 
+import com.weady.weady.common.error.errorCode.WeatherErrorCode;
 import com.weady.weady.domain.location.entity.Location;
 import com.weady.weady.domain.location.repository.LocationRepository;
 import com.weady.weady.domain.user.dto.response.AddUserFavoriteLocationResponse;
 import com.weady.weady.domain.user.dto.response.GetUserFavoriteLocationResponse;
+import com.weady.weady.domain.user.dto.response.GetUserNowLocationResponse;
 import com.weady.weady.domain.user.entity.User;
 import com.weady.weady.domain.user.entity.UserFavoriteLocation;
 import com.weady.weady.domain.user.mapper.UserFavoriteLocationMapper;
@@ -116,6 +118,27 @@ public class UserFavoriteLocationService {
     }
 
     @Transactional
+    public GetUserNowLocationResponse getUserNowLocations(){
+
+        //User 엔티티 조회
+        User user = getAuthenticatedUser();
+
+        //nowLocation 조회, 만약 현재위치가 지정되어 있지 않은 경우 에러코드 throw
+        Location nowLocation = user.getNowLocation();
+        if(nowLocation == null)
+            throw new BusinessException(LocationErrorCode.NOW_LOCATION_NOT_FOUND);
+
+        //쿼리에 필요한 오늘 날짜, 현재 시간을 조회
+        LocalDate today = LocalDate.now();
+        int currentTime = Integer.parseInt(LocalTime.now().format(DateTimeFormatter.ofPattern("HH00")));
+
+        //Repository의 쿼리를 호출하여 위치와 날씨 정보를 조회
+        return userFavoriteLocationRepository.findLocationWithDetailsById(
+                nowLocation.getId(), today, currentTime
+        ).orElseThrow(() -> new BusinessException(WeatherErrorCode.WEATHER_DATA_NOT_FOUND));
+    }
+
+    @Transactional
     public void setDefaultLocation(Long userFavoriteLocationId) {
 
         //User 엔티티 조회
@@ -126,6 +149,14 @@ public class UserFavoriteLocationService {
                 .orElseThrow(() -> new BusinessException(LocationErrorCode.FAVORITE_NOT_FOUND));
 
         user.setDefaultLocation(updateFavoriteLocation);
+    }
+
+    @Transactional
+    public void unsetDefaultLocation() {
+
+        User user = getAuthenticatedUser();
+
+        user.setDefaultLocation(null);
     }
 
     private User getAuthenticatedUser() {

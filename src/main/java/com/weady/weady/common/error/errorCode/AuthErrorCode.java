@@ -13,6 +13,11 @@ public enum AuthErrorCode implements ErrorCode {
     INVALID_REFRESH_TOKEN(400, "유효하지 않은 Refresh 토큰입니다."),
     UNSUPPORTED_PROVIDER(400, "지원하지 않는 소셜 로그인입니다."),
     UNAUTHORIZED_USER(401, "인증되지 않은 사용자입니다."),
+    INVALID_IDENTITY_TOKEN(400, "유효하지 않은 Identity 토큰입니다. (Apple 로그인 시 사용)"),
+    INVALID_ISS(400, "유효하지 않은 Issuer 값입니다. (Apple 로그인 시 사용)"),
+    INVALID_AUDIENCE(400, "유효하지 않은 Audience 값입니다. (Apple 로그인 시 사용)"),
+    EXPIRED_IDENTITY_TOKEN(400, "만료된 Identity 토큰입니다. (Apple 로그인 시 사용)"),
+    MALFORMED_IDENTITY_TOKEN(400, "잘못된 형식의 Identity 토큰입니다. (Apple 로그인 시 사용)")
     ;
 
 

@@ -24,7 +24,9 @@ import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -51,16 +53,30 @@ public class CommentService {
                 .orElseThrow(() -> new BusinessException(BoardErrorCode.BOARD_NOT_FOUND));
 
         Pageable pageable = PageRequest.of(0, size);
-        Slice<BoardComment> parentComments = commentRepository.findByBoardAndParentCommentIsNull(board, pageable);
+        Slice<BoardComment> parents = commentRepository.findParentsByBoard(board, pageable);
 
-        // 부모 댓글과 자식 댓글을 매핑
-        List<CommentWithChildResponseDto> commentResponses = parentComments.stream()
-                .map(parentComment -> {
-                    List<BoardComment> childComments = commentRepository.findAllByParentCommentId(parentComment.getId());
-                    return CommentMapper.toCommentWithChildResponseDto(parentComment, childComments);
-                })
+        List<Long> parentIds = parents.getContent().stream()
+                .map(BoardComment::getId)
                 .collect(Collectors.toList());
-        return new SliceImpl<>(commentResponses);
+
+        List<BoardComment> children = parentIds.isEmpty()
+                ? Collections.emptyList()
+                : commentRepository.findChildrenByParentIds(parentIds);
+
+        // 자식 댓글을 부모 ID 기준으로 그룹화
+        Map<Long, List<BoardComment>> childrenMap = children.stream()
+                .collect(Collectors.groupingBy(c -> c.getParentComment().getId()));
+
+        // 부모 자식 매핑
+        List<CommentWithChildResponseDto> commentResponseList = parents.stream()
+                .map(parent -> CommentMapper.toCommentWithChildResponseDto(
+                        parent,
+                        childrenMap.getOrDefault(parent.getId(), Collections.emptyList())
+                ))
+                .collect(Collectors.toList());
+
+
+        return new SliceImpl<>(commentResponseList);
     }
 
     /**

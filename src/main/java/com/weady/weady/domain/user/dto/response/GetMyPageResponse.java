@@ -13,6 +13,7 @@ public record GetMyPageResponse(Long userId,
 
     @Builder
     public record CalendarResponse(LocalDate date,
-                                   String thumbnailUrl
+                                   String thumbnailUrl,
+                                   Long weatherTagId
     ) {}
 }
