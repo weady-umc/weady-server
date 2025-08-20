@@ -23,6 +23,7 @@ public class Curation extends BaseEntity {
 
     private String title;
 
+    @Setter
     @Column(columnDefinition = "TEXT")
     private String bannerImgUrl;
 
