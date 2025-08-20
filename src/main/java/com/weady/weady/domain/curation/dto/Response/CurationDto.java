@@ -6,5 +6,6 @@ import lombok.Builder;
 public record CurationDto(
         Long curationId,
         String curationTitle,
+        String bannerImgUrl,
         String backgroundImgUrl
 ) {}
