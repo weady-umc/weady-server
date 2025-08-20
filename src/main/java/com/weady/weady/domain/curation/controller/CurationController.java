@@ -2,6 +2,7 @@ package com.weady.weady.domain.curation.controller;
 
 
 
+import com.weady.weady.domain.curation.dto.Request.CurationBannerImgRequestDto;
 import com.weady.weady.domain.curation.dto.Request.CurationRequestDto;
 import com.weady.weady.domain.curation.dto.Response.CurationByCurationIdResponseDto;
 import com.weady.weady.domain.curation.dto.Response.CurationByLocationResponseDto;
@@ -76,12 +77,24 @@ public class CurationController {
     })
     public ResponseEntity<ApiResponse<Void>> uploadCuration(
             @RequestPart("backgroundImage") MultipartFile backgroundImage,
+            @RequestPart("bannerImage") MultipartFile bannerImage,
             @RequestPart("contentImages") List<MultipartFile> contentImages,
             @RequestPart("postData") CurationRequestDto postData
     ){
-        curationService.saveCuration(backgroundImage, contentImages, postData);
+        curationService.saveCuration(backgroundImage, bannerImage, contentImages, postData);
         return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of("큐레이션 등록 성공"));
     }
 
-
+    @PostMapping(value = "/banner-img", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "큐레이션 배너 이미지 업로드 API")
+    @io.swagger.v3.oas.annotations.responses.ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
+    })
+    public ResponseEntity<ApiResponse<Void>> uploadBannerImg(
+            @RequestPart("bannerImage") MultipartFile bannerImage,
+            @RequestPart("curationId") CurationBannerImgRequestDto request
+    ){
+        String imgUrl = curationService.saveBannerImage(bannerImage, request.curationId());
+        return ResponseEntityUtil.buildDefaultResponseEntity(ApiSuccessResponse.of("배너 이미지 url: " + imgUrl));
+    }
 }
