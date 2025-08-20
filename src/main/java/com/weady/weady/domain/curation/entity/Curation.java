@@ -23,7 +23,10 @@ public class Curation extends BaseEntity {
 
     private String title;
 
-    @Column(name = "background_img_url")
+    @Column(columnDefinition = "TEXT")
+    private String bannerImgUrl;
+
+    @Column(columnDefinition = "TEXT")
     private String backgroundImgUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
