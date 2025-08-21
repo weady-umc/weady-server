@@ -14,6 +14,7 @@ public record GetMyPageResponse(Long userId,
     @Builder
     public record CalendarResponse(LocalDate date,
                                    String thumbnailUrl,
-                                   Long weatherTagId
+                                   Long weatherTagId,
+                                   Boolean isPublic
     ) {}
 }

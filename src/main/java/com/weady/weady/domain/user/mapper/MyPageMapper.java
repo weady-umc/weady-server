@@ -21,11 +21,12 @@ public class MyPageMapper {
                 .build();
     }
 
-    public static GetMyPageResponse.CalendarResponse toCalendarResponse(LocalDate date, String thumbnailUrl, Long weatherTagId) {
+    public static GetMyPageResponse.CalendarResponse toCalendarResponse(LocalDate date, String thumbnailUrl, Long weatherTagId, Boolean isPublic) {
         return GetMyPageResponse.CalendarResponse.builder()
                 .date(date)
                 .thumbnailUrl(thumbnailUrl)
                 .weatherTagId(weatherTagId)
+                .isPublic(isPublic)
                 .build();
     }
 

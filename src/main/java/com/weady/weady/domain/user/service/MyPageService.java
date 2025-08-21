@@ -58,7 +58,7 @@ public class MyPageService {
                             .findThumbnailUrlByBoardId(board.getId())
                             .orElse(null);
                     Long weatherTagId = (board.getWeatherTag() != null) ? board.getWeatherTag().getId() : null;
-                    return MyPageMapper.toCalendarResponse(entry.getKey(), thumbnail, weatherTagId);
+                    return MyPageMapper.toCalendarResponse(entry.getKey(), thumbnail, weatherTagId, board.getIsPublic());
                 })
                 .toList();
 
