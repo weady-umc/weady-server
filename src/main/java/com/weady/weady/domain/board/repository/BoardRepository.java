@@ -1,6 +1,7 @@
 package com.weady.weady.domain.board.repository;
 
 import com.weady.weady.domain.board.entity.board.Board;
+import com.weady.weady.domain.user.entity.User;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -45,6 +46,14 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
             + "JOIN FETCH b.weatherTag "
             + "WHERE b.id = :boardId")
     Optional<Board> findByBoardId(@Param("boardId") Long boardId);
+
+
+    boolean existsByUserAndIsPublicAndCreatedAtBetween(
+            User user,
+            Boolean isPublic,
+            LocalDateTime start,
+            LocalDateTime end
+    );
 
     @Query("""
         SELECT b
