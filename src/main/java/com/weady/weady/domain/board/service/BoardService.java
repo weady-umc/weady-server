@@ -37,6 +37,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -97,6 +100,23 @@ public class BoardService {
     public BoardResponseDto createPost(List<MultipartFile> images, BoardCreateRequestDto postData) {
 
         User user = getAuthenticatedUser();
+
+        LocalDate today = LocalDate.now();
+        LocalDateTime start = today.atStartOfDay();
+        LocalDateTime end = today.atTime(LocalTime.MAX);
+
+        boolean exists = boardRepository.existsByUserAndIsPublicAndCreatedAtBetween(
+                user, postData.isPublic(), start, end
+        );
+
+        if (exists) {
+            if(postData.isPublic()) {
+                throw new BusinessException(BoardErrorCode.ALREADY_POSTED_PUBLICLY);
+            }
+            else{
+                throw new BusinessException(BoardErrorCode.ALREADY_POSTED_PRIVATELY);
+            }
+        }
 
         // 날씨 태그 조회
         SeasonTag seasonTag = seasonRepository.findById(postData.seasonTagId())
