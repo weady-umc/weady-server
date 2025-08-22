@@ -19,6 +19,8 @@ public enum BoardErrorCode implements ErrorCode {
     BOARD_HIDDEN_NOT_FOUND(404, "숨김 기록을 찾을 수 없습니다."),
     ALREADY_HIDDEN(409, "이미 숨김 처리된 게시물입니다."),
     ALREADY_REPORTED(409, "이미 신고 처리된 게시물입니다."),
+    ALREADY_POSTED_PUBLICLY(409, "이미 오늘의 공개 게시물을 작성했습니다."),
+    ALREADY_POSTED_PRIVATELY(409, "이미 오늘의 비공개 게시물을 작성했습니다."),
 
 
     //댓글 관련
