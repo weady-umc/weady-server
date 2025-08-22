@@ -64,10 +64,10 @@ public class BoardService {
      * @throws
      */
     @Transactional(readOnly = true)
-    public Slice<BoardHomeResponseDto> getFilteredAndSortedBoards(Long seasonTagId, Long temperatureTagId, Long weatherTagId, Integer size) {
+    public Slice<BoardHomeResponseDto> getFilteredAndSortedBoards(List<Long> seasonTagIds, Long temperatureTagId, List<Long> weatherTagIds, Integer size) {
         Long userId = SecurityUtil.getCurrentUserId();
         Pageable pageable = PageRequest.of(0, size);
-        Slice<Board> boards = boardRepository.getFilteredAndSortedResults(seasonTagId, temperatureTagId, weatherTagId, userId, pageable);
+        Slice<Board> boards = boardRepository.getFilteredAndSortedResults(seasonTagIds, temperatureTagId, weatherTagIds, userId, pageable);
 
         return BoardMapper.toBoardHomeResponseSliceDto(boards);
     }
