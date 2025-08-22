@@ -37,6 +37,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -61,10 +64,10 @@ public class BoardService {
      * @throws
      */
     @Transactional(readOnly = true)
-    public Slice<BoardHomeResponseDto> getFilteredAndSortedBoards(Long seasonTagId, Long temperatureTagId, Long weatherTagId, Integer size) {
+    public Slice<BoardHomeResponseDto> getFilteredAndSortedBoards(List<Long> seasonTagIds, Long temperatureTagId, List<Long> weatherTagIds, Integer size) {
         Long userId = SecurityUtil.getCurrentUserId();
         Pageable pageable = PageRequest.of(0, size);
-        Slice<Board> boards = boardRepository.getFilteredAndSortedResults(seasonTagId, temperatureTagId, weatherTagId, userId, pageable);
+        Slice<Board> boards = boardRepository.getFilteredAndSortedResults(seasonTagIds, temperatureTagId, weatherTagIds, userId, pageable);
 
         return BoardMapper.toBoardHomeResponseSliceDto(boards);
     }
@@ -97,6 +100,23 @@ public class BoardService {
     public BoardResponseDto createPost(List<MultipartFile> images, BoardCreateRequestDto postData) {
 
         User user = getAuthenticatedUser();
+
+        LocalDate today = LocalDate.now();
+        LocalDateTime start = today.atStartOfDay();
+        LocalDateTime end = today.atTime(LocalTime.MAX);
+
+        boolean exists = boardRepository.existsByUserAndIsPublicAndCreatedAtBetween(
+                user, postData.isPublic(), start, end
+        );
+
+        if (exists) {
+            if(postData.isPublic()) {
+                throw new BusinessException(BoardErrorCode.ALREADY_POSTED_PUBLICLY);
+            }
+            else{
+                throw new BusinessException(BoardErrorCode.ALREADY_POSTED_PRIVATELY);
+            }
+        }
 
         // 날씨 태그 조회
         SeasonTag seasonTag = seasonRepository.findById(postData.seasonTagId())

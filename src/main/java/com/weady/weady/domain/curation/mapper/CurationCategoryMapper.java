@@ -34,6 +34,7 @@ public class CurationCategoryMapper {
                 .map(curation -> CurationDto.builder()
                         .curationId(curation.getId())
                         .curationTitle(curation.getTitle())
+                        .bannerImgUrl(curation.getBannerImgUrl())
                         .backgroundImgUrl(curation.getBackgroundImgUrl())
                         .build())
                 .collect(Collectors.toList());

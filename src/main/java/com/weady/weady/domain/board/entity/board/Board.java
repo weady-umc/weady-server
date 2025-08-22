@@ -97,7 +97,6 @@ public class Board extends BaseEntity {
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BoardGood> boardGoodList = new ArrayList<>();
 
-    @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
@@ -109,6 +108,8 @@ public class Board extends BaseEntity {
         this.seasonTag = seasonTag;
         this.temperatureTag = temperatureTag;
         this.weatherTag = weatherTag;
+        this.updatedAt = LocalDateTime.now();
+
     }
 
 
