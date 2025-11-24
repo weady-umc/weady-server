@@ -1,14 +1,14 @@
 package com.weady.weady.domain.weather.service;
 
-import com.weady.weady.domain.location.entity.Location;
-import com.weady.weady.domain.location.repository.LocationRepository;
+import com.weady.weady.domain.location.entity.GridLocation; // [NEW]
 import com.weady.weady.domain.weather.entity.LocationWeatherShortDetail;
 import com.weady.weady.domain.weather.entity.LocationWeatherSnapshot;
 import com.weady.weady.domain.weather.entity.SkyCode;
+import com.weady.weady.domain.weather.repository.GridLocationRepository;
 import com.weady.weady.domain.weather.repository.LocationWeatherSnapshotRepository;
 import com.weady.weady.domain.weather.repository.WeatherShortDetailRepository;
-import jakarta.persistence.EntityManager;                                // [NEW] flush/clear용
-import jakarta.persistence.PersistenceContext;                          // [NEW]
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,12 +26,12 @@ import java.util.stream.Collectors;
 public class SnapshotSchedulerService {
 
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
-    private static final int CHUNK_SIZE = 800;                          // (기존 유지)
+    private static final int CHUNK_SIZE = 800;
     private static final int SAVE_BATCH_SIZE = 1000;
     private static final int HOURS_PER_DAY = 24;
     private static final int DELETE_BATCH_LIMIT = 20000;
 
-    private final LocationRepository locationRepository;
+    private final GridLocationRepository gridLocationRepository; // [CHANGED] LocationRepo -> GridLocationRepo
     private final WeatherShortDetailRepository detailRepository;
     private final LocationWeatherSnapshotRepository snapshotRepository;
     private final TransactionTemplate tx;
@@ -39,10 +39,6 @@ public class SnapshotSchedulerService {
     @PersistenceContext
     private EntityManager em;
 
-
-
-    /** 매일 23:25: 지난 스냅샷 정리 + 내일(00~23) 스냅샷 업서트 */
-    /** 기존: 내일자 전용 */
     public void buildNextDaySnapshots() {
         long start = System.currentTimeMillis();
         LocalDate todayKst = LocalDate.now(KST);
@@ -69,30 +65,39 @@ public class SnapshotSchedulerService {
         log.info("스냅샷 완료(target={}): 소요 {}ms", target, (System.currentTimeMillis() - start));
     }
 
-    /** target(yyyyMMdd) 기준으로 스냅샷 업서트하는 공통 구현 */
+    /** target(yyyyMMdd) 기준으로 GridLocation 단위 스냅샷 업서트 */
     private void buildSnapshotsForDateInternal(int targetYmd) {
-        List<Long> allLocationIds = locationRepository.findAll().stream()
-                .map(Location::getId)
+        // [CHANGED] Location 대신 GridLocation 전체 조회
+        List<GridLocation> allGrids = gridLocationRepository.findAll();
+        List<Long> allGridIds = allGrids.stream()
+                .map(GridLocation::getId)
                 .toList();
-        if (allLocationIds.isEmpty()) {
-            log.warn("스냅샷 대상 Location이 없습니다.");
+
+        if (allGridIds.isEmpty()) {
+            log.warn("스냅샷 대상 GridLocation이 없습니다.");
             return;
         }
 
-        int total = allLocationIds.size();
+        int total = allGridIds.size();
         int processed = 0;
         int totalInserts = 0;
         int totalUpdates = 0;
 
-        for (int i = 0; i < allLocationIds.size(); i += CHUNK_SIZE) {
-            List<Long> chunk = allLocationIds.subList(i, Math.min(i + CHUNK_SIZE, total));
+        for (int i = 0; i < total; i += CHUNK_SIZE) {
+            List<Long> chunkIds = allGridIds.subList(i, Math.min(i + CHUNK_SIZE, total));
 
             long t0 = System.currentTimeMillis();
-            List<LocationWeatherSnapshot> existing = snapshotRepository.findByLocationIdsAndDate(chunk, targetYmd); // [CHANGED] tomorrow → targetYmd
-            Map<String, LocationWeatherSnapshot> existingMap = existing.stream()
-                    .collect(Collectors.toMap(s -> key(s.getLocation().getId(), s.getDate(), s.getTime()), s -> s));
 
-            List<LocationWeatherShortDetail> details = detailRepository.findByLocationIdsAndDate(chunk, targetYmd); // [CHANGED] tomorrow → targetYmd
+            // [CHANGED] Repository 메서드 변경 (findByLocationIds -> findByGridLocationIdIn)
+            List<LocationWeatherSnapshot> existing = snapshotRepository.findByGridLocationIdInAndDate(chunkIds, targetYmd);
+
+            // Key 생성 로직 변경: LocationId -> GridLocationId
+            Map<String, LocationWeatherSnapshot> existingMap = existing.stream()
+                    .collect(Collectors.toMap(s -> key(s.getGridLocation().getId(), s.getDate(), s.getTime()), s -> s));
+
+            // [CHANGED] Repository 메서드 변경
+            List<LocationWeatherShortDetail> details = detailRepository.findByGridLocationIdInAndDate(chunkIds, targetYmd);
+
             long t1 = System.currentTimeMillis();
 
             List<LocationWeatherSnapshot> toInsert = new ArrayList<>(details.size());
@@ -105,11 +110,13 @@ public class SnapshotSchedulerService {
                 Integer pty = mapPtyToInt(d.getSkyCode());
                 Integer sky = mapSkyToInt(d.getSkyCode());
 
-                String k = key(d.getLocation().getId(), d.getDate(), d.getTime());
+                // Key 생성: GridLocationId 사용
+                String k = key(d.getGridLocation().getId(), d.getDate(), d.getTime());
                 LocationWeatherSnapshot snap = existingMap.get(k);
+
                 if (snap == null) {
                     snap = LocationWeatherSnapshot.builder()
-                            .location(d.getLocation())
+                            .gridLocation(d.getGridLocation()) // [CHANGED] location -> gridLocation
                             .observationDate(d.getObservationDate())
                             .observationTime(d.getObservationTime())
                             .date(d.getDate())
@@ -140,7 +147,7 @@ public class SnapshotSchedulerService {
 
             int ins = 0, upd = 0;
             if (!toInsert.isEmpty() || !toUpdate.isEmpty()) {
-                int[] res = persistBatches(toInsert, toUpdate);              // [NEW] 기존 최적화 재사용
+                int[] res = persistBatches(toInsert, toUpdate);
                 ins = res[0];
                 upd = res[1];
             }
@@ -148,7 +155,7 @@ public class SnapshotSchedulerService {
 
             totalInserts += ins;
             totalUpdates += upd;
-            processed += chunk.size();
+            processed += chunkIds.size();
 
             if (processed % 1000 == 0 || processed == total) {
                 log.info("스냅샷(target={}) 진행 {}/{}  select={}ms, build={}ms, save={}ms  (이번: insert {}, update {} / 누적: insert {}, update {})",
@@ -158,8 +165,6 @@ public class SnapshotSchedulerService {
         }
     }
 
-
-    // [NEW] LIMIT로 잘라 배치 삭제 (대량 데이터에서도 OOM/락 부담 완화)
     private int purgeOldSnapshotsInBatches(int cutoffDate) {
         int deletedTotal = 0;
         while (true) {
@@ -170,7 +175,6 @@ public class SnapshotSchedulerService {
         return deletedTotal;
     }
 
-    // [NEW] saveAll을 소배치로 실행하면서 flush/clear로 1차캐시/메모리 압박 완화
     private int[] persistBatches(List<LocationWeatherSnapshot> toInsert, List<LocationWeatherSnapshot> toUpdate) {
         int inserted = 0;
         int updated = 0;
@@ -205,10 +209,11 @@ public class SnapshotSchedulerService {
         return new int[]{inserted, updated};
     }
 
-    private static String key(Long locId, Integer date, Integer time) {
-        return locId + "-" + date + "-" + time;
+    private static String key(Long gridLocId, Integer date, Integer time) {
+        return gridLocId + "-" + date + "-" + time;
     }
 
+    // ... (mapPtyToInt, mapSkyToInt, deriveFeelsLike 등 helper 메서드는 기존과 동일하여 생략 가능하나, 필요시 그대로 유지)
     private static Integer mapPtyToInt(SkyCode sc) {
         if (sc == null) return 0;
         switch (sc) {
@@ -258,11 +263,10 @@ public class SnapshotSchedulerService {
 
     private static float heatIndexC(float tC, float rhPct) {
         double tF = cToF(tC);
-        double hiF =
-                -42.379 + 2.04901523*tF + 10.14333127*rhPct
-                        - 0.22475541*tF*rhPct - 0.00683783*tF*tF - 0.05481717*rhPct*rhPct
-                        + 0.00122874*tF*tF*rhPct + 0.00085282*tF*rhPct*rhPct
-                        - 0.00000199*tF*tF*rhPct*rhPct;
+        double hiF = -42.379 + 2.04901523*tF + 10.14333127*rhPct
+                - 0.22475541*tF*rhPct - 0.00683783*tF*tF - 0.05481717*rhPct*rhPct
+                + 0.00122874*tF*tF*rhPct + 0.00085282*tF*rhPct*rhPct
+                - 0.00000199*tF*tF*rhPct*rhPct;
 
         if (rhPct < 13 && tF >= 80 && tF <= 112) {
             hiF -= ((13 - rhPct) / 4.0) * Math.sqrt((17 - Math.abs(tF - 95.0)) / 17.0);

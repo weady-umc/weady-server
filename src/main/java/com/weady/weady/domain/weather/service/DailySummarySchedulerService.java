@@ -21,9 +21,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,8 +31,7 @@ public class DailySummarySchedulerService {
 
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
-    // 임계값
-    private static final int DAY_START = 9, DAY_END = 21; // 09~21
+    private static final int DAY_START = 9, DAY_END = 21;
     private static final float POP_RAIN = 60f;
     private static final float WINDY_MS = 8f;
     private static final int RAIN_SNOW_MIN_EFFECTIVE_HOURS = 4;
@@ -49,7 +46,6 @@ public class DailySummarySchedulerService {
     private final SeasonRepository seasonTagRepo;
     private final TransactionTemplate tx;
 
-
     public void buildForSchedulerWindow() {
         LocalTime cutoff = LocalTime.of(1, 0);
         java.time.ZonedDateTime now = java.time.ZonedDateTime.now(KST);
@@ -60,7 +56,6 @@ public class DailySummarySchedulerService {
         buildDailySummary(target);
     }
 
-    // 오늘(로컬 KST) 스냅샷을 기준으로 오늘자 DailySummary 생성(수동 복구용)
     public void buildForToday() {
         buildDailySummary(LocalDate.now(KST));
     }
@@ -70,79 +65,87 @@ public class DailySummarySchedulerService {
 
         LocalDate todayKst = LocalDate.now(KST);
         int purged = tx.execute(status -> summaryRepo.deleteByReportDateBefore(todayKst));
-        log.info("DailySummary 정리: {}건 삭제(date < {})", purged, todayKst);
+        log.info("DailySummary purged: {}", purged);
 
-        List<Location> locs = locationRepo.findAll();
-        if (locs.isEmpty()) return;
+        List<Location> allLocations = locationRepo.findAll();
+        if (allLocations.isEmpty()) return;
 
-        // 태그 캐시
+        Map<Long, List<Location>> gridToLocations = allLocations.stream()
+                .filter(l -> l.getGridLocation() != null)
+                .collect(Collectors.groupingBy(l -> l.getGridLocation().getId()));
+
+        List<Long> allGridIds = new ArrayList<>(gridToLocations.keySet());
+
         Map<String, WeatherTag> wtag = weatherTagRepo.findAll().stream()
                 .collect(Collectors.toMap(WeatherTag::getName, x -> x));
         List<TemperatureTag> ttags = tempTagRepo.findAll();
         Map<String, SeasonTag> stag = seasonTagRepo.findAll().stream()
                 .collect(Collectors.toMap(SeasonTag::getName, x -> x));
 
-        // 청크 처리
         final int CHUNK = 800;
-        int total = locs.size(), processed = 0, ins = 0, upd = 0;
+        int totalGrids = allGridIds.size();
+        int processedGrids = 0, ins = 0, upd = 0;
 
-        for (int i = 0; i < total; i += CHUNK) {
-            List<Location> chunk = locs.subList(i, Math.min(i + CHUNK, total));
-            List<Long> ids = chunk.stream().map(Location::getId).toList();
-            // 스냅샷 조회 (00~23시, date 기준)
-            List<LocationWeatherSnapshot> snaps = snapRepo.findByLocationIdsAndDate(ids, toInt(date));
+        for (int i = 0; i < totalGrids; i += CHUNK) {
+            List<Long> chunkGridIds = allGridIds.subList(i, Math.min(i + CHUNK, totalGrids));
 
-            // locId -> 24시간 맵
-            Map<Long, List<LocationWeatherSnapshot>> byLoc = snaps.stream()
-                    .collect(Collectors.groupingBy(s -> s.getLocation().getId()));
+            List<LocationWeatherSnapshot> snaps = snapRepo.findByGridLocationIdInAndDate(chunkGridIds, toInt(date));
 
-            for (Location loc : chunk) {
-                List<LocationWeatherSnapshot> day = byLoc.getOrDefault(loc.getId(), List.of());
-                DailySummary ds = summarizeOne(loc, date, day, wtag, ttags, stag);
-                if (ds == null) continue;
+            Map<Long, List<LocationWeatherSnapshot>> byGrid = snaps.stream()
+                    .collect(Collectors.groupingBy(s -> s.getGridLocation().getId()));
 
-                int changed = tx.execute(status -> {
-                    DailySummary old = summaryRepo.findByLocationIdAndReportDate(loc.getId(), date).orElse(null);
-                    if (old == null) { summaryRepo.save(ds); return 1; }
-                    // update
-                    old.setSeasonTag(ds.getSeasonTag());
-                    old.setWeatherTag(ds.getWeatherTag());
-                    old.setTemperatureTag(ds.getTemperatureTag());
-                    old.setFeelsLikeTmx(ds.getFeelsLikeTmx());
-                    old.setFeelsLikeTmn(ds.getFeelsLikeTmn());
-                    old.setActualTmx(ds.getActualTmx());
-                    old.setActualTmn(ds.getActualTmn());
-                    old.setReportDate(ds.getReportDate());
-                    return 2;
-                });
-                if (changed == 1) ins++; else if (changed == 2) upd++;
+            for (Long gridId : chunkGridIds) {
+                List<LocationWeatherSnapshot> day = byGrid.getOrDefault(gridId, List.of());
+                if (day.isEmpty()) continue;
+
+                DailySummary baseDs = calculateSummary(date, day, wtag, ttags, stag);
+                if (baseDs == null) continue;
+
+                List<Location> targetLocations = gridToLocations.get(gridId);
+                if (targetLocations == null) continue;
+
+                for (Location loc : targetLocations) {
+                    int changed = tx.execute(status -> {
+                        DailySummary old = summaryRepo.findByLocationIdAndReportDate(loc.getId(), date).orElse(null);
+                        if (old == null) {
+                            DailySummary newDs = cloneSummaryForLocation(baseDs, loc);
+                            summaryRepo.save(newDs);
+                            return 1;
+                        }
+                        old.setSeasonTag(baseDs.getSeasonTag());
+                        old.setWeatherTag(baseDs.getWeatherTag());
+                        old.setTemperatureTag(baseDs.getTemperatureTag());
+                        old.setFeelsLikeTmx(baseDs.getFeelsLikeTmx());
+                        old.setFeelsLikeTmn(baseDs.getFeelsLikeTmn());
+                        old.setActualTmx(baseDs.getActualTmx());
+                        old.setActualTmn(baseDs.getActualTmn());
+                        return 2;
+                    });
+                    if (changed == 1) ins++; else if (changed == 2) upd++;
+                }
             }
-
-            processed += chunk.size();
-            log.info("DailySummary 진행 {}/{}", processed, total);
+            processedGrids += chunkGridIds.size();
+            log.info("DailySummary Grid Progress {}/{}", processedGrids, totalGrids);
         }
-        log.info("DailySummary 완료: insert={}, update={}, 소요={}ms", ins, upd, (System.currentTimeMillis() - t0));
+        log.info("DailySummary Completed: insert={}, update={}, time={}ms", ins, upd, (System.currentTimeMillis() - t0));
     }
 
-    private DailySummary summarizeOne(
-            Location loc, LocalDate date, List<LocationWeatherSnapshot> list,
+    private DailySummary calculateSummary(
+            LocalDate date, List<LocationWeatherSnapshot> list,
             Map<String, WeatherTag> wtag, List<TemperatureTag> ttags, Map<String, SeasonTag> stag) {
 
         if (list.isEmpty()) return null;
 
-        // 시간별 정렬
         list.sort(Comparator.comparing(LocationWeatherSnapshot::getTime));
 
-        // 집계 버킷
         float sumPcp = 0f;
         float actualMax = Float.NEGATIVE_INFINITY, actualMin = Float.POSITIVE_INFINITY;
         float feelMax = Float.NEGATIVE_INFINITY, feelMin = Float.POSITIVE_INFINITY;
 
-        // 시간별 플래그 & 가중치
         boolean[] rainCand = new boolean[24];
         boolean[] snowCand = new boolean[24];
         boolean[] windyCand = new boolean[24];
-        int[] skyCode = new int[24]; // 0이면 없음
+        int[] skyCode = new int[24];
         float[] weight = new float[24];
 
         for (LocationWeatherSnapshot s : list) {
@@ -179,19 +182,15 @@ public class DailySummarySchedulerService {
             snowCand[hh] = isSnow;
             windyCand[hh] = isWindy;
 
-            // 강수/강풍 아닌 시간만 sky 집계 후보
             if (!isRain && !isSnow && !isWindy && sky != null) {
-                // SKY: 1=맑음, 3=구름많음, 4=흐림
                 if (sky == 1 || sky == 3 || sky == 4) skyCode[hh] = sky;
             }
         }
 
-        // A+B 혼합: 연속조건 적용 후 '유효 가중시간' 계산
         float rainEff = effectiveWeightedHours(rainCand, weight);
         float snowEff = effectiveWeightedHours(snowCand, weight);
         float windyEff = effectiveWeightedHours(windyCand, weight);
 
-        // 태그 결정 (우선순위: 눈 > 비 > 바람 > 하늘)
         WeatherTag chosenWeather;
         if (snowEff >= RAIN_SNOW_MIN_EFFECTIVE_HOURS) {
             chosenWeather = wtag.get("눈 오는 날");
@@ -200,7 +199,6 @@ public class DailySummarySchedulerService {
         } else if (windyEff >= WINDY_MIN_EFFECTIVE_HOURS) {
             chosenWeather = wtag.get("바람 많은 날");
         } else {
-            // SKY 가중 점유율
             float wClear = 0, wPCloudy = 0, wCloudy = 0, wTotal = 0;
             for (int h = 0; h < 24; h++) {
                 if (skyCode[h] == 0) continue;
@@ -221,14 +219,11 @@ public class DailySummarySchedulerService {
                 chosenWeather = wtag.get("흐린 날");
         }
 
-        // 온도 요약
         Float feelsLikeAvgDay = averageFeelDaytime(list);
         TemperatureTag chosenTempTag = mapTempTag(feelsLikeAvgDay, ttags);
-
         SeasonTag chosenSeason = mapSeasonTag(date.getMonthValue(), stag);
 
-        DailySummary ds = DailySummary.builder()
-                .location(loc)
+        return DailySummary.builder()
                 .reportDate(date)
                 .seasonTag(chosenSeason)
                 .weatherTag(chosenWeather)
@@ -238,11 +233,22 @@ public class DailySummarySchedulerService {
                 .actualTmx(finiteOrNull(actualMax))
                 .actualTmn(finiteOrNull(actualMin))
                 .build();
-
-        return ds;
     }
 
-    /** 연속조건(A+B) 반영 후 유효 '가중' 시간 합 */
+    private DailySummary cloneSummaryForLocation(DailySummary base, Location loc) {
+        return DailySummary.builder()
+                .location(loc)
+                .reportDate(base.getReportDate())
+                .seasonTag(base.getSeasonTag())
+                .weatherTag(base.getWeatherTag())
+                .temperatureTag(base.getTemperatureTag())
+                .feelsLikeTmx(base.getFeelsLikeTmx())
+                .feelsLikeTmn(base.getFeelsLikeTmn())
+                .actualTmx(base.getActualTmx())
+                .actualTmn(base.getActualTmn())
+                .build();
+    }
+
     private float effectiveWeightedHours(boolean[] cand, float[] w) {
         float sum = 0f;
         int run = 0;
@@ -251,8 +257,6 @@ public class DailySummarySchedulerService {
             if (on) run++;
             if (!on || h == 24) {
                 if (run > 0) {
-                    // 해당 구간이 주간/야간 혼재 가능 → 시간별 문턱 적용
-                    // 시간별로 다시 보면서, 주간2/야간3 연속 충족한 시간만 가중 합산
                     for (int s = h - run; s < h; s++) {
                         int dayNeed = (s >= DAY_START && s < DAY_END) ? 2 : 3;
                         int len = contiguousLenAt(cand, s);
@@ -282,7 +286,6 @@ public class DailySummarySchedulerService {
             wsum += 1f;
         }
         if (wsum == 0f) {
-            // 24h 평균 fallback
             for (LocationWeatherSnapshot s : list) {
                 if (s.getFeelTmp() == null) continue;
                 sum += s.getFeelTmp();
@@ -297,10 +300,8 @@ public class DailySummarySchedulerService {
         for (TemperatureTag t : ttags) {
             float min = t.getMinTemperature();
             float max = t.getMaxTemperature();
-            // 하한 포함, 상한 미포함(마지막 구간은 max=+∞처럼 등록되어 있어도 OK)
             if (avgFeel >= min && avgFeel < max) return t;
         }
-        // 경계값 처리
         return ttags.stream().min(Comparator.comparing(TemperatureTag::getMinTemperature)).orElse(null);
     }
 
