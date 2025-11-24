@@ -1,0 +1,25 @@
+package com.weady.weady.domain.board.entity.board;
+
+import com.weady.weady.domain.user.entity.User;
+import com.weady.weady.common.entity.BaseEntity;
+import jakarta.persistence.*;
+import lombok.*;
+
+@Entity
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
+@Getter
+public class BoardHidden extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Board board;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private User user;
+
+}

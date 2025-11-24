@@ -1,0 +1,33 @@
+name: "🔧 Refactor"
+description: "코드/구조 리팩토링 작업"
+labels: ["refactor"]
+body:
+  - type: textarea
+    attributes:
+      label: 📄 설명
+      description: 리팩토링 목적·범위·기대 효과 등을 작성해 주세요.
+      placeholder: 예) 성능 개선, 가독성 향상, 기술 부채 해소 등
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: ✅ 작업할 내용
+      description: 세부 작업을 체크리스트 형태로 작성해 주세요.
+      placeholder: |
+        - [ ] 불필요한 메서드 삭제
+        - [ ] 네이밍 규칙 통일
+        - [ ] 테스트 코드 추가
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: ⚠️ 고려 사항
+      description: 영향 범위, 리스크, 테스트 포인트 등을 정리해 주세요.
+      placeholder: 예) API 스펙 변경, 의존 모듈 영향, 성능 측정 필요 등
+
+  - type: textarea
+    attributes:
+      label: 🙋🏻 참고 자료
+      description: 관련 문서·링크·이슈 등을 첨부해 주세요.

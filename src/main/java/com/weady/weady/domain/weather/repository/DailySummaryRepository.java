@@ -1,0 +1,39 @@
+package com.weady.weady.domain.weather.repository;
+
+import com.weady.weady.domain.weather.entity.DailySummary;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+public interface DailySummaryRepository extends JpaRepository<DailySummary, Long> {
+  
+    Optional<DailySummary> findByLocationId(Long locationId);
+
+  
+    @Query("""
+        select ds
+        from DailySummary ds
+        join fetch ds.seasonTag st
+        join fetch ds.weatherTag wt
+        join fetch ds.temperatureTag tt
+        where ds.location.id = :locationId
+          and ds.reportDate = :reportDate
+    """)
+    Optional<DailySummary> findByLocationIdAndReportDateWithTags(@Param("locationId") Long locationId,
+                                                                 @Param("reportDate") LocalDate reportDate);
+
+
+    Optional<DailySummary> findByLocationIdAndReportDate(Long locationId, LocalDate reportDate);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Transactional
+    int deleteByReportDateBefore(LocalDate date);
+
+}

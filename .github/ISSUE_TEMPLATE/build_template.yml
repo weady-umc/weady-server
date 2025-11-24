@@ -1,0 +1,45 @@
+name: "🏗️ Build / CI"
+description: "빌드·배포 파이프라인 개선 또는 오류 수정"
+labels: ["build"]
+body:
+  - type: textarea
+    attributes:
+      label: 📄 설명
+      description: 문제 상황 또는 개선 목표를 작성해 주세요.
+      placeholder: |
+        예) GitHub Actions 캐시 미사용으로 빌드 지연  
+        예) Docker 이미지 크기 최적화 필요
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: 🛠️ 환경 정보
+      description: 빌드 도구·런타임·CI 플랫폼 버전을 명시해 주세요.
+      placeholder: |
+        - OS: Ubuntu 22.04
+        - JDK: Temurin 17
+        - Node: 20.10
+        - CI: GitHub Actions (`ubuntu-latest`)
+
+  - type: textarea
+    attributes:
+      label: ✅ 작업할 내용
+      description: 세부 작업을 체크리스트로 작성해 주세요.
+      placeholder: |
+        - [ ] `build.yml`에 캐시 설정 추가
+        - [ ] Multi-stage Docker build 적용
+        - [ ] Slack 알림 비활성 워크플로 수정
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: ⚠️ 영향 범위 및 리스크
+      description: 다른 서비스/모듈에 미칠 영향, 롤백 방안 등을 명시해 주세요.
+      placeholder: 예) 이미지 태그 변경 시 배포 스크립트 수정 필요 등
+
+  - type: textarea
+    attributes:
+      label: 🙋🏻 참고 자료
+      description: 로그, 오류 메시지, 관련 문서 링크 등을 첨부해 주세요.
